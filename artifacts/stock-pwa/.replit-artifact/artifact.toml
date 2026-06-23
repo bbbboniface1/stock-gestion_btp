@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "StockBTP — Gestion de Stock"
+version = "1.0.0"
+id = "artifacts/stock-pwa"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22753
+
+[services.development]
+run = "pnpm --filter @workspace/stock-pwa run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stock-pwa", "run", "build" ]
+publicDir = "artifacts/stock-pwa/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22753"
+BASE_PATH = "/"
