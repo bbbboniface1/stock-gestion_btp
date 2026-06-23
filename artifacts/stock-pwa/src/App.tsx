@@ -19,6 +19,7 @@ import UsersPage from "@/pages/users";
 import SettingsPage from "@/pages/settings";
 import ReportsPage from "@/pages/reports";
 import AuditPage from "@/pages/audit";
+import ScanPage from "@/pages/scan";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
