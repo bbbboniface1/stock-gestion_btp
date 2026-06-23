@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Package, ArrowRightLeft, LayoutGrid, Users, Settings, LogOut,
-  FileText, HardHat, FileDown, ClipboardList, Menu, MoreHorizontal,
+  FileText, HardHat, FileDown, ClipboardList, Menu, MoreHorizontal, QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -226,6 +226,19 @@ function MobileBottomNav() {
   );
 }
 
+function ScanFAB() {
+  const [, setLocation] = useLocation();
+  return (
+    <button
+      onClick={() => setLocation("/scan")}
+      className="md:hidden fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform"
+      aria-label="Scanner QR code"
+    >
+      <QrCode className="h-6 w-6" />
+    </button>
+  );
+}
+
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
   if (!token) return <Redirect to="/login" />;
@@ -242,6 +255,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
       <MobileBottomNav />
+      <ScanFAB />
     </SidebarProvider>
   );
 }
