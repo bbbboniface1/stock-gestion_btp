@@ -1,0 +1,164 @@
+Tu es un Senior Full-Stack Engineer + Software Architect spécialisé dans les applications SaaS et Progressive Web Apps (PWA) robustes en production.
+Ton objectif est de générer une application PWA complète de gestion de stock pour une entreprise de construction et aménagement de conteneurs.
+
+🧠 OBJECTIF BUSINESS
+
+Construire une application fiable permettant de :
+
+gérer les stocks de matériaux et outils
+suivre les entrées et sorties de stock en temps réel
+associer les matériaux à des projets de conteneurs
+éviter toute perte ou confusion de stock
+fonctionner même avec connexion faible (terrain)
+⚙️ CONTRAINTES TECHNIQUES OBLIGATOIRES
+🌐 Type d’application
+Progressive Web App (PWA)
+installable sur mobile et desktop
+fonctionne offline partiellement
+synchronisation automatique dès retour réseau
+🧱 Architecture
+Frontend : React (ou Next.js)
+Backend : Supabase (PostgreSQL + Auth + API auto)
+ORM optionnel : Prisma si nécessaire
+State management : Zustand ou Redux Toolkit
+API : Supabase auto-generated queries
+🗄️ BASE DE DONNÉES (STRICT SCHEMA)
+
+Créer une base relationnelle propre avec intégrité des données.
+
+Users
+id (UUID, PK)
+full_name
+email (unique)
+role (admin | manager | worker)
+created_at
+Products
+id (UUID)
+name (string, required)
+category (string indexée)
+unit (kg, m, litre, piece)
+quantity_in_stock (integer, default 0)
+minimum_threshold (integer)
+location (warehouse | site | project)
+created_at
+updated_at
+StockMovements
+id
+product_id (FK Products)
+type (IN | OUT)
+quantity (integer > 0)
+reason (text)
+project_id (nullable FK Projects)
+created_by (FK Users)
+created_at
+
+⚠️ Règle critique :
+
+quantity_in_stock doit être mis à jour automatiquement via trigger ou logique backend
+empêcher stock négatif
+Projects
+id
+name
+client_name (optional)
+status (active | completed | paused)
+start_date
+end_date
+ProjectMaterials
+id
+project_id
+product_id
+quantity_used
+🔒 LOGIQUE MÉTIER (CRITIQUE)
+Gestion du stock
+Toute sortie (OUT) réduit automatiquement le stock
+Toute entrée (IN) augmente le stock
+Interdire OUT si quantity > stock disponible
+Logger chaque modification dans StockMovements
+Permissions (RBAC)
+Admin :
+accès total
+peut supprimer produits
+Manager :
+gérer stock + projets
+pas suppression définitive
+Worker :
+uniquement ajout de mouvements OUT/IN
+📱 PWA REQUIREMENTS (TRÈS IMPORTANT)
+Installabilité
+manifest.json configuré correctement
+icônes app (192x192 + 512x512)
+mode standalone
+Offline mode
+cache des pages principales (stock, projets)
+stockage local (IndexedDB ou localStorage fallback)
+queue des actions offline → sync automatique
+Service Worker
+cache API responses
+stratégie stale-while-revalidate
+retry sync si échec réseau
+📊 FONCTIONNALITÉS UI
+Dashboard
+stock total
+produits critiques (stock < minimum_threshold)
+mouvements récents
+projets actifs
+Stock
+liste produits
+recherche instantanée
+filtres catégorie / stock faible
+bouton rapide “entrée / sortie”
+Mouvements
+historique complet
+filtres date / produit / projet
+Projets
+création projet
+ajout matériaux utilisés
+suivi consommation
+🔐 AUTHENTIFICATION
+email/password (Supabase Auth)
+session persistante
+protection routes
+redirection login automatique
+🧪 QUALITÉ LOGICIELLE (OBLIGATOIRE)
+Code quality
+architecture modulaire
+séparation UI / services / DB layer
+validation des données côté frontend + backend
+Error handling
+gestion erreurs réseau
+messages utilisateur clairs
+retry automatique sur sync fail
+Performance
+pagination listes
+lazy loading
+optimisation requêtes DB
+📦 SEED DATA
+
+Créer automatiquement :
+
+10 produits exemples
+2 projets test
+5 utilisateurs test
+20 mouvements de stock simulés
+📊 BONUS FEATURES (si possible)
+scan QR code pour produits
+export CSV / Excel du stock
+alertes stock faible
+mode multi-entrepôts
+tableau analytics simple
+🎯 LIVRABLE FINAL ATTENDU
+
+Une PWA totalement fonctionnelle comprenant :
+
+frontend responsive (mobile + desktop)
+backend Supabase connecté
+base de données relationnelle propre
+gestion stock complète sans bug logique
+mode offline opérationnel
+sécurité par rôles
+prête à être utilisée en entreprise réelle
+⚠️ RÈGLE ABSOLUE
+
+Ne pas générer un prototype incomplet.
+Ne pas simplifier la logique métier.
+Priorité : robustesse + cohérence + absence d’incohérences de stock.
