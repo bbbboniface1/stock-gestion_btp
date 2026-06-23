@@ -131,7 +131,7 @@ export default function ProjectDetail() {
                 <form onSubmit={form.handleSubmit(onSubmitMaterial)} className="space-y-4">
                   <FormField control={form.control} name="productId" render={({ field }) => (
                     <FormItem><FormLabel className="uppercase text-xs">Produit</FormLabel>
-                      <Select onValueChange={val => field.onChange(parseInt(val))} value={String(field.value)}>
+                      <Select onValueChange={val => field.onChange(parseInt(val))} value={field.value > 0 ? String(field.value) : undefined}>
                         <FormControl><SelectTrigger className="bg-background" data-testid="select-material-product"><SelectValue placeholder="Choisir un produit" /></SelectTrigger></FormControl>
                         <SelectContent>
                           {products?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.quantityInStock} {p.unit} dispo)</SelectItem>)}

@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ArrowUp, ArrowDown } from "lucide-react";
 
+const NONE_PROJECT = "__none__";
+
 const schema = z.object({
   productId: z.coerce.number().min(1, "Produit requis"),
   type: z.enum(["IN", "OUT"]),
@@ -47,7 +49,7 @@ export default function MovementDialog({ open, onClose, productId, productName, 
       type: initialType,
       quantity: 1,
       reason: "",
-      projectId: "",
+      projectId: NONE_PROJECT,
     },
   });
 
@@ -58,13 +60,14 @@ export default function MovementDialog({ open, onClose, productId, productName, 
 
   const onSubmit = (values: z.infer<typeof schema>) => {
     if (!me) { toast({ variant: "destructive", title: "Non authentifié" }); return; }
+    const resolvedProjectId = values.projectId && values.projectId !== NONE_PROJECT ? parseInt(values.projectId) : null;
     createMovement.mutate({
       data: {
         productId: values.productId,
         type: values.type,
         quantity: values.quantity,
         reason: values.reason,
-        projectId: values.projectId ? parseInt(values.projectId) : null,
+        projectId: resolvedProjectId,
         createdById: me.id,
       },
     }, {
@@ -100,11 +103,13 @@ export default function MovementDialog({ open, onClose, productId, productName, 
             <FormField control={form.control} name="type" render={({ field }) => (
               <FormItem><FormLabel className="uppercase text-xs">Type de mouvement</FormLabel>
                 <div className="flex gap-2">
-                  <Button type="button" variant={field.value === "IN" ? "default" : "outline"} className="flex-1 uppercase font-bold text-xs bg-green-500/15 border-green-500/30 text-green-500 hover:bg-green-500/25 data-[active=true]:bg-green-500 data-[active=true]:text-white"
+                  <Button type="button" variant={field.value === "IN" ? "default" : "outline"}
+                    className="flex-1 uppercase font-bold text-xs bg-green-500/15 border-green-500/30 text-green-500 hover:bg-green-500/25 data-[active=true]:bg-green-500 data-[active=true]:text-white"
                     data-active={field.value === "IN"} onClick={() => field.onChange("IN")} data-testid="button-type-in">
                     <ArrowUp className="h-4 w-4 mr-1" /> Entrée IN
                   </Button>
-                  <Button type="button" variant={field.value === "OUT" ? "default" : "outline"} className="flex-1 uppercase font-bold text-xs bg-orange-500/15 border-orange-500/30 text-orange-500 hover:bg-orange-500/25 data-[active=true]:bg-orange-500 data-[active=true]:text-white"
+                  <Button type="button" variant={field.value === "OUT" ? "default" : "outline"}
+                    className="flex-1 uppercase font-bold text-xs bg-orange-500/15 border-orange-500/30 text-orange-500 hover:bg-orange-500/25 data-[active=true]:bg-orange-500 data-[active=true]:text-white"
                     data-active={field.value === "OUT"} onClick={() => field.onChange("OUT")} data-testid="button-type-out">
                     <ArrowDown className="h-4 w-4 mr-1" /> Sortie OUT
                   </Button>
@@ -115,8 +120,15 @@ export default function MovementDialog({ open, onClose, productId, productName, 
             {!productId && (
               <FormField control={form.control} name="productId" render={({ field }) => (
                 <FormItem><FormLabel className="uppercase text-xs">Produit</FormLabel>
-                  <Select onValueChange={val => field.onChange(parseInt(val))} value={String(field.value)}>
-                    <FormControl><SelectTrigger className="bg-background" data-testid="select-movement-product"><SelectValue placeholder="Choisir un produit" /></SelectTrigger></FormControl>
+                  <Select
+                    onValueChange={val => field.onChange(parseInt(val))}
+                    value={field.value > 0 ? String(field.value) : undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="bg-background" data-testid="select-movement-product">
+                        <SelectValue placeholder="Choisir un produit" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
                       {products?.map(p => (
                         <SelectItem key={p.id} value={String(p.id)}>
@@ -140,7 +152,9 @@ export default function MovementDialog({ open, onClose, productId, productName, 
 
             <FormField control={form.control} name="quantity" render={({ field }) => (
               <FormItem><FormLabel className="uppercase text-xs">Quantité</FormLabel>
-                <FormControl><Input type="number" min={1} {...field} data-testid="input-movement-qty" className="bg-background font-mono text-lg" /></FormControl>
+                <FormControl>
+                  <Input type="number" min={1} {...field} data-testid="input-movement-qty" className="bg-background font-mono text-lg" />
+                </FormControl>
                 {watchType === "OUT" && effectiveStock !== null && effectiveStock !== undefined && (
                   <div className="text-xs text-muted-foreground">Stock disponible : {effectiveStock}</div>
                 )}
@@ -149,23 +163,29 @@ export default function MovementDialog({ open, onClose, productId, productName, 
 
             <FormField control={form.control} name="reason" render={({ field }) => (
               <FormItem><FormLabel className="uppercase text-xs">Raison / Description</FormLabel>
-                <FormControl><Input {...field} data-testid="input-movement-reason" placeholder="Ex: Livraison fournisseur, Chantier X..." className="bg-background" /></FormControl>
+                <FormControl>
+                  <Input {...field} data-testid="input-movement-reason" placeholder="Ex: Livraison fournisseur, Chantier X..." className="bg-background" />
+                </FormControl>
                 <FormMessage /></FormItem>
             )} />
 
             <FormField control={form.control} name="projectId" render={({ field }) => (
               <FormItem><FormLabel className="uppercase text-xs">Projet (optionnel)</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl><SelectTrigger className="bg-background" data-testid="select-movement-project"><SelectValue placeholder="Aucun projet" /></SelectTrigger></FormControl>
+                <Select onValueChange={field.onChange} value={field.value ?? NONE_PROJECT}>
+                  <FormControl>
+                    <SelectTrigger className="bg-background" data-testid="select-movement-project">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
                   <SelectContent>
-                    <SelectItem value="">Aucun projet</SelectItem>
+                    <SelectItem value={NONE_PROJECT}>Aucun projet</SelectItem>
                     {projects?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select><FormMessage /></FormItem>
             )} />
 
             <Button type="submit" className="w-full uppercase font-bold" disabled={createMovement.isPending} data-testid="button-submit-movement">
-              {createMovement.isPending ? "Enregistrement..." : `Enregistrer le mouvement`}
+              {createMovement.isPending ? "Enregistrement..." : "Enregistrer le mouvement"}
             </Button>
           </form>
         </Form>
