@@ -41,12 +41,14 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const { product_id, project_id, type, from_date, to_date, limit = 50, offset = 0 } = params.data;
+  const created_by_id = req.query.created_by_id ? parseInt(req.query.created_by_id as string) : undefined;
   const conditions: ReturnType<typeof eq>[] = [];
   if (product_id) conditions.push(eq(stockMovementsTable.productId, product_id));
   if (project_id) conditions.push(eq(stockMovementsTable.projectId, project_id));
   if (type) conditions.push(eq(stockMovementsTable.type, type as "IN" | "OUT"));
   if (from_date) conditions.push(gte(stockMovementsTable.createdAt, new Date(from_date)));
   if (to_date) conditions.push(lte(stockMovementsTable.createdAt, new Date(to_date)));
+  if (created_by_id) conditions.push(eq(stockMovementsTable.createdById, created_by_id));
 
   const rows = await db
     .select({

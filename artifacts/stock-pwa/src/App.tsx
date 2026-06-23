@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/lib/auth";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarRail } from "@/components/ui/sidebar";
-import { Package, ArrowRightLeft, LayoutGrid, Users, Settings, LogOut, FileText, HardHat, FileDown } from "lucide-react";
+import { Package, ArrowRightLeft, LayoutGrid, Users, Settings, LogOut, FileText, HardHat, FileDown, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import NotFound from "@/pages/not-found";
@@ -18,6 +18,7 @@ import ProjectDetail from "@/pages/project-detail";
 import UsersPage from "@/pages/users";
 import SettingsPage from "@/pages/settings";
 import ReportsPage from "@/pages/reports";
+import AuditPage from "@/pages/audit";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -38,6 +39,7 @@ function AppSidebar() {
     { name: "Produits", href: "/products", icon: Package },
     { name: "Mouvements", href: "/movements", icon: ArrowRightLeft },
     { name: "Projets", href: "/projects", icon: FileText },
+    { name: "Traçabilité", href: "/audit", icon: ClipboardList },
     { name: "Rapports", href: "/reports", icon: FileDown },
     { name: "Utilisateurs", href: "/users", icon: Users },
   ];
@@ -117,6 +119,7 @@ function Router() {
       <Route path="/movements" component={() => <ProtectedLayout><Movements /></ProtectedLayout>} />
       <Route path="/projects" component={() => <ProtectedLayout><Projects /></ProtectedLayout>} />
       <Route path="/projects/:id" component={() => <ProtectedLayout><ProjectDetail /></ProtectedLayout>} />
+      <Route path="/audit" component={() => <ProtectedLayout><AuditPage /></ProtectedLayout>} />
       <Route path="/reports" component={() => <ProtectedLayout><ReportsPage /></ProtectedLayout>} />
       <Route path="/users" component={() => <ProtectedLayout><UsersPage /></ProtectedLayout>} />
       <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
