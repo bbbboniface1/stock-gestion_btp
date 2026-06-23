@@ -118,7 +118,7 @@ export default function Audit() {
           </div>
         </CardHeader>
         <CardContent className="p-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
             <Select value={userFilter} onValueChange={setUserFilter}>
               <SelectTrigger className="bg-background border-border">
                 <SelectValue placeholder="Utilisateur" />

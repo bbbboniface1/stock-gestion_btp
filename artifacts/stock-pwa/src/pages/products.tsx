@@ -201,23 +201,25 @@ export default function Products() {
                           <span>{locationLabels[product.location]}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right min-w-[80px]">
-                          <div className={`font-bold font-mono text-lg ${isLow ? "text-destructive" : "text-foreground"}`}>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right min-w-[60px] md:min-w-[80px]">
+                          <div className={`font-bold font-mono text-base md:text-lg ${isLow ? "text-destructive" : "text-foreground"}`}>
                             {product.quantityInStock} <span className="text-xs text-muted-foreground">{product.unit}</span>
                           </div>
                           <div className="text-xs text-muted-foreground">min: {product.minimumThreshold}</div>
                         </div>
                         <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20 h-8 px-2" data-testid={`button-in-${product.id}`}
+                          <Button size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20 h-8 w-8 p-0 md:w-auto md:px-2" data-testid={`button-in-${product.id}`}
                             onClick={() => { setMovementProduct({ id: product.id, name: product.name, stock: product.quantityInStock }); setMovementType("IN"); }}>
-                            <ArrowUp className="h-3 w-3 mr-1" /> IN
+                            <ArrowUp className="h-3 w-3 md:mr-1" />
+                            <span className="hidden md:inline">IN</span>
                           </Button>
-                          <Button size="sm" variant="outline" className="bg-orange-500/10 border-orange-500/30 text-orange-500 hover:bg-orange-500/20 h-8 px-2" data-testid={`button-out-${product.id}`}
+                          <Button size="sm" variant="outline" className="bg-orange-500/10 border-orange-500/30 text-orange-500 hover:bg-orange-500/20 h-8 w-8 p-0 md:w-auto md:px-2" data-testid={`button-out-${product.id}`}
                             onClick={() => { setMovementProduct({ id: product.id, name: product.name, stock: product.quantityInStock }); setMovementType("OUT"); }}>
-                            <ArrowDown className="h-3 w-3 mr-1" /> OUT
+                            <ArrowDown className="h-3 w-3 md:mr-1" />
+                            <span className="hidden md:inline">OUT</span>
                           </Button>
-                          <Button size="sm" variant="outline" className="bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 h-8 px-2" data-testid={`button-qr-${product.id}`}
+                          <Button size="sm" variant="outline" className="bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 h-8 w-8 p-0" data-testid={`button-qr-${product.id}`}
                             onClick={() => setQrProduct({ id: product.id, name: product.name, stock: product.quantityInStock, unit: product.unit })}>
                             <QrCode className="h-3 w-3" />
                           </Button>
