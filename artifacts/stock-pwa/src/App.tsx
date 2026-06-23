@@ -124,6 +124,7 @@ function Router() {
       <Route path="/reports" component={() => <ProtectedLayout><ReportsPage /></ProtectedLayout>} />
       <Route path="/users" component={() => <ProtectedLayout><UsersPage /></ProtectedLayout>} />
       <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
+      <Route path="/scan" component={ScanPage} />
       <Route component={NotFound} />
     </Switch>
   );

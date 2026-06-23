@@ -17,8 +17,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, AlertTriangle, Package, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Search, AlertTriangle, Package, Trash2, ArrowUp, ArrowDown, QrCode } from "lucide-react";
 import MovementDialog from "@/components/MovementDialog";
+import QRCodeModal from "@/components/QRCodeModal";
 
 const productSchema = z.object({
   name: z.string().min(1, "Nom requis"),
@@ -36,6 +37,7 @@ export default function Products() {
   const [openCreate, setOpenCreate] = useState(false);
   const [movementProduct, setMovementProduct] = useState<{ id: number; name: string; stock: number } | null>(null);
   const [movementType, setMovementType] = useState<"IN" | "OUT">("IN");
+  const [qrProduct, setQrProduct] = useState<{ id: number; name: string; stock: number; unit: string } | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -215,6 +217,10 @@ export default function Products() {
                             onClick={() => { setMovementProduct({ id: product.id, name: product.name, stock: product.quantityInStock }); setMovementType("OUT"); }}>
                             <ArrowDown className="h-3 w-3 mr-1" /> OUT
                           </Button>
+                          <Button size="sm" variant="outline" className="bg-primary/10 border-primary/30 text-primary hover:bg-primary/20 h-8 px-2" data-testid={`button-qr-${product.id}`}
+                            onClick={() => setQrProduct({ id: product.id, name: product.name, stock: product.quantityInStock, unit: product.unit })}>
+                            <QrCode className="h-3 w-3" />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -239,6 +245,17 @@ export default function Products() {
           productName={movementProduct.name}
           currentStock={movementProduct.stock}
           initialType={movementType}
+        />
+      )}
+
+      {qrProduct && (
+        <QRCodeModal
+          open={!!qrProduct}
+          onClose={() => setQrProduct(null)}
+          productId={qrProduct.id}
+          productName={qrProduct.name}
+          currentStock={qrProduct.stock}
+          unit={qrProduct.unit}
         />
       )}
     </div>

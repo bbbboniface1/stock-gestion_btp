@@ -10,6 +10,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import MovementDialog from "@/components/MovementDialog";
+import QRCodeModal from "@/components/QRCodeModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetProductQueryKey, getListStockMovementsQueryKey } from "@workspace/api-client-react";
 
@@ -19,6 +20,7 @@ export default function ProductDetail() {
   const [, setLocation] = useLocation();
   const [movementOpen, setMovementOpen] = useState(false);
   const [movementType, setMovementType] = useState<"IN" | "OUT">("IN");
+  const [qrOpen, setQrOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: product, isLoading } = useGetProduct(id, { query: { enabled: !!id, queryKey: getGetProductQueryKey(id) } });
@@ -51,7 +53,7 @@ export default function ProductDetail() {
             {product.category} · {locationLabels[product.location]}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button className="bg-green-500/15 border border-green-500/30 text-green-500 hover:bg-green-500/25 uppercase font-bold text-xs"
             onClick={() => { setMovementType("IN"); setMovementOpen(true); }}
             data-testid="button-product-in">
@@ -61,6 +63,11 @@ export default function ProductDetail() {
             onClick={() => { setMovementType("OUT"); setMovementOpen(true); }}
             data-testid="button-product-out">
             <ArrowDown className="h-4 w-4 mr-2" /> Sortie OUT
+          </Button>
+          <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 uppercase font-bold text-xs"
+            onClick={() => setQrOpen(true)}
+            data-testid="button-product-qr">
+            <QrCode className="h-4 w-4 mr-2" /> QR Code
           </Button>
         </div>
       </div>
@@ -130,6 +137,15 @@ export default function ProductDetail() {
           )}
         </CardContent>
       </Card>
+
+      <QRCodeModal
+        open={qrOpen}
+        onClose={() => setQrOpen(false)}
+        productId={product.id}
+        productName={product.name}
+        currentStock={product.quantityInStock}
+        unit={product.unit}
+      />
 
       {movementOpen && (
         <MovementDialog

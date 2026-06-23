@@ -20,6 +20,11 @@ export default function Login() {
   const [, setLocation] = useLocation();
   const { setToken } = useAuthStore();
   const { toast } = useToast();
+
+  const returnTo = (() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("returnTo") ?? "/";
+  })();
   
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -37,7 +42,7 @@ export default function Login() {
       {
         onSuccess: (data) => {
           setToken(data.token);
-          setLocation("/");
+          setLocation(returnTo);
         },
         onError: () => {
           toast({
