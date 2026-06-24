@@ -63,4 +63,18 @@ router.patch("/users/:id", requireAuth, requireRole("admin"), async (req, res): 
   })));
 });
 
+router.delete("/users/:id", requireAuth, requireRole("admin"), async (req: AuthenticatedRequest, res): Promise<void> => {
+  const params = GetUserParams.safeParse(req.params);
+  if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
+
+  if (req.user?.id === params.data.id) {
+    res.status(400).json({ error: "Vous ne pouvez pas supprimer votre propre compte" });
+    return;
+  }
+
+  const [user] = await db.delete(usersTable).where(eq(usersTable.id, params.data.id)).returning();
+  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  res.sendStatus(204);
+});
+
 export default router;

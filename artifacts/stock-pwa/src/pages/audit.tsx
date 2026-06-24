@@ -6,7 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ClipboardList, ArrowUp, ArrowDown, User, TrendingUp, TrendingDown, Activity } from "lucide-react";
+import { ClipboardList, ArrowUp, ArrowDown, User, TrendingUp, TrendingDown, Activity, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const AUDIT_PAGE_SIZE = 100;
 
 export default function Audit() {
   const [userFilter, setUserFilter] = useState("all");
@@ -14,8 +17,10 @@ export default function Audit() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [auditLimit, setAuditLimit] = useState(AUDIT_PAGE_SIZE);
+  const resetAuditLimit = () => setAuditLimit(AUDIT_PAGE_SIZE);
 
-  const params: Record<string, string | number> = { limit: 200 };
+  const params: Record<string, string | number> = { limit: auditLimit };
   if (typeFilter !== "all") params.type = typeFilter;
   if (productFilter !== "all") params.product_id = parseInt(productFilter);
   if (fromDate) params.from_date = fromDate;
@@ -60,6 +65,7 @@ export default function Audit() {
     setTypeFilter("all");
     setFromDate("");
     setToDate("");
+    resetAuditLimit();
   };
 
   const hasFilters = userFilter !== "all" || productFilter !== "all" || typeFilter !== "all" || fromDate || toDate;
@@ -254,9 +260,19 @@ export default function Audit() {
                   ))}
                 </div>
 
-                <div className="px-4 py-3 border-t border-border text-xs text-muted-foreground font-mono uppercase bg-muted/20">
-                  {movements.length} entrée{movements.length !== 1 ? "s" : ""} affichée{movements.length !== 1 ? "s" : ""}
-                  {movements.length === 200 && " — Limite atteinte, affinez vos filtres pour voir plus"}
+                <div className="px-4 py-3 border-t border-border text-xs text-muted-foreground font-mono uppercase bg-muted/20 flex items-center justify-between gap-2">
+                  <span>{movements.length} entrée{movements.length !== 1 ? "s" : ""} affichée{movements.length !== 1 ? "s" : ""}</span>
+                  {movements.length === auditLimit && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="uppercase font-bold text-xs gap-1.5 border-border h-7"
+                      onClick={() => setAuditLimit(l => l + AUDIT_PAGE_SIZE)}
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                      Charger {AUDIT_PAGE_SIZE} suivants
+                    </Button>
+                  )}
                 </div>
               </>
             ) : (

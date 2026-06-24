@@ -19,7 +19,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, AlertTriangle, Package, Trash2, ArrowUp, ArrowDown, QrCode, Pencil } from "lucide-react";
+import { Plus, Search, AlertTriangle, Package, Trash2, ArrowUp, ArrowDown, QrCode, Pencil, ChevronDown } from "lucide-react";
 import MovementDialog from "@/components/MovementDialog";
 import QRCodeModal from "@/components/QRCodeModal";
 
@@ -58,7 +58,10 @@ export default function Products() {
   const canEdit = canCreate;
   const canDelete = user ? canDeleteProduct(user.role) : false;
 
-  const params: Record<string, string | boolean | number> = {};
+  const [productLimit, setProductLimit] = useState(100);
+  const resetProductLimit = () => setProductLimit(100);
+
+  const params: Record<string, string | boolean | number> = { limit: productLimit };
   if (search) params.search = search;
   if (categoryFilter !== "all") params.category = categoryFilter;
   if (lowStockOnly) params.low_stock = true;
@@ -226,9 +229,9 @@ export default function Products() {
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input data-testid="input-search-products" placeholder="Rechercher un produit..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-card border-border" />
+          <Input data-testid="input-search-products" placeholder="Rechercher un produit..." value={search} onChange={e => { setSearch(e.target.value); resetProductLimit(); }} className="pl-9 bg-card border-border" />
         </div>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+        <Select value={categoryFilter} onValueChange={v => { setCategoryFilter(v); resetProductLimit(); }}>
           <SelectTrigger className="w-full md:w-48 bg-card border-border" data-testid="select-category-filter">
             <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
@@ -237,7 +240,7 @@ export default function Products() {
             {categories?.map(c => <SelectItem key={c.category} value={c.category}>{c.category}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button variant={lowStockOnly ? "destructive" : "outline"} onClick={() => setLowStockOnly(!lowStockOnly)} className="uppercase text-xs font-bold" data-testid="button-filter-low-stock">
+        <Button variant={lowStockOnly ? "destructive" : "outline"} onClick={() => { setLowStockOnly(!lowStockOnly); resetProductLimit(); }} className="uppercase text-xs font-bold" data-testid="button-filter-low-stock">
           <AlertTriangle className="h-4 w-4 mr-2" /> Stock Critique
         </Button>
       </div>
@@ -321,6 +324,19 @@ export default function Products() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {products && products.length === productLimit && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            className="uppercase font-bold tracking-wide border-border gap-2"
+            onClick={() => setProductLimit(l => l + 100)}
+          >
+            <ChevronDown className="h-4 w-4" />
+            Charger 100 suivants
+          </Button>
+        </div>
       )}
 
       {movementProduct && (

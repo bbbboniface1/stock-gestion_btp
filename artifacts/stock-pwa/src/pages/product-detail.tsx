@@ -5,7 +5,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowUp, ArrowDown, Package, QrCode } from "lucide-react";
+import { ArrowLeft, ArrowUp, ArrowDown, Package, QrCode, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -23,10 +23,12 @@ export default function ProductDetail() {
   const [qrOpen, setQrOpen] = useState(false);
   const queryClient = useQueryClient();
 
+  const [movLimit, setMovLimit] = useState(50);
+
   const { data: product, isLoading } = useGetProduct(id, { query: { enabled: !!id, queryKey: getGetProductQueryKey(id) } });
   const { data: movements, isLoading: loadingMovements } = useListStockMovements(
-    { product_id: id },
-    { query: { enabled: !!id, queryKey: getListStockMovementsQueryKey({ product_id: id }) } }
+    { product_id: id, limit: movLimit },
+    { query: { enabled: !!id, queryKey: getListStockMovementsQueryKey({ product_id: id, limit: movLimit }) } }
   );
 
   if (isLoading) return <div className="p-8 text-muted-foreground uppercase animate-pulse">Chargement...</div>;
@@ -134,6 +136,19 @@ export default function ProductDetail() {
             </div>
           ) : (
             <div className="p-8 text-center text-muted-foreground uppercase text-sm">Aucun mouvement</div>
+          )}
+          {movements && movements.length === movLimit && (
+            <div className="p-3 border-t border-border flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="uppercase font-bold text-xs gap-1.5 border-border"
+                onClick={() => setMovLimit(l => l + 50)}
+              >
+                <ChevronDown className="h-3 w-3" />
+                Charger 50 suivants
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
