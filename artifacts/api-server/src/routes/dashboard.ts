@@ -86,4 +86,29 @@ router.get("/dashboard/stock-by-category", requireAuth, async (_req, res): Promi
   res.json(GetStockByCategoryResponse.parse(serializeDates(rows)));
 });
 
+router.get("/dashboard/movements-by-day", requireAuth, async (req, res): Promise<void> => {
+  const from = req.query.from as string | undefined;
+  const to = req.query.to as string | undefined;
+  if (!from || !to) { res.status(400).json({ error: "from et to requis (YYYY-MM-DD)" }); return; }
+
+  const rows = await db
+    .select({
+      day: sql<string>`to_char(date_trunc('day', ${stockMovementsTable.createdAt} AT TIME ZONE 'UTC'), 'YYYY-MM-DD')`,
+      type: stockMovementsTable.type,
+      total: sql<number>`cast(sum(${stockMovementsTable.quantity}) as int)`,
+    })
+    .from(stockMovementsTable)
+    .where(sql`${stockMovementsTable.createdAt} >= ${from}::date AND ${stockMovementsTable.createdAt} < (${to}::date + interval '1 day')`)
+    .groupBy(sql`1`, stockMovementsTable.type)
+    .orderBy(sql`1`);
+
+  const byDay: Record<string, { date: string; IN: number; OUT: number }> = {};
+  for (const row of rows) {
+    if (!byDay[row.day]) byDay[row.day] = { date: row.day, IN: 0, OUT: 0 };
+    byDay[row.day][row.type as "IN" | "OUT"] += row.total;
+  }
+
+  res.json(Object.values(byDay));
+});
+
 export default router;

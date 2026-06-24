@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, ArrowRightLeft, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, ArrowRightLeft, ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
 import MovementDialog from "@/components/MovementDialog";
+
+const PAGE_SIZE = 100;
 
 export default function Movements() {
   const [typeFilter, setTypeFilter] = useState("all");
@@ -19,9 +21,12 @@ export default function Movements() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [openNew, setOpenNew] = useState(false);
+  const [limit, setLimit] = useState(PAGE_SIZE);
   const queryClient = useQueryClient();
 
-  const params: Record<string, string | number> = {};
+  const resetLimit = () => setLimit(PAGE_SIZE);
+
+  const params: Record<string, string | number> = { limit };
   if (typeFilter !== "all") params.type = typeFilter;
   if (productFilter !== "all") params.product_id = parseInt(productFilter);
   if (projectFilter !== "all") params.project_id = parseInt(projectFilter);
@@ -46,7 +51,7 @@ export default function Movements() {
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
+        <Select value={typeFilter} onValueChange={v => { setTypeFilter(v); resetLimit(); }}>
           <SelectTrigger className="bg-card border-border" data-testid="select-type-filter">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -56,7 +61,7 @@ export default function Movements() {
             <SelectItem value="OUT">Sorties (OUT)</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={productFilter} onValueChange={setProductFilter}>
+        <Select value={productFilter} onValueChange={v => { setProductFilter(v); resetLimit(); }}>
           <SelectTrigger className="bg-card border-border" data-testid="select-product-filter">
             <SelectValue placeholder="Produit" />
           </SelectTrigger>
@@ -65,7 +70,7 @@ export default function Movements() {
             {products?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={projectFilter} onValueChange={setProjectFilter}>
+        <Select value={projectFilter} onValueChange={v => { setProjectFilter(v); resetLimit(); }}>
           <SelectTrigger className="bg-card border-border" data-testid="select-project-filter">
             <SelectValue placeholder="Projet" />
           </SelectTrigger>
@@ -74,7 +79,7 @@ export default function Movements() {
             {projects?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-from-date" />
+        <Input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); resetLimit(); }} className="bg-card border-border text-sm" data-testid="input-from-date" />
         <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-to-date" />
       </div>
 
@@ -120,6 +125,19 @@ export default function Movements() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {movements && movements.length === limit && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            className="uppercase font-bold tracking-wide border-border gap-2"
+            onClick={() => setLimit(l => l + PAGE_SIZE)}
+          >
+            <ChevronDown className="h-4 w-4" />
+            Charger {PAGE_SIZE} suivants
+          </Button>
+        </div>
       )}
 
       {openNew && (

@@ -25,7 +25,15 @@ app.use(
     },
   }),
 );
-app.use(cors());
+const corsOrigin = process.env.CORS_ORIGIN;
+if (!corsOrigin) {
+  logger.warn("CORS_ORIGIN not set — API accepts all origins. Set CORS_ORIGIN in production.");
+}
+app.use(cors({
+  origin: corsOrigin || "*",
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

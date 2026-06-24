@@ -1,4 +1,6 @@
-import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory, useListStockMovements } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuthStore } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, AlertTriangle, ArrowRightLeft, Activity, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +10,23 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
 } from "recharts";
+
+type DayBucket = { date: string; IN: number; OUT: number };
+
+function useMovementsByDay(from: string, to: string) {
+  const { token } = useAuthStore();
+  return useQuery<DayBucket[]>({
+    queryKey: ["dashboard", "movements-by-day", from, to],
+    queryFn: async () => {
+      const res = await fetch(`/api/dashboard/movements-by-day?from=${from}&to=${to}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erreur chargement graphique");
+      return res.json() as Promise<DayBucket[]>;
+    },
+    enabled: !!token,
+  });
+}
 
 const COLORS = ["#ea580c", "#f97316", "#fb923c", "#fdba74", "#ffd7b5", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#1d4ed8", "#7c3aed", "#a855f7"];
 
@@ -48,24 +67,14 @@ export default function Dashboard() {
   chartFrom.setUTCDate(chartFrom.getUTCDate() - 6);
   const chartFromDate = chartFrom.toISOString().slice(0, 10);
   const chartToDate = today.toISOString().slice(0, 10);
-  const { data: chartMovements, isLoading: loadingChartMovements } = useListStockMovements({
-    from_date: chartFromDate,
-    to_date: chartToDate,
-    limit: 1000,
-  });
+  const { data: rawByDay, isLoading: loadingChartMovements } = useMovementsByDay(chartFromDate, chartToDate);
 
-  const mvtByDate = (() => {
-    if (!chartMovements?.length) return [];
-    const map: Record<string, { key: string; date: string; IN: number; OUT: number }> = {};
-    chartMovements.forEach((m) => {
-      const createdAt = new Date(m.createdAt);
-      const key = createdAt.toISOString().slice(0, 10);
-      if (!map[key]) map[key] = { key, date: format(createdAt, "dd/MM", { locale: fr }), IN: 0, OUT: 0 };
-      if (m.type === "IN") map[key].IN += m.quantity;
-      else map[key].OUT += m.quantity;
-    });
-    return Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
-  })();
+  const mvtByDate = (rawByDay ?? []).map((d) => ({
+    key: d.date,
+    date: format(new Date(`${d.date}T00:00:00Z`), "dd/MM", { locale: fr }),
+    IN: d.IN,
+    OUT: d.OUT,
+  })).sort((a, b) => a.key.localeCompare(b.key));
 
   if (loadingSummary) {
     return <div className="p-8 text-muted-foreground animate-pulse font-mono uppercase">Chargement des données...</div>;

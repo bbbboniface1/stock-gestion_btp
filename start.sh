@@ -1,3 +1,8 @@
 #!/bin/bash
-# API server only — frontend is served by the stock-pwa artifact workflow
-PORT=8080 pnpm --filter @workspace/api-server run dev
+PORT=8080 pnpm --filter @workspace/api-server run dev &
+API_PID=$!
+
+PORT=5000 pnpm --filter @workspace/stock-pwa run dev &
+FRONTEND_PID=$!
+
+wait $API_PID $FRONTEND_PID
