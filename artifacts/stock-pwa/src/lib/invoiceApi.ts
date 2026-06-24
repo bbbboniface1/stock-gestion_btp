@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/auth";
+import { customFetch } from "@workspace/api-client-react";
 
 export interface InvoiceItem {
   id: number;
@@ -54,49 +54,29 @@ export interface CreateInvoiceInput {
   items: CreateInvoiceItemInput[];
 }
 
-async function apiFetch<T>(url: string, token: string | null, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init?.headers,
-    },
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as any).error ?? `HTTP ${res.status}`);
-  }
-  return res.json() as Promise<T>;
-}
-
 export const INVOICES_KEY = ["/api/invoices"];
 export const invoiceKey = (id: number) => ["/api/invoices", id];
 
 export function useListInvoices() {
-  const { token } = useAuthStore();
   return useQuery<Invoice[]>({
     queryKey: INVOICES_KEY,
-    queryFn: () => apiFetch<Invoice[]>("/api/invoices", token),
-    enabled: !!token,
+    queryFn: () => customFetch<Invoice[]>("/api/invoices"),
   });
 }
 
 export function useGetInvoice(id: number) {
-  const { token } = useAuthStore();
   return useQuery<InvoiceWithItems>({
     queryKey: invoiceKey(id),
-    queryFn: () => apiFetch<InvoiceWithItems>(`/api/invoices/${id}`, token),
-    enabled: !!token && !!id,
+    queryFn: () => customFetch<InvoiceWithItems>(`/api/invoices/${id}`),
+    enabled: !!id,
   });
 }
 
 export function useCreateInvoice() {
-  const { token } = useAuthStore();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateInvoiceInput) =>
-      apiFetch<InvoiceWithItems>("/api/invoices", token, {
+      customFetch<InvoiceWithItems>("/api/invoices", {
         method: "POST",
         body: JSON.stringify(data),
       }),
@@ -107,11 +87,10 @@ export function useCreateInvoice() {
 }
 
 export function useUpdateInvoiceStatus() {
-  const { token } = useAuthStore();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: "draft" | "unpaid" | "paid" }) =>
-      apiFetch<Invoice>(`/api/invoices/${id}/status`, token, {
+      customFetch<Invoice>(`/api/invoices/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       }),

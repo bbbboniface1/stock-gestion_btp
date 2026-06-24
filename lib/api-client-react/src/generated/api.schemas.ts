@@ -225,6 +225,105 @@ export interface ProjectMaterialInput {
   quantityUsed: number;
 }
 
+export type InvoiceStatus = typeof InvoiceStatus[keyof typeof InvoiceStatus];
+
+
+export const InvoiceStatus = {
+  draft: 'draft',
+  unpaid: 'unpaid',
+  paid: 'paid',
+} as const;
+
+export interface Invoice {
+  id: number;
+  invoiceNumber: string;
+  clientName: string;
+  /** @nullable */
+  clientPhone?: string | null;
+  /** @nullable */
+  clientEmail?: string | null;
+  /** @nullable */
+  clientAddress?: string | null;
+  date: string;
+  status: InvoiceStatus;
+  /** @nullable */
+  notes?: string | null;
+  taxRate: number;
+  subtotal: number;
+  taxAmount: number;
+  total: number;
+  /** @nullable */
+  createdById?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvoiceItem {
+  id: number;
+  invoiceId: number;
+  /** @nullable */
+  productId?: number | null;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  position: number;
+}
+
+export type InvoiceWithItems = Invoice & {
+  items: InvoiceItem[];
+};
+
+export interface InvoiceItemInput {
+  productId?: number;
+  /** @minLength 1 */
+  description: string;
+  /** @minimum 0 */
+  quantity: number;
+  /** @minimum 0 */
+  unitPrice: number;
+}
+
+export type InvoiceInputStatus = typeof InvoiceInputStatus[keyof typeof InvoiceInputStatus];
+
+
+export const InvoiceInputStatus = {
+  draft: 'draft',
+  unpaid: 'unpaid',
+  paid: 'paid',
+} as const;
+
+export interface InvoiceInput {
+  /** @minLength 1 */
+  clientName: string;
+  clientPhone?: string;
+  clientEmail?: string;
+  clientAddress?: string;
+  date: string;
+  status?: InvoiceInputStatus;
+  notes?: string;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  taxRate?: number;
+  /** @minItems 1 */
+  items: InvoiceItemInput[];
+}
+
+export type InvoiceStatusUpdateStatus = typeof InvoiceStatusUpdateStatus[keyof typeof InvoiceStatusUpdateStatus];
+
+
+export const InvoiceStatusUpdateStatus = {
+  draft: 'draft',
+  unpaid: 'unpaid',
+  paid: 'paid',
+} as const;
+
+export interface InvoiceStatusUpdate {
+  status: InvoiceStatusUpdateStatus;
+}
+
 export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 

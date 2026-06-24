@@ -321,6 +321,132 @@ export const AddProjectMaterialBody = zod.object({
 
 
 /**
+ * @summary Liste des factures
+ */
+export const ListInvoicesResponseItem = zod.object({
+  "id": zod.number(),
+  "invoiceNumber": zod.string(),
+  "clientName": zod.string(),
+  "clientPhone": zod.string().nullish(),
+  "clientEmail": zod.string().nullish(),
+  "clientAddress": zod.string().nullish(),
+  "date": zod.string(),
+  "status": zod.enum(['draft', 'unpaid', 'paid']),
+  "notes": zod.string().nullish(),
+  "taxRate": zod.number(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "createdById": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListInvoicesResponse = zod.array(ListInvoicesResponseItem)
+
+
+/**
+ * @summary Créer une facture
+ */
+
+export const createInvoiceBodyTaxRateMin = 0;
+export const createInvoiceBodyTaxRateMax = 100;
+
+
+export const createInvoiceBodyItemsItemQuantityMin = 0;
+
+export const createInvoiceBodyItemsItemUnitPriceMin = 0;
+
+
+
+
+export const CreateInvoiceBody = zod.object({
+  "clientName": zod.string().min(1),
+  "clientPhone": zod.string().optional(),
+  "clientEmail": zod.string().optional(),
+  "clientAddress": zod.string().optional(),
+  "date": zod.string(),
+  "status": zod.enum(['draft', 'unpaid', 'paid']).optional(),
+  "notes": zod.string().optional(),
+  "taxRate": zod.number().min(createInvoiceBodyTaxRateMin).max(createInvoiceBodyTaxRateMax).optional(),
+  "items": zod.array(zod.object({
+  "productId": zod.number().optional(),
+  "description": zod.string().min(1),
+  "quantity": zod.number().min(createInvoiceBodyItemsItemQuantityMin),
+  "unitPrice": zod.number().min(createInvoiceBodyItemsItemUnitPriceMin)
+})).min(1)
+})
+
+
+/**
+ * @summary Détails d'une facture
+ */
+export const GetInvoiceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetInvoiceResponse = zod.object({
+  "id": zod.number(),
+  "invoiceNumber": zod.string(),
+  "clientName": zod.string(),
+  "clientPhone": zod.string().nullish(),
+  "clientEmail": zod.string().nullish(),
+  "clientAddress": zod.string().nullish(),
+  "date": zod.string(),
+  "status": zod.enum(['draft', 'unpaid', 'paid']),
+  "notes": zod.string().nullish(),
+  "taxRate": zod.number(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "createdById": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+}).and(zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "invoiceId": zod.number(),
+  "productId": zod.number().nullish(),
+  "description": zod.string(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "totalPrice": zod.number(),
+  "position": zod.number()
+}))
+}))
+
+
+/**
+ * @summary Changer le statut d'une facture
+ */
+export const UpdateInvoiceStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateInvoiceStatusBody = zod.object({
+  "status": zod.enum(['draft', 'unpaid', 'paid'])
+})
+
+export const UpdateInvoiceStatusResponse = zod.object({
+  "id": zod.number(),
+  "invoiceNumber": zod.string(),
+  "clientName": zod.string(),
+  "clientPhone": zod.string().nullish(),
+  "clientEmail": zod.string().nullish(),
+  "clientAddress": zod.string().nullish(),
+  "date": zod.string(),
+  "status": zod.enum(['draft', 'unpaid', 'paid']),
+  "notes": zod.string().nullish(),
+  "taxRate": zod.number(),
+  "subtotal": zod.number(),
+  "taxAmount": zod.number(),
+  "total": zod.number(),
+  "createdById": zod.number().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
  * @summary Liste des utilisateurs
  */
 export const ListUsersResponseItem = zod.object({

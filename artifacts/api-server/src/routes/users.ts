@@ -1,6 +1,6 @@
 import { Router, IRouter } from "express";
-import { db, usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, stockMovementsTable } from "@workspace/db";
+import { eq, count } from "drizzle-orm";
 import { hashPassword } from "../lib/auth";
 import { requireAuth, requireRole, AuthenticatedRequest } from "../middlewares/auth";
 import {
@@ -79,6 +79,18 @@ router.delete("/users/:id", requireAuth, requireRole("admin"), async (req: Authe
 
   if (req.user?.id === params.data.id) {
     res.status(400).json({ error: "Vous ne pouvez pas supprimer votre propre compte" });
+    return;
+  }
+
+  const [movementCount] = await db
+    .select({ total: count() })
+    .from(stockMovementsTable)
+    .where(eq(stockMovementsTable.createdById, params.data.id));
+
+  if (movementCount.total > 0) {
+    res.status(409).json({
+      error: `Impossible de supprimer cet utilisateur : il a créé ${movementCount.total} mouvement(s) de stock. Modifiez son rôle plutôt que de le supprimer.`,
+    });
     return;
   }
 

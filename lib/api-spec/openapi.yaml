@@ -17,6 +17,8 @@ tags:
     description: Gestion des projets
   - name: project-materials
     description: Matériaux par projet
+  - name: invoices
+    description: Facturation
   - name: users
     description: Utilisateurs
   - name: dashboard
@@ -354,6 +356,87 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProjectMaterial"
 
+  # ─── INVOICES ────────────────────────────────────────────────────────────────
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      summary: Liste des factures
+      responses:
+        "200":
+          description: Liste des factures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Invoice"
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      summary: Créer une facture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceInput"
+      responses:
+        "201":
+          description: Facture créée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceWithItems"
+        "400":
+          description: Données invalides ou stock insuffisant
+
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      summary: Détails d'une facture
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Facture trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvoiceWithItems"
+        "404":
+          description: Facture introuvable
+
+  /invoices/{id}/status:
+    patch:
+      operationId: updateInvoiceStatus
+      tags: [invoices]
+      summary: Changer le statut d'une facture
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceStatusUpdate"
+      responses:
+        "200":
+          description: Statut mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Invoice"
+        "400":
+          description: Stock insuffisant ou transition invalide
+
   # ─── USERS ───────────────────────────────────────────────────────────────────
   /users:
     get:
@@ -667,6 +750,85 @@ components:
       properties:
         productId: { type: integer }
         quantityUsed: { type: integer, minimum: 1 }
+
+    # ─── INVOICE ─────────────────────────────────────────────────────────────
+    Invoice:
+      type: object
+      required: [id, invoiceNumber, clientName, date, status, taxRate, subtotal, taxAmount, total, createdAt, updatedAt]
+      properties:
+        id: { type: integer }
+        invoiceNumber: { type: string }
+        clientName: { type: string }
+        clientPhone: { type: ["string", "null"] }
+        clientEmail: { type: ["string", "null"] }
+        clientAddress: { type: ["string", "null"] }
+        date: { type: string }
+        status: { type: string, enum: [draft, unpaid, paid] }
+        notes: { type: ["string", "null"] }
+        taxRate: { type: number }
+        subtotal: { type: number }
+        taxAmount: { type: number }
+        total: { type: number }
+        createdById: { type: ["integer", "null"] }
+        createdAt: { type: string }
+        updatedAt: { type: string }
+
+    InvoiceItem:
+      type: object
+      required: [id, invoiceId, description, quantity, unitPrice, totalPrice, position]
+      properties:
+        id: { type: integer }
+        invoiceId: { type: integer }
+        productId: { type: ["integer", "null"] }
+        description: { type: string }
+        quantity: { type: number }
+        unitPrice: { type: number }
+        totalPrice: { type: number }
+        position: { type: integer }
+
+    InvoiceWithItems:
+      allOf:
+        - $ref: "#/components/schemas/Invoice"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/InvoiceItem"
+
+    InvoiceItemInput:
+      type: object
+      required: [description, quantity, unitPrice]
+      properties:
+        productId: { type: integer }
+        description: { type: string, minLength: 1 }
+        quantity: { type: number, minimum: 0 }
+        unitPrice: { type: number, minimum: 0 }
+
+    InvoiceInput:
+      type: object
+      required: [clientName, date, items]
+      properties:
+        clientName: { type: string, minLength: 1 }
+        clientPhone: { type: string }
+        clientEmail: { type: string }
+        clientAddress: { type: string }
+        date: { type: string }
+        status: { type: string, enum: [draft, unpaid, paid] }
+        notes: { type: string }
+        taxRate: { type: number, minimum: 0, maximum: 100 }
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/InvoiceItemInput"
+
+    InvoiceStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [draft, unpaid, paid] }
 
     # ─── USER ────────────────────────────────────────────────────────────────
     User:
