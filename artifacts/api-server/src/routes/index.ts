@@ -7,6 +7,8 @@ import stockMovementsRouter from "./stock-movements";
 import projectsRouter from "./projects";
 import dashboardRouter from "./dashboard";
 import reportsRouter from "./reports";
+import companyRouter from "./company";
+import invoicesRouter from "./invoices";
 
 const router: IRouter = Router();
 
@@ -18,5 +20,7 @@ router.use(stockMovementsRouter);
 router.use(projectsRouter);
 router.use(dashboardRouter);
 router.use(reportsRouter);
+router.use(companyRouter);
+router.use(invoicesRouter);
 
 export default router;

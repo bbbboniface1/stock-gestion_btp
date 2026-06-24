@@ -32,10 +32,19 @@ export function canAddProjectMaterial(role: UserRole): boolean {
   return role === "admin" || role === "manager";
 }
 
+export function canManageInvoices(role: UserRole): boolean {
+  return role === "admin" || role === "manager";
+}
+
+export function canManageCompanySettings(role: UserRole): boolean {
+  return role === "admin";
+}
+
 export function canAccessRoute(role: UserRole, path: string): boolean {
   if (path.startsWith("/users")) return canManageUsers(role);
   if (path.startsWith("/audit")) return canViewAudit(role);
   if (path.startsWith("/reports")) return canExportReports(role);
+  if (path.startsWith("/invoices")) return canManageInvoices(role);
   return true;
 }
 

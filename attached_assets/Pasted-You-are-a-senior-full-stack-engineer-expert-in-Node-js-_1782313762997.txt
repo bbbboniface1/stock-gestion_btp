@@ -1,0 +1,191 @@
+You are a senior full-stack engineer expert in Node.js, TypeScript, React (PWA), pnpm monorepo, and Supabase/PostgreSQL.
+
+The application already exists:
+- Stock management system (DO NOT BREAK)
+- API server (Express)
+- PWA frontend (Vite React)
+- Supabase database
+- pnpm workspace monorepo
+
+You must ADD:
+- Company settings system
+- Invoice system
+- PDF export system
+- Stock-to-invoice integration
+
+WITHOUT breaking existing features.
+
+---
+
+# =========================
+# 1. GLOBAL COMPANY SETTINGS
+# =========================
+
+Create a global company settings module used everywhere.
+
+Fields:
+- name
+- logo
+- address
+- phone
+- email
+- tax number
+- currency
+- signature
+
+Store in Supabase table: company_settings
+
+Create global React context:
+- fetch once at app startup
+- provide useCompany() hook
+- must be used everywhere (UI + PDF)
+
+NEVER hardcode company info.
+
+---
+
+# =========================
+# 2. INVOICE SYSTEM
+# =========================
+
+Create independent invoice module:
+
+Pages:
+- /invoices
+- /invoices/new
+- /invoices/:id
+
+Invoice fields:
+- client info (name, phone, email, address)
+- invoice number (auto generated)
+- date
+- status (draft, paid, unpaid)
+- items list
+- subtotal, tax, total
+
+Database table: invoices
+
+---
+
+# =========================
+# 3. STOCK → INVOICE INTEGRATION (IMPORTANT)
+# =========================
+
+In invoice creation page, allow selecting products from stock.
+
+FEATURES:
+- display list of stock products
+- search and filter products
+- click to add product into invoice
+- auto-fill product name + unit price
+- allow quantity editing
+- allow price override (optional)
+
+Each selected stock product becomes an invoice line item.
+
+---
+
+## OPTIONAL ADVANCED FEATURE (IMPORTANT)
+
+When invoice status becomes "paid" or "validated":
+
+- automatically deduct stock quantities
+- update stock table in Supabase
+- ensure transaction safety (no negative stock allowed)
+
+Stock module must NOT be broken.
+
+---
+
+# =========================
+# 4. PDF GENERATION SYSTEM
+# =========================
+
+Generate professional PDF invoices using Node.js (pdfkit or equivalent).
+
+PDF MUST include:
+
+HEADER:
+- Company logo
+- Company name (large, bold)
+- Address, phone, email
+
+CLIENT BLOCK:
+- client info aligned cleanly
+
+ITEM TABLE:
+- description
+- quantity
+- unit price
+- total per line
+
+TOTAL SECTION:
+- subtotal
+- tax if exists
+- total (bold)
+
+FOOTER:
+- optional signature
+- company footer info
+
+STYLE:
+- A4 format
+- clean BTP/business style
+- modern colors (blue/gray/black)
+- professional spacing
+
+All PDF exports MUST include company branding automatically.
+
+---
+
+# =========================
+# 5. BUSINESS RULES
+# =========================
+
+- Stock system remains unchanged and stable
+- Invoice system is independent but can reference stock
+- Company settings are global and shared
+- No duplication of company data
+- Must use Supabase as single source of truth
+
+---
+
+# =========================
+# 6. API ENDPOINTS
+# =========================
+
+Company:
+- GET /company-settings
+- PUT /company-settings
+
+Invoices:
+- GET /invoices
+- POST /invoices
+- GET /invoices/:id
+
+Optional:
+- PATCH /invoices/:id/status
+
+---
+
+# =========================
+# 7. UX REQUIREMENTS
+# =========================
+
+- Clean UI
+- Fast invoice creation
+- One-click product add from stock
+- Live preview invoice
+- One-click PDF export
+
+---
+
+# FINAL GOAL
+
+Transform this app into a mini ERP system:
+- Stock management
+- Company branding system
+- Invoice system
+- Stock-linked invoicing
+- Professional PDF exports
+- Scalable SaaS-ready architecture
