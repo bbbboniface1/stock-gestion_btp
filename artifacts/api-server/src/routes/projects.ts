@@ -2,6 +2,7 @@ import { Router, IRouter } from "express";
 import { db, projectsTable, projectMaterialsTable, productsTable, stockMovementsTable } from "@workspace/db";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { requireAuth, requireRole, AuthenticatedRequest } from "../middlewares/auth";
+import { recordAuditLog } from "../lib/audit";
 import {
   ListProjectsQueryParams,
   ListProjectsResponse,
@@ -30,10 +31,11 @@ router.get("/projects", requireAuth, async (req, res): Promise<void> => {
   res.json(ListProjectsResponse.parse(serializeDates(projects)));
 });
 
-router.post("/projects", requireAuth, requireRole("admin", "manager"), async (req, res): Promise<void> => {
+router.post("/projects", requireAuth, requireRole("admin", "manager"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const parsed = CreateProjectBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [project] = await db.insert(projectsTable).values(parsed.data).returning();
+  void recordAuditLog({ action: "create", entityType: "project", entityId: project.id, user: req.user, newValue: serializeDates(project) });
   res.status(201).json(GetProjectResponse.parse(serializeDates(project)));
 });
 
@@ -45,13 +47,15 @@ router.get("/projects/:id", requireAuth, async (req, res): Promise<void> => {
   res.json(GetProjectResponse.parse(serializeDates(project)));
 });
 
-router.patch("/projects/:id", requireAuth, requireRole("admin", "manager"), async (req, res): Promise<void> => {
+router.patch("/projects/:id", requireAuth, requireRole("admin", "manager"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const params = UpdateProjectParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const parsed = UpdateProjectBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const [before] = await db.select().from(projectsTable).where(eq(projectsTable.id, params.data.id));
+  if (!before) { res.status(404).json({ error: "Projet introuvable" }); return; }
   const [project] = await db.update(projectsTable).set(parsed.data).where(eq(projectsTable.id, params.data.id)).returning();
-  if (!project) { res.status(404).json({ error: "Projet introuvable" }); return; }
+  void recordAuditLog({ action: "update", entityType: "project", entityId: project.id, user: req.user, oldValue: serializeDates(before), newValue: serializeDates(project) });
   res.json(UpdateProjectResponse.parse(serializeDates(project)));
 });
 

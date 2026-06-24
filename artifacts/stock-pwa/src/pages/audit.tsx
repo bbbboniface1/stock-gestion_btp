@@ -216,43 +216,58 @@ export default function Audit() {
                       key={m.id}
                       className="flex flex-col md:grid md:grid-cols-[40px_1fr_120px_140px_160px_160px] md:items-center gap-2 md:gap-4 px-4 py-3 hover:bg-muted/20 transition-colors"
                     >
-                      {/* Icon */}
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-sm shrink-0 ${m.type === "IN" ? "bg-green-500/15" : "bg-orange-500/15"}`}>
-                        {m.type === "IN"
-                          ? <ArrowUp className="h-4 w-4 text-green-500" />
-                          : <ArrowDown className="h-4 w-4 text-orange-500" />
-                        }
+                      {/* Mobile: icon + product side by side | Desktop: separate columns */}
+                      <div className="flex items-center gap-3 md:contents">
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-sm shrink-0 ${m.type === "IN" ? "bg-green-500/15" : "bg-orange-500/15"}`}>
+                          {m.type === "IN"
+                            ? <ArrowUp className="h-4 w-4 text-green-500" />
+                            : <ArrowDown className="h-4 w-4 text-orange-500" />
+                          }
+                        </div>
+                        {/* Product + reason */}
+                        <div className="min-w-0 flex-1 md:contents">
+                          <div className="md:hidden min-w-0">
+                            <div className="font-bold text-foreground text-sm truncate">{m.productName}</div>
+                            <div className="text-xs text-muted-foreground truncate">{m.reason}</div>
+                          </div>
+                        </div>
+                        {/* Quantity badge on mobile (inline with icon row) */}
+                        <div className={`md:hidden font-bold font-mono text-base shrink-0 ${m.type === "IN" ? "text-green-500" : "text-orange-500"}`}>
+                          {m.type === "IN" ? "+" : "-"}{m.quantity}
+                        </div>
                       </div>
 
-                      {/* Product + reason */}
-                      <div className="min-w-0">
+                      {/* Desktop-only product + reason column */}
+                      <div className="hidden md:block min-w-0">
                         <div className="font-bold text-foreground text-sm truncate">{m.productName}</div>
                         <div className="text-xs text-muted-foreground truncate">{m.reason}</div>
                       </div>
 
-                      {/* Quantity */}
-                      <div className={`font-bold font-mono text-lg text-right ${m.type === "IN" ? "text-green-500" : "text-orange-500"}`}>
+                      {/* Quantity (desktop only) */}
+                      <div className={`hidden md:block font-bold font-mono text-lg text-right ${m.type === "IN" ? "text-green-500" : "text-orange-500"}`}>
                         {m.type === "IN" ? "+" : "-"}{m.quantity}
                       </div>
 
-                      {/* Project */}
-                      <div>
-                        {m.projectName
-                          ? <Badge variant="outline" className="font-mono text-xs border-primary/40 text-primary truncate max-w-[130px]">{m.projectName}</Badge>
-                          : <span className="text-xs text-muted-foreground font-mono">—</span>
-                        }
-                      </div>
-
-                      {/* Operator */}
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-sm bg-primary/10 flex items-center justify-center shrink-0">
-                          <User className="h-3 w-3 text-primary" />
+                      {/* Mobile: project + operator in a compact 2-col row */}
+                      <div className="flex items-center gap-3 md:contents">
+                        {/* Project */}
+                        <div className="flex-1 min-w-0">
+                          {m.projectName
+                            ? <Badge variant="outline" className="font-mono text-xs border-primary/40 text-primary truncate max-w-[130px]">{m.projectName}</Badge>
+                            : <span className="text-xs text-muted-foreground font-mono">—</span>
+                          }
                         </div>
-                        <span className="text-sm font-medium uppercase truncate">{m.createdByName ?? "—"}</span>
+                        {/* Operator */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <div className="h-5 w-5 rounded-sm bg-primary/10 flex items-center justify-center shrink-0">
+                            <User className="h-3 w-3 text-primary" />
+                          </div>
+                          <span className="text-xs font-medium uppercase truncate max-w-[90px]">{m.createdByName ?? "—"}</span>
+                        </div>
                       </div>
 
                       {/* Date */}
-                      <div className="text-right text-xs text-muted-foreground font-mono">
+                      <div className="text-right text-xs text-muted-foreground font-mono md:col-span-1">
                         <div className="font-bold text-foreground">{format(new Date(m.createdAt), "dd MMM yyyy", { locale: fr })}</div>
                         <div>{format(new Date(m.createdAt), "HH:mm:ss")}</div>
                       </div>

@@ -3,6 +3,7 @@ import { db, usersTable, stockMovementsTable } from "@workspace/db";
 import { eq, count } from "drizzle-orm";
 import { hashPassword } from "../lib/auth";
 import { requireAuth, requireRole, AuthenticatedRequest } from "../middlewares/auth";
+import { recordAuditLog } from "../lib/audit";
 import {
   ListUsersResponse,
   GetUserResponse,
@@ -46,6 +47,7 @@ router.post("/users", requireAuth, requireRole("admin"), async (req, res): Promi
     }
     throw err;
   }
+  void recordAuditLog({ action: "create", entityType: "user", entityId: user.id, user: req.user, newValue: { id: user.id, email: user.email, role: user.role } });
   res.status(201).json(GetUserResponse.parse(serializeDates({
     id: user.id, fullName: user.fullName, email: user.email, role: user.role, createdAt: user.createdAt,
   })));
@@ -61,13 +63,15 @@ router.get("/users/:id", requireAuth, requireRole("admin"), async (req, res): Pr
   res.json(GetUserResponse.parse(serializeDates(user)));
 });
 
-router.patch("/users/:id", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+router.patch("/users/:id", requireAuth, requireRole("admin"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const params = UpdateUserParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const parsed = UpdateUserBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
+  const [before] = await db.select({ id: usersTable.id, role: usersTable.role, fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, params.data.id));
+  if (!before) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
   const [user] = await db.update(usersTable).set(parsed.data).where(eq(usersTable.id, params.data.id)).returning();
-  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  void recordAuditLog({ action: "update", entityType: "user", entityId: user.id, user: req.user, oldValue: { role: before.role, fullName: before.fullName }, newValue: { role: user.role, fullName: user.fullName } });
   res.json(UpdateUserResponse.parse(serializeDates({
     id: user.id, fullName: user.fullName, email: user.email, role: user.role, createdAt: user.createdAt,
   })));
@@ -96,6 +100,7 @@ router.delete("/users/:id", requireAuth, requireRole("admin"), async (req: Authe
 
   const [user] = await db.delete(usersTable).where(eq(usersTable.id, params.data.id)).returning();
   if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+  void recordAuditLog({ action: "delete", entityType: "user", entityId: user.id, user: req.user, oldValue: { email: user.email, role: user.role } });
   res.sendStatus(204);
 });
 

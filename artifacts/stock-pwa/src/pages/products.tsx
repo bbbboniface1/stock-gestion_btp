@@ -162,7 +162,7 @@ export default function Products() {
               <Plus className="h-4 w-4 mr-2" /> Nouveau Produit
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-border">
+          <DialogContent className="bg-card border-border overflow-y-auto max-h-[90dvh]">
             <DialogHeader>
               <DialogTitle className="uppercase tracking-wide">Nouveau Produit</DialogTitle>
             </DialogHeader>
@@ -351,7 +351,7 @@ export default function Products() {
       )}
 
       <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-card border-border overflow-y-auto max-h-[90dvh]">
           <DialogHeader>
             <DialogTitle className="uppercase tracking-wide">Modifier le produit</DialogTitle>
           </DialogHeader>

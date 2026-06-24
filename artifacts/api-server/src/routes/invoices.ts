@@ -3,6 +3,7 @@ import { db, invoicesTable, invoiceItemsTable, companySettingsTable, productsTab
 import { eq, and, gte, sql, isNotNull } from "drizzle-orm";
 import { requireAuth, requireRole, AuthenticatedRequest } from "../middlewares/auth";
 import { serializeDates } from "../lib/serialize";
+import { recordAuditLog } from "../lib/audit";
 import { z } from "zod";
 import PDFDocument from "pdfkit";
 
@@ -127,6 +128,7 @@ router.post("/invoices", requireAuth, requireRole("admin", "manager"), async (re
 
   if ("error" in result) { res.status(400).json({ error: result.error }); return; }
   const full = await getInvoiceWithItems(result.invoice.id);
+  void recordAuditLog({ action: "create", entityType: "invoice", entityId: result.invoice.id, user: req.user, newValue: { invoiceNumber: result.invoice.invoiceNumber, clientName: result.invoice.clientName, total: result.invoice.total, status: result.invoice.status } });
   res.status(201).json(full);
 });
 
@@ -180,6 +182,7 @@ router.patch("/invoices/:id/status", requireAuth, requireRole("admin", "manager"
   });
 
   if ("error" in result) { res.status(400).json({ error: result.error }); return; }
+  void recordAuditLog({ action: "update_status", entityType: "invoice", entityId: id, user: req.user, newValue: { status: result.invoice.status, invoiceNumber: result.invoice.invoiceNumber } });
   res.json(serializeDates(result.invoice));
 });
 
