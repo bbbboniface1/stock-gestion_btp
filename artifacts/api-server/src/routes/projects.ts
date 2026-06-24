@@ -82,6 +82,7 @@ router.post("/projects/:id/materials", requireAuth, requireRole("admin", "manage
   const material = await db.transaction(async (tx) => {
     const [project] = await tx.select().from(projectsTable).where(eq(projectsTable.id, params.data.id));
     if (!project) return { error: "Projet introuvable" as const };
+    if (project.status !== "active") return { error: "Le projet doit etre actif pour consommer des materiaux" as const };
 
     const [product] = await tx.select().from(productsTable).where(eq(productsTable.id, parsed.data.productId));
     if (!product) return { error: "Produit introuvable" as const };

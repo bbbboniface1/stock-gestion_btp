@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useListStockMovements, useListUsers, useListProducts } from "@workspace/api-client-react";
+import { useListStockMovements, useListProducts } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,9 +22,23 @@ export default function Audit() {
   if (toDate) params.to_date = toDate;
   if (userFilter !== "all") params.created_by_id = parseInt(userFilter);
 
+  const operatorParams = { ...params };
+  delete operatorParams.created_by_id;
+
   const { data: movements, isLoading } = useListStockMovements(params as any);
-  const { data: users } = useListUsers();
+  const { data: operatorMovements } = useListStockMovements(operatorParams as any);
   const { data: products } = useListProducts({});
+
+  const operators = useMemo(() => {
+    if (!operatorMovements) return [];
+    const map: Record<number, string> = {};
+    operatorMovements.forEach((m) => {
+      map[m.createdById] = m.createdByName ?? "Inconnu";
+    });
+    return Object.entries(map)
+      .map(([id, name]) => ({ id: Number(id), name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [operatorMovements]);
 
   const userStats = useMemo(() => {
     if (!movements) return [];
@@ -125,8 +139,8 @@ export default function Audit() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les utilisateurs</SelectItem>
-                {users?.map((u) => (
-                  <SelectItem key={u.id} value={String(u.id)}>{u.fullName}</SelectItem>
+                {operators.map((operator) => (
+                  <SelectItem key={operator.id} value={String(operator.id)}>{operator.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

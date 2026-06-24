@@ -2,11 +2,11 @@
 > @workspace/api-server@0.0.0 start
 > node --enable-source-maps ./dist/index.mjs
 
-◇ injected env (4) from ..\..\.env // tip: ◈ secrets for agents [www.dotenvx.com]
-◇ injected env (0) from ..\..\.env // tip: ⌘ suppress logs { quiet: true }
-[04:44:02.689] [32mINFO[39m (17420): [36mServer listening[39m
+◇ injected env (4) from ..\..\.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from ..\..\.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+[12:17:54.975] [32mINFO[39m (25180): [36mServer listening[39m
     [35mport[39m: 8080
-[04:44:06.270] [32mINFO[39m (17420): [36mrequest completed[39m
+[12:18:25.396] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
       "id": 1,
       "method": "GET",
@@ -15,18 +15,8 @@
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 22
-[04:44:14.772] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 2,
-      "method": "GET",
-      "url": "/api/healthz"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 5
-[04:44:38.517] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 28
+[12:18:25.555] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
       "id": 3,
       "method": "GET",
@@ -35,88 +25,88 @@
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 4
-[04:44:38.589] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 8
+[12:18:26.828] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 4,
-      "method": "GET",
-      "url": "/api/healthz"
+      "id": 2,
+      "method": "POST",
+      "url": "/api/auth/login"
     }
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 4
-[04:47:46.211] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1337
+[12:19:11.123] [32mINFO[39m (25180): [36mrequest aborted[39m
     [35mreq[39m: {
-      "id": 9,
+      "id": 4,
+      "method": "POST",
+      "url": "/api/auth/login"
+    }
+    [35mres[39m: {
+      "statusCode": null
+    }
+    [35mresponseTime[39m: 75
+[12:21:04.617] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 5,
       "method": "GET",
       "url": "/api/auth/me"
     }
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 6075
-[04:47:46.269] [32mINFO[39m (17420): [36mrequest aborted[39m
-    [35mreq[39m: {
-      "id": 10,
-      "method": "GET",
-      "url": "/api/dashboard/low-stock"
-    }
-    [35mres[39m: {
-      "statusCode": null
-    }
-    [35mresponseTime[39m: 6120
-[04:47:46.294] [32mINFO[39m (17420): [36mrequest aborted[39m
-    [35mreq[39m: {
-      "id": 8,
-      "method": "GET",
-      "url": "/api/dashboard/stock-by-category"
-    }
-    [35mres[39m: {
-      "statusCode": null
-    }
-    [35mresponseTime[39m: 6163
-[04:47:46.295] [32mINFO[39m (17420): [36mrequest aborted[39m
+    [35mresponseTime[39m: 1171
+[12:21:04.763] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
       "id": 6,
       "method": "GET",
-      "url": "/api/dashboard/recent-movements"
+      "url": "/api/projects"
     }
     [35mres[39m: {
-      "statusCode": null
+      "statusCode": 200
     }
-    [35mresponseTime[39m: 6205
-[04:47:46.297] [32mINFO[39m (17420): [36mrequest aborted[39m
+    [35mresponseTime[39m: 1302
+[12:21:06.599] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 5,
-      "method": "GET",
-      "url": "/api/stock-movements"
-    }
-    [35mres[39m: {
-      "statusCode": null
-    }
-    [35mresponseTime[39m: 6395
-[04:47:46.323] [32mINFO[39m (17420): [36mrequest aborted[39m
-    [35mreq[39m: {
-      "id": 7,
-      "method": "GET",
-      "url": "/api/dashboard/summary"
-    }
-    [35mres[39m: {
-      "statusCode": null
-    }
-    [35mresponseTime[39m: 6218
-[04:47:47.747] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 13,
+      "id": 8,
       "method": "GET",
       "url": "/api/auth/me"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 161
-[04:47:47.870] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 139
+[12:21:06.728] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 7,
+      "method": "GET",
+      "url": "/api/projects"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 271
+[12:21:15.537] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 10,
+      "method": "GET",
+      "url": "/api/dashboard/low-stock"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 271
+[12:21:16.201] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 9,
+      "method": "GET",
+      "url": "/api/dashboard/summary"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 939
+[12:21:16.637] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
       "id": 12,
       "method": "GET",
@@ -125,328 +115,184 @@
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 291
-[04:47:47.902] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1362
+[12:21:16.644] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 15,
-      "method": "GET",
-      "url": "/api/dashboard/recent-movements"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 293
-[04:47:47.926] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 14,
+      "id": 13,
       "method": "GET",
       "url": "/api/stock-movements"
     }
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 321
-[04:47:47.951] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 16,
-      "method": "GET",
-      "url": "/api/dashboard/low-stock"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 339
-[04:47:48.536] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1364
+[12:21:16.655] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
       "id": 11,
       "method": "GET",
-      "url": "/api/dashboard/summary"
+      "url": "/api/dashboard/recent-movements"
     }
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 974
-[04:48:57.233] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1384
+[12:21:26.119] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 17,
-      "method": "GET",
-      "url": "/api/reports/pdf"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 10961
-[04:49:11.438] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 18,
-      "method": "GET",
-      "url": "/api/reports/pdf"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 3048
-[04:50:27.422] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 19,
-      "method": "GET",
-      "url": "/api/auth/me"
-    }
-    [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 1311
-[04:50:32.655] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 20,
-      "method": "GET",
-      "url": "/api/reports/pdf"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 1778
-[04:51:24.613] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 21,
-      "method": "GET",
-      "url": "/api/auth/me"
-    }
-    [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 1220
-[04:51:27.326] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 22,
+      "id": 14,
       "method": "GET",
       "url": "/api/users"
     }
     [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 278
-[04:51:30.362] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 274
+[12:21:28.941] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 23,
+      "id": 15,
       "method": "GET",
-      "url": "/api/projects"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 292
-[04:51:40.082] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 24,
-      "method": "GET",
-      "url": "/api/products"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 408
-[04:51:41.531] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 25,
-      "method": "GET",
-      "url": "/api/products/categories"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 1848
-[04:51:42.640] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 27,
-      "method": "GET",
-      "url": "/api/dashboard/low-stock"
+      "url": "/api/auth/me"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 275
-[04:51:43.295] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 146
+[12:21:32.915] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 26,
+      "id": 16,
       "method": "GET",
       "url": "/api/dashboard/summary"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 953
-[04:51:43.530] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1007
+[12:21:33.060] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 28,
+      "id": 17,
+      "method": "GET",
+      "url": "/api/dashboard/low-stock"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1132
+[12:21:33.069] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 18,
       "method": "GET",
       "url": "/api/dashboard/recent-movements"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 1152
-[04:51:43.609] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1138
+[12:21:33.092] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 29,
+      "id": 19,
       "method": "GET",
       "url": "/api/dashboard/stock-by-category"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 1218
-[04:51:43.656] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1156
+[12:21:33.149] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 30,
+      "id": 20,
       "method": "GET",
       "url": "/api/stock-movements"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 1233
-[04:52:04.275] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 1210
+[12:21:41.651] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 31,
+      "id": 21,
+      "method": "GET",
+      "url": "/api/stock-movements"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 277
+[12:21:41.661] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 22,
+      "method": "GET",
+      "url": "/api/projects"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 285
+[12:21:41.670] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 23,
+      "method": "GET",
+      "url": "/api/products"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 291
+[12:21:47.243] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 25,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 133
+[12:21:47.374] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 24,
       "method": "GET",
       "url": "/api/products"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 1213
-[04:52:04.618] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 276
+[12:21:47.431] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 32,
+      "id": 26,
+      "method": "GET",
+      "url": "/api/projects"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 315
+[12:21:58.962] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 27,
+      "method": "GET",
+      "url": "/api/stock-movements"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1109
+[12:22:00.955] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 28,
       "method": "GET",
       "url": "/api/products/categories"
     }
     [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 1551
-[04:52:07.461] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 33,
-      "method": "GET",
-      "url": "/api/stock-movements"
-    }
-    [35mres[39m: {
       "statusCode": 200
     }
-    [35mresponseTime[39m: 297
-[04:52:07.562] [32mINFO[39m (17420): [36mrequest completed[39m
+    [35mresponseTime[39m: 282
+[12:22:01.771] [32mINFO[39m (25180): [36mrequest completed[39m
     [35mreq[39m: {
-      "id": 34,
-      "method": "GET",
-      "url": "/api/projects"
-    }
-    [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 273
-[04:52:08.522] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 35,
+      "id": 29,
       "method": "GET",
       "url": "/api/products"
     }
     [35mres[39m: {
       "statusCode": 304
     }
-    [35mresponseTime[39m: 1230
-[04:52:09.914] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 36,
-      "method": "GET",
-      "url": "/api/projects"
-    }
-    [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 282
-[10:33:48.844] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 38,
-      "method": "GET",
-      "url": "/api/auth/me"
-    }
-    [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 1185
-[10:33:48.981] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 37,
-      "method": "GET",
-      "url": "/api/projects"
-    }
-    [35mres[39m: {
-      "statusCode": 304
-    }
-    [35mresponseTime[39m: 1373
-[10:50:35.444] [32mINFO[39m (17420): [36mrequest aborted[39m
-    [35mreq[39m: {
-      "id": 40,
-      "method": "GET",
-      "url": "/api/projects"
-    }
-    [35mres[39m: {
-      "statusCode": null
-    }
-    [35mresponseTime[39m: 849
-[10:50:35.446] [32mINFO[39m (17420): [36mrequest aborted[39m
-    [35mreq[39m: {
-      "id": 39,
-      "method": "GET",
-      "url": "/api/auth/me"
-    }
-    [35mres[39m: {
-      "statusCode": null
-    }
-    [35mresponseTime[39m: 856
-[10:50:58.096] [32mINFO[39m (17420): [36mrequest errored[39m
-    [35mreq[39m: {
-      "id": 41,
-      "method": "GET",
-      "url": "/api/auth/me"
-    }
-    [35mres[39m: {
-      "statusCode": 500
-    }
-    [35mresponseTime[39m: 23132
-    err: {
-      "type": "Error",
-      "message": "failed with status code 500",
-      "stack":
-          Error: failed with status code 500
-              at onResFinished (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:115:39)
-              at ServerResponse.onResponseComplete (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:178:14)
-              at ServerResponse.emit (node:events:531:35)
-              at onFinish (node:_http_outgoing:1082:10)
-              at callback (node:internal/streams/writable:766:21)
-              at afterWrite (node:internal/streams/writable:710:5)
-              at afterWriteTick (node:internal/streams/writable:696:10)
-              at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
-    }
-[10:52:03.067] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 42,
-      "method": "GET",
-      "url": "/api/auth/me"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 3266
-[10:52:03.203] [32mINFO[39m (17420): [36mrequest completed[39m
-    [35mreq[39m: {
-      "id": 43,
-      "method": "GET",
-      "url": "/api/projects"
-    }
-    [35mres[39m: {
-      "statusCode": 200
-    }
-    [35mresponseTime[39m: 3394
+    [35mresponseTime[39m: 1097

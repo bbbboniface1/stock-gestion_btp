@@ -23,6 +23,7 @@ let workerUserId: number;
 let testProductId: number;
 
 const TEST_PROJECT_NAMES = ["Projet Test Integration", "Projet Worker", "Projet Matiere Integration"];
+const TEST_PRODUCT_NAMES = ["Produit Test Integration", "Produit Manager"];
 
 async function login(email: string, password: string): Promise<string> {
   const res = await request(app).post("/api/auth/login").send({ email, password });
@@ -49,14 +50,13 @@ async function cleanupTestArtifacts() {
   }
   await db.delete(projectsTable).where(inArray(projectsTable.name, TEST_PROJECT_NAMES));
 
-  const testProducts = await db.select().from(productsTable).where(eq(productsTable.name, "Produit Test Integration"));
+  const testProducts = await db.select().from(productsTable).where(inArray(productsTable.name, TEST_PRODUCT_NAMES));
   for (const product of testProducts) {
     await db.delete(projectMaterialsTable).where(eq(projectMaterialsTable.productId, product.id));
     await db.delete(stockMovementsTable).where(eq(stockMovementsTable.productId, product.id));
   }
   await db.delete(auditLogsTable).where(inArray(auditLogsTable.userEmail, [ADMIN_EMAIL, MANAGER_EMAIL, WORKER_EMAIL]));
-  await db.delete(productsTable).where(eq(productsTable.name, "Produit Test Integration"));
-  await db.delete(productsTable).where(eq(productsTable.name, "Produit Manager"));
+  await db.delete(productsTable).where(inArray(productsTable.name, TEST_PRODUCT_NAMES));
   await db.delete(usersTable).where(eq(usersTable.email, ADMIN_EMAIL));
   await db.delete(usersTable).where(eq(usersTable.email, MANAGER_EMAIL));
   await db.delete(usersTable).where(eq(usersTable.email, WORKER_EMAIL));
@@ -128,6 +128,15 @@ describe("API integration", () => {
       });
     expect(managerRes.status).toBe(201);
 
+    const initialMovements = await request(app)
+      .get("/api/stock-movements")
+      .query({ product_id: managerRes.body.id, type: "IN", limit: 10 })
+      .set("Authorization", `Bearer ${managerToken}`);
+    expect(initialMovements.status).toBe(200);
+    expect(initialMovements.body.some((movement: { quantity: number; reason: string }) =>
+      movement.quantity === 5 && movement.reason === "Stock initial"
+    )).toBe(true);
+
     const workerRes = await request(app)
       .post("/api/products")
       .set("Authorization", `Bearer ${workerToken}`)
@@ -172,7 +181,7 @@ describe("API integration", () => {
       .set("Authorization", `Bearer ${adminToken}`);
     const stockBefore = before.body.quantityInStock;
 
-    await request(app)
+    const movementRes = await request(app)
       .post("/api/stock-movements")
       .set("Authorization", `Bearer ${workerToken}`)
       .send({
@@ -180,8 +189,10 @@ describe("API integration", () => {
         type: "IN",
         quantity: 10,
         reason: "Réappro test",
-        createdById: workerUserId,
+        createdById: 999999,
       });
+    expect(movementRes.status).toBe(201);
+    expect(movementRes.body.createdById).toBe(workerUserId);
 
     const after = await request(app)
       .get(`/api/products/${testProductId}`)
@@ -325,7 +336,16 @@ describe("API integration", () => {
     )).toBe(true);
   });
 
+  it("product deletion is refused when stock history exists", async () => {
+    const res = await request(app)
+      .delete(`/api/products/${testProductId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+    expect(res.status).toBe(409);
+    expect(res.body.error).toMatch(/tracabilite/i);
+  });
+
   it("cleanup test product", async () => {
+    await db.delete(projectMaterialsTable).where(eq(projectMaterialsTable.productId, testProductId));
     await db.delete(stockMovementsTable).where(eq(stockMovementsTable.productId, testProductId));
     const res = await request(app)
       .delete(`/api/products/${testProductId}`)

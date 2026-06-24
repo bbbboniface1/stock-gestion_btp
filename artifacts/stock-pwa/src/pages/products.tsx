@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import {
   useListProducts, useListProductCategories, useCreateProduct, useUpdateProduct, useDeleteProduct,
   getListProductsQueryKey, getListProductCategoriesQueryKey,
+  getListStockMovementsQueryKey, getGetDashboardSummaryQueryKey, getGetRecentMovementsQueryKey, getGetLowStockProductsQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/auth";
@@ -83,6 +84,10 @@ export default function Products() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListProductCategoriesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListStockMovementsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetRecentMovementsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetLowStockProductsQueryKey() });
         setOpenCreate(false);
         form.reset();
         toast({ title: "Produit créé avec succès" });
@@ -115,6 +120,8 @@ export default function Products() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListProductCategoriesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetLowStockProductsQueryKey() });
         setEditProduct(null);
         toast({ title: "Produit modifie avec succes" });
       },
@@ -128,6 +135,8 @@ export default function Products() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListProductCategoriesQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetLowStockProductsQueryKey() });
         toast({ title: "Produit supprime" });
       },
       onError: () => toast({ variant: "destructive", title: "Erreur lors de la suppression" }),
