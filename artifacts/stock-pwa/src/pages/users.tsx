@@ -55,7 +55,12 @@ export default function UsersPage() {
         form.reset();
         toast({ title: "Utilisateur créé" });
       },
-      onError: () => toast({ variant: "destructive", title: "Erreur lors de la création" }),
+      onError: (err: any) => {
+        const msg = err?.response?.status === 409
+          ? "Cet email est déjà utilisé par un autre compte"
+          : "Erreur lors de la création";
+        toast({ variant: "destructive", title: msg });
+      },
     });
   };
 

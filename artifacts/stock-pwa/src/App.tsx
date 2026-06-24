@@ -34,6 +34,7 @@ import ScanPage from "@/pages/scan";
 import { AuthBootstrap } from "@/components/AuthBootstrap";
 import { RoleGuard } from "@/components/RoleGuard";
 import { filterNavByRole } from "@/lib/permissions";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -291,6 +292,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <OfflineBanner />
         <AuthBootstrap>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <Router />

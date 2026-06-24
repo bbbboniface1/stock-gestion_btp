@@ -74,6 +74,12 @@
     "vite": "catalog:",
     "vite-plugin-pwa": "^0.21.1",
     "vitest": "^3.2.4",
+    "workbox-background-sync": "^7.4.1",
+    "workbox-core": "^7.4.1",
+    "workbox-expiration": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-strategies": "^7.4.1",
     "wouter": "^3.3.5",
     "zod": "catalog:",
     "zustand": "^5.0.3"

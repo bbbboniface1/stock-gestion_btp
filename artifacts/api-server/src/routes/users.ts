@@ -35,7 +35,17 @@ router.post("/users", requireAuth, requireRole("admin"), async (req, res): Promi
   }
   const { fullName, email, role, password } = parsed.data;
   const passwordHash = hashPassword(password);
-  const [user] = await db.insert(usersTable).values({ fullName, email, role, passwordHash }).returning();
+  let user;
+  try {
+    [user] = await db.insert(usersTable).values({ fullName, email, role, passwordHash }).returning();
+  } catch (err: any) {
+    const isUniqueViolation = err?.code === "23505" || err?.message?.includes("unique");
+    if (isUniqueViolation) {
+      res.status(409).json({ error: "Un utilisateur avec cet email existe déjà" });
+      return;
+    }
+    throw err;
+  }
   res.status(201).json(GetUserResponse.parse(serializeDates({
     id: user.id, fullName: user.fullName, email: user.email, role: user.role, createdAt: user.createdAt,
   })));

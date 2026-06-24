@@ -627,6 +627,24 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@25.6.2)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.21.0)(yaml@2.8.4)
+      workbox-background-sync:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-core:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-expiration:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-precaching:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-routing:
+        specifier: ^7.4.1
+        version: 7.4.1
+      workbox-strategies:
+        specifier: ^7.4.1
+        version: 7.4.1
       wouter:
         specifier: ^3.3.5
         version: 3.10.0(react@19.1.0)
