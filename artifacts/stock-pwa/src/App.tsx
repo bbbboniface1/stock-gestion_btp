@@ -31,6 +31,9 @@ import SettingsPage from "@/pages/settings";
 import ReportsPage from "@/pages/reports";
 import AuditPage from "@/pages/audit";
 import ScanPage from "@/pages/scan";
+import { AuthBootstrap } from "@/components/AuthBootstrap";
+import { RoleGuard } from "@/components/RoleGuard";
+import { filterNavByRole } from "@/lib/permissions";
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -72,8 +75,10 @@ function pageTitleFromPath(path: string): string {
 
 function AppSidebar() {
   const [location, setLocation] = useLocation();
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const { setOpenMobile } = useSidebar();
+
+  const visibleNav = filterNavByRole(allNav, user?.role ?? null);
 
   const isActive = (href: string) => {
     if (href === "/") return location === "/";
@@ -96,7 +101,7 @@ function AppSidebar() {
           <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {allNav.map((item) => (
+              {visibleNav.map((item) => (
                 <SidebarMenuItem key={item.name}>
                   <SidebarMenuButton
                     isActive={isActive(item.href)}
@@ -146,15 +151,17 @@ function MobileHeader() {
 
 function MobileBottomNav() {
   const [location, setLocation] = useLocation();
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const [moreOpen, setMoreOpen] = useState(false);
+
+  const visibleMoreNav = filterNavByRole(moreNav, user?.role ?? null);
 
   const isActive = (href: string) => {
     if (href === "/") return location === "/";
     return location.startsWith(href);
   };
 
-  const isMoreActive = moreNav.some((item) => isActive(item.href));
+  const isMoreActive = visibleMoreNav.some((item) => isActive(item.href));
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-area-pb">
@@ -195,7 +202,7 @@ function MobileBottomNav() {
               </SheetTitle>
             </SheetHeader>
             <div className="grid grid-cols-2 gap-3 pt-2">
-              {moreNav.map((item) => (
+              {visibleMoreNav.map((item) => (
                 <button
                   key={item.href}
                   onClick={() => { setLocation(item.href); setMoreOpen(false); }}
@@ -270,11 +277,11 @@ function Router() {
       <Route path="/movements" component={() => <ProtectedLayout><Movements /></ProtectedLayout>} />
       <Route path="/projects" component={() => <ProtectedLayout><Projects /></ProtectedLayout>} />
       <Route path="/projects/:id" component={() => <ProtectedLayout><ProjectDetail /></ProtectedLayout>} />
-      <Route path="/audit" component={() => <ProtectedLayout><AuditPage /></ProtectedLayout>} />
-      <Route path="/reports" component={() => <ProtectedLayout><ReportsPage /></ProtectedLayout>} />
-      <Route path="/users" component={() => <ProtectedLayout><UsersPage /></ProtectedLayout>} />
+      <Route path="/audit" component={() => <ProtectedLayout><RoleGuard path="/audit"><AuditPage /></RoleGuard></ProtectedLayout>} />
+      <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
+      <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />
       <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
-      <Route path="/scan" component={ScanPage} />
+      <Route path="/scan" component={() => <ProtectedLayout><ScanPage /></ProtectedLayout>} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -284,9 +291,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
+        <AuthBootstrap>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+        </AuthBootstrap>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>

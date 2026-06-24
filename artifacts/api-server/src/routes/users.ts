@@ -16,7 +16,7 @@ import { serializeDates } from "../lib/serialize";
 
 const router: IRouter = Router();
 
-router.get("/users", requireAuth, async (_req, res): Promise<void> => {
+router.get("/users", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
   const users = await db.select({
     id: usersTable.id,
     fullName: usersTable.fullName,
@@ -41,7 +41,7 @@ router.post("/users", requireAuth, requireRole("admin"), async (req, res): Promi
   })));
 });
 
-router.get("/users/:id", requireAuth, async (req, res): Promise<void> => {
+router.get("/users/:id", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
   const params = GetUserParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const [user] = await db.select({

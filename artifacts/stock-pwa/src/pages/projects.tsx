@@ -15,6 +15,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/lib/auth";
+import { canCreateProject } from "@/lib/permissions";
 import { Plus, FolderOpen, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -39,6 +41,8 @@ export default function Projects() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const canCreate = user ? canCreateProject(user.role) : false;
 
   const params = statusFilter !== "all" ? { status: statusFilter as "active" | "completed" | "paused" } : {};
   const { data: projects, isLoading } = useListProjects(params);
@@ -72,6 +76,7 @@ export default function Projects() {
           <h1 className="text-3xl font-bold uppercase tracking-tight">Projets</h1>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{projects?.length ?? 0} projets</p>
         </div>
+        {canCreate && (
         <Dialog open={openCreate} onOpenChange={setOpenCreate}>
           <DialogTrigger asChild>
             <Button data-testid="button-create-project" className="uppercase font-bold tracking-wide">
@@ -124,6 +129,7 @@ export default function Projects() {
             </Form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       <div className="flex gap-2 flex-wrap">

@@ -1,6 +1,6 @@
 import { Router, IRouter } from "express";
 import { db, stockMovementsTable, productsTable, usersTable, projectsTable } from "@workspace/db";
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lt, lte, sql, type SQL } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import {
   ListStockMovementsQueryParams,
@@ -10,10 +10,11 @@ import {
   GetStockMovementResponse,
 } from "@workspace/api-zod";
 import { serializeDates } from "../lib/serialize";
+import { isDateOnly, parseDateBoundary } from "../lib/date-ranges";
 
 const router: IRouter = Router();
 
-async function getMovementsWithJoins(conditions: ReturnType<typeof and>[]) {
+async function getMovementsWithJoins(conditions: SQL[]) {
   return db
     .select({
       id: stockMovementsTable.id,
@@ -42,12 +43,23 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
 
   const { product_id, project_id, type, from_date, to_date, limit = 50, offset = 0 } = params.data;
   const created_by_id = req.query.created_by_id ? parseInt(req.query.created_by_id as string) : undefined;
-  const conditions: ReturnType<typeof eq>[] = [];
+  const conditions: SQL[] = [];
   if (product_id) conditions.push(eq(stockMovementsTable.productId, product_id));
   if (project_id) conditions.push(eq(stockMovementsTable.projectId, project_id));
   if (type) conditions.push(eq(stockMovementsTable.type, type as "IN" | "OUT"));
-  if (from_date) conditions.push(gte(stockMovementsTable.createdAt, new Date(from_date)));
-  if (to_date) conditions.push(lte(stockMovementsTable.createdAt, new Date(to_date)));
+
+  if (from_date) {
+    const fromDate = parseDateBoundary(from_date, "start");
+    if (!fromDate) { res.status(400).json({ error: "from_date invalide" }); return; }
+    conditions.push(gte(stockMovementsTable.createdAt, fromDate));
+  }
+
+  if (to_date) {
+    const toDate = parseDateBoundary(to_date, "end");
+    if (!toDate) { res.status(400).json({ error: "to_date invalide" }); return; }
+    conditions.push(isDateOnly(to_date) ? lt(stockMovementsTable.createdAt, toDate) : lte(stockMovementsTable.createdAt, toDate));
+  }
+
   if (created_by_id) conditions.push(eq(stockMovementsTable.createdById, created_by_id));
 
   const rows = await db

@@ -1,0 +1,26 @@
+
+> @workspace/stock-pwa@0.0.0 dev
+> vite --config vite.config.ts --host 0.0.0.0 --port 5173
+
+
+  [32m[1mVITE[22m v7.3.3[39m  [2mready in [0m[1m4028[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.56.1:[1m5173[22m/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.9:[1m5173[22m/[39m
+[2m04:58:55[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/project-detail.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/project-detail.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/login.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/RoleGuard.tsx, /src/pages/project-detail.tsx, /src/pages/projects.tsx, /src/pages/products.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/RoleGuard.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/projects.tsx, /src/index.css[22m
+[2m10:50:08[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/products.tsx, /src/index.css[22m
+[2m10:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/scan.tsx, /src/components/RoleGuard.tsx, /src/pages/project-detail.tsx, /src/pages/projects.tsx, /src/pages/settings.tsx, /src/pages/login.tsx, /src/pages/products.tsx, /src/components/AuthBootstrap.tsx, /src/pages/reports.tsx, /src/index.css[22m
+[2m10:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/RoleGuard.tsx, /src/pages/project-detail.tsx, /src/pages/projects.tsx, /src/pages/products.tsx, /src/index.css[22m
+[2m10:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m10:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/AuthBootstrap.tsx, /src/index.css[22m
+[2m10:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/project-detail.tsx, /src/index.css[22m
+[2m10:50:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/components/RoleGuard.tsx, /src/pages/project-detail.tsx, /src/pages/projects.tsx, /src/pages/products.tsx, /src/index.css[22m
+[2m10:50:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/scan.tsx, /src/components/RoleGuard.tsx, /src/pages/project-detail.tsx, /src/pages/projects.tsx, /src/pages/settings.tsx, /src/pages/login.tsx, /src/pages/products.tsx, /src/components/AuthBootstrap.tsx, /src/pages/reports.tsx, /src/index.css[22m
+[2m10:50:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m

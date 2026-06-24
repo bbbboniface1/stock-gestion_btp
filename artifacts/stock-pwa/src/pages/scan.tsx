@@ -34,10 +34,10 @@ export default function ScanPage() {
   const productId = useProductIdFromUrl();
 
   const { data: product, isLoading: loadingProduct } = useGetProduct(productId ?? 0, {
-    query: { enabled: !!productId && !!token },
+    query: { enabled: !!productId && !!token } as any,
   });
-  const { data: me } = useGetMe({ query: { enabled: !!token } });
-  const { data: projects } = useListProjects({}, { query: { enabled: !!token } });
+  const { data: me } = useGetMe({ query: { enabled: !!token } as any });
+  const { data: projects } = useListProjects({}, { query: { enabled: !!token } as any });
   const createMovement = useCreateStockMovement();
   const queryClient = useQueryClient();
 

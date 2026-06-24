@@ -1,6 +1,10 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+config({ path: path.resolve(__dirname, "../../.env") });
 
 const connectionString = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL;
 
@@ -9,7 +13,7 @@ if (!connectionString) {
 }
 
 export default defineConfig({
-  schema: path.join(__dirname, "./src/schema/index.ts"),
+  schema: "./src/schema/*.ts",
   dialect: "postgresql",
   dbCredentials: {
     url: connectionString,

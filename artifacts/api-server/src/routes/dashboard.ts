@@ -10,6 +10,7 @@ import {
   GetStockByCategoryResponse,
 } from "@workspace/api-zod";
 import { serializeDates } from "../lib/serialize";
+import { getReportRange } from "../lib/date-ranges";
 
 const router: IRouter = Router();
 
@@ -21,20 +22,19 @@ router.get("/dashboard/summary", requireAuth, async (_req, res): Promise<void> =
   const [activeProjects] = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(projectsTable)
     .where(eq(projectsTable.status, "active"));
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const [inToday] = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(stockMovementsTable)
-    .where(sql`${stockMovementsTable.type} = 'IN' AND ${stockMovementsTable.createdAt} >= ${today}`);
-  const [outToday] = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(stockMovementsTable)
-    .where(sql`${stockMovementsTable.type} = 'OUT' AND ${stockMovementsTable.createdAt} >= ${today}`);
+  const { start: todayStart, endExclusive: tomorrowStart } = getReportRange("day", new Date());
+  const [inToday] = await db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
+    .where(sql`${stockMovementsTable.type} = 'IN' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`);
+  const [outToday] = await db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
+    .where(sql`${stockMovementsTable.type} = 'OUT' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`);
 
   res.json(GetDashboardSummaryResponse.parse({
     totalProducts: productsCount?.count ?? 0,
     totalStockValue: stockTotal?.total ?? 0,
     lowStockCount: lowStockCount?.count ?? 0,
     activeProjects: activeProjects?.count ?? 0,
-    todayMovementsIn: inToday?.count ?? 0,
-    todayMovementsOut: outToday?.count ?? 0,
+    todayMovementsIn: inToday?.total ?? 0,
+    todayMovementsOut: outToday?.total ?? 0,
   }));
 });
 

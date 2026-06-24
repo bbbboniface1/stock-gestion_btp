@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import {
-  useListProducts, useListProductCategories, useCreateProduct, useDeleteProduct,
+  useListProducts, useListProductCategories, useCreateProduct, useUpdateProduct, useDeleteProduct,
   getListProductsQueryKey, getListProductCategoriesQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/auth";
+import { canCreateProduct, canDeleteProduct } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, AlertTriangle, Package, Trash2, ArrowUp, ArrowDown, QrCode } from "lucide-react";
+import { Plus, Search, AlertTriangle, Package, Trash2, ArrowUp, ArrowDown, QrCode, Pencil } from "lucide-react";
 import MovementDialog from "@/components/MovementDialog";
 import QRCodeModal from "@/components/QRCodeModal";
 
@@ -30,18 +31,31 @@ const productSchema = z.object({
   location: z.enum(["warehouse", "site", "project"]),
 });
 
+const productUpdateSchema = productSchema.omit({ quantityInStock: true });
+
 export default function Products() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [openCreate, setOpenCreate] = useState(false);
+  const [editProduct, setEditProduct] = useState<{
+    id: number;
+    name: string;
+    category: string;
+    unit: "kg" | "m" | "litre" | "piece";
+    minimumThreshold: number;
+    location: "warehouse" | "site" | "project";
+  } | null>(null);
   const [movementProduct, setMovementProduct] = useState<{ id: number; name: string; stock: number } | null>(null);
   const [movementType, setMovementType] = useState<"IN" | "OUT">("IN");
   const [qrProduct, setQrProduct] = useState<{ id: number; name: string; stock: number; unit: string } | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { token } = useAuthStore();
+  const { user } = useAuthStore();
+  const canCreate = user ? canCreateProduct(user.role) : false;
+  const canEdit = canCreate;
+  const canDelete = user ? canDeleteProduct(user.role) : false;
 
   const params: Record<string, string | boolean | number> = {};
   if (search) params.search = search;
@@ -51,11 +65,17 @@ export default function Products() {
   const { data: products, isLoading } = useListProducts(params);
   const { data: categories } = useListProductCategories();
   const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: { name: "", category: "", unit: "piece", quantityInStock: 0, minimumThreshold: 0, location: "warehouse" },
+  });
+
+  const editForm = useForm<z.infer<typeof productUpdateSchema>>({
+    resolver: zodResolver(productUpdateSchema),
+    defaultValues: { name: "", category: "", unit: "piece", minimumThreshold: 0, location: "warehouse" },
   });
 
   const onSubmit = (values: z.infer<typeof productSchema>) => {
@@ -71,13 +91,46 @@ export default function Products() {
     });
   };
 
+  const openEditDialog = (product: {
+    id: number;
+    name: string;
+    category: string;
+    unit: "kg" | "m" | "litre" | "piece";
+    minimumThreshold: number;
+    location: "warehouse" | "site" | "project";
+  }) => {
+    setEditProduct(product);
+    editForm.reset({
+      name: product.name,
+      category: product.category,
+      unit: product.unit,
+      minimumThreshold: product.minimumThreshold,
+      location: product.location,
+    });
+  };
+
+  const onUpdate = (values: z.infer<typeof productUpdateSchema>) => {
+    if (!editProduct) return;
+    updateProduct.mutate({ id: editProduct.id, data: values }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListProductCategoriesQueryKey() });
+        setEditProduct(null);
+        toast({ title: "Produit modifie avec succes" });
+      },
+      onError: () => toast({ variant: "destructive", title: "Erreur lors de la modification" }),
+    });
+  };
+
   const handleDelete = (id: number) => {
-    if (!confirm("Supprimer ce produit définitivement ?")) return;
+    if (!confirm("Supprimer ce produit definitivement ?")) return;
     deleteProduct.mutate({ id }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-        toast({ title: "Produit supprimé" });
+        queryClient.invalidateQueries({ queryKey: getListProductCategoriesQueryKey() });
+        toast({ title: "Produit supprime" });
       },
+      onError: () => toast({ variant: "destructive", title: "Erreur lors de la suppression" }),
     });
   };
 
@@ -90,6 +143,7 @@ export default function Products() {
           <h1 className="text-3xl font-bold uppercase tracking-tight">Produits</h1>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{products?.length ?? 0} articles en stock</p>
         </div>
+        {canCreate && (
         <Dialog open={openCreate} onOpenChange={setOpenCreate}>
           <DialogTrigger asChild>
             <Button data-testid="button-create-product" className="uppercase font-bold tracking-wide">
@@ -156,6 +210,7 @@ export default function Products() {
             </Form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {/* Filters */}
@@ -223,6 +278,26 @@ export default function Products() {
                             onClick={() => setQrProduct({ id: product.id, name: product.name, stock: product.quantityInStock, unit: product.unit })}>
                             <QrCode className="h-3 w-3" />
                           </Button>
+                          {canEdit && (
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0" data-testid={`button-edit-${product.id}`}
+                              onClick={() => openEditDialog({
+                                id: product.id,
+                                name: product.name,
+                                category: product.category,
+                                unit: product.unit,
+                                minimumThreshold: product.minimumThreshold,
+                                location: product.location,
+                              })}>
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button size="sm" variant="outline" className="h-8 w-8 p-0 border-destructive/40 text-destructive hover:bg-destructive/10" data-testid={`button-delete-${product.id}`}
+                              onClick={() => handleDelete(product.id)}
+                              disabled={deleteProduct.isPending}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -249,6 +324,61 @@ export default function Products() {
           initialType={movementType}
         />
       )}
+
+      <Dialog open={!!editProduct} onOpenChange={(open) => !open && setEditProduct(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="uppercase tracking-wide">Modifier le produit</DialogTitle>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(onUpdate)} className="space-y-4">
+              <FormField control={editForm.control} name="name" render={({ field }) => (
+                <FormItem><FormLabel className="uppercase text-xs">Nom</FormLabel>
+                  <FormControl><Input {...field} data-testid="input-edit-product-name" className="bg-background" /></FormControl>
+                  <FormMessage /></FormItem>
+              )} />
+              <FormField control={editForm.control} name="category" render={({ field }) => (
+                <FormItem><FormLabel className="uppercase text-xs">Categorie</FormLabel>
+                  <FormControl><Input {...field} data-testid="input-edit-product-category" className="bg-background" /></FormControl>
+                  <FormMessage /></FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={editForm.control} name="unit" render={({ field }) => (
+                  <FormItem><FormLabel className="uppercase text-xs">Unite</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl><SelectTrigger className="bg-background"><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="kg">kg</SelectItem>
+                        <SelectItem value="m">m</SelectItem>
+                        <SelectItem value="litre">litre</SelectItem>
+                        <SelectItem value="piece">piece</SelectItem>
+                      </SelectContent>
+                    </Select><FormMessage /></FormItem>
+                )} />
+                <FormField control={editForm.control} name="location" render={({ field }) => (
+                  <FormItem><FormLabel className="uppercase text-xs">Emplacement</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl><SelectTrigger className="bg-background"><SelectValue /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        <SelectItem value="warehouse">Entrepot</SelectItem>
+                        <SelectItem value="site">Chantier</SelectItem>
+                        <SelectItem value="project">Projet</SelectItem>
+                      </SelectContent>
+                    </Select><FormMessage /></FormItem>
+                )} />
+              </div>
+              <FormField control={editForm.control} name="minimumThreshold" render={({ field }) => (
+                <FormItem><FormLabel className="uppercase text-xs">Seuil min</FormLabel>
+                  <FormControl><Input type="number" {...field} className="bg-background" /></FormControl>
+                  <FormMessage /></FormItem>
+              )} />
+              <Button type="submit" className="w-full uppercase font-bold" disabled={updateProduct.isPending}>
+                {updateProduct.isPending ? "Modification..." : "Enregistrer les modifications"}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       {qrProduct && (
         <QRCodeModal

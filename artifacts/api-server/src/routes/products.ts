@@ -1,7 +1,8 @@
 import { Router, IRouter } from "express";
 import { db, productsTable } from "@workspace/db";
 import { eq, ilike, sql, and } from "drizzle-orm";
-import { requireAuth, requireRole } from "../middlewares/auth";
+import { requireAuth, requireRole, type AuthenticatedRequest } from "../middlewares/auth";
+import { recordAuditLog } from "../lib/audit";
 import {
   ListProductsQueryParams,
   ListProductsResponse,
@@ -79,11 +80,18 @@ router.patch("/products/:id", requireAuth, requireRole("admin", "manager"), asyn
   res.json(UpdateProductResponse.parse(serializeDates(product)));
 });
 
-router.delete("/products/:id", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+router.delete("/products/:id", requireAuth, requireRole("admin"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const params = DeleteProductParams.safeParse(req.params);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
   const [product] = await db.delete(productsTable).where(eq(productsTable.id, params.data.id)).returning();
   if (!product) { res.status(404).json({ error: "Produit introuvable" }); return; }
+  void recordAuditLog({
+    action: "delete",
+    entityType: "product",
+    entityId: product.id,
+    user: req.user,
+    oldValue: serializeDates(product),
+  });
   res.sendStatus(204);
 });
 

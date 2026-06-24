@@ -2,6 +2,7 @@ import { useParams, useLocation } from "wouter";
 import {
   useGetProject, useGetProjectMaterials, useUpdateProject, useAddProjectMaterial, useListProducts,
   getGetProjectQueryKey, getGetProjectMaterialsQueryKey, getListProjectsQueryKey,
+  getListProductsQueryKey, getListStockMovementsQueryKey, getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,8 @@ import { ArrowLeft, Plus, Package, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useState } from "react";
+import { useAuthStore } from "@/lib/auth";
+import { canUpdateProject, canAddProjectMaterial } from "@/lib/permissions";
 
 const materialSchema = z.object({
   productId: z.coerce.number().min(1, "Produit requis"),
@@ -38,6 +41,9 @@ export default function ProjectDetail() {
   const [openMaterial, setOpenMaterial] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const canEdit = user ? canUpdateProject(user.role) : false;
+  const canAddMaterial = user ? canAddProjectMaterial(user.role) : false;
 
   const { data: project, isLoading } = useGetProject(id, { query: { enabled: !!id, queryKey: getGetProjectQueryKey(id) } });
   const { data: materials, isLoading: loadingMaterials } = useGetProjectMaterials(id, { query: { enabled: !!id, queryKey: getGetProjectMaterialsQueryKey(id) } });
@@ -54,6 +60,9 @@ export default function ProjectDetail() {
     addMaterial.mutate({ id, data: { productId: values.productId, quantityUsed: values.quantityUsed } }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetProjectMaterialsQueryKey(id) });
+        queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getListStockMovementsQueryKey() });
+        queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
         setOpenMaterial(false);
         form.reset();
         toast({ title: "Matériau ajouté" });
@@ -100,6 +109,7 @@ export default function ProjectDetail() {
             </div>
           )}
         </div>
+        {canEdit && (
         <div className="flex items-center gap-2">
           <Select value={project.status} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-40 bg-card border-border" data-testid="select-project-status">
@@ -112,11 +122,13 @@ export default function ProjectDetail() {
             </SelectContent>
           </Select>
         </div>
+        )}
       </div>
 
       <Card className="bg-card border-border">
         <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-bold uppercase tracking-wider">Matériaux consommés</CardTitle>
+          {canAddMaterial && (
           <Dialog open={openMaterial} onOpenChange={setOpenMaterial}>
             <DialogTrigger asChild>
               <Button size="sm" className="uppercase font-bold text-xs" data-testid="button-add-material">
@@ -150,6 +162,7 @@ export default function ProjectDetail() {
               </Form>
             </DialogContent>
           </Dialog>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {loadingMaterials ? (

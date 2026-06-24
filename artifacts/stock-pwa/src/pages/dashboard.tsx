@@ -1,4 +1,4 @@
-import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory, useListStockMovements } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, AlertTriangle, ArrowRightLeft, Activity, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -43,18 +43,28 @@ export default function Dashboard() {
   const { data: lowStock, isLoading: loadingLowStock } = useGetLowStockProducts();
   const { data: recent, isLoading: loadingRecent } = useGetRecentMovements({ limit: 20 });
   const { data: byCategory, isLoading: loadingCategory } = useGetStockByCategory();
+  const today = new Date();
+  const chartFrom = new Date(today);
+  chartFrom.setUTCDate(chartFrom.getUTCDate() - 6);
+  const chartFromDate = chartFrom.toISOString().slice(0, 10);
+  const chartToDate = today.toISOString().slice(0, 10);
+  const { data: chartMovements, isLoading: loadingChartMovements } = useListStockMovements({
+    from_date: chartFromDate,
+    to_date: chartToDate,
+    limit: 1000,
+  });
 
-  // Build IN/OUT bar chart from recent movements (last 20)
   const mvtByDate = (() => {
-    if (!recent?.length) return [];
-    const map: Record<string, { date: string; IN: number; OUT: number }> = {};
-    recent.forEach((m) => {
-      const d = format(new Date(m.createdAt), "dd/MM", { locale: fr });
-      if (!map[d]) map[d] = { date: d, IN: 0, OUT: 0 };
-      if (m.type === "IN") map[d].IN += m.quantity;
-      else map[d].OUT += m.quantity;
+    if (!chartMovements?.length) return [];
+    const map: Record<string, { key: string; date: string; IN: number; OUT: number }> = {};
+    chartMovements.forEach((m) => {
+      const createdAt = new Date(m.createdAt);
+      const key = createdAt.toISOString().slice(0, 10);
+      if (!map[key]) map[key] = { key, date: format(createdAt, "dd/MM", { locale: fr }), IN: 0, OUT: 0 };
+      if (m.type === "IN") map[key].IN += m.quantity;
+      else map[key].OUT += m.quantity;
     });
-    return Object.values(map).slice(-7);
+    return Object.values(map).sort((a, b) => a.key.localeCompare(b.key));
   })();
 
   if (loadingSummary) {
@@ -95,7 +105,7 @@ export default function Dashboard() {
         </Card>
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Mouvements (Aujourd'hui)</CardTitle>
+            <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Quantites Aujourd'hui</CardTitle>
             <ArrowRightLeft className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
@@ -124,11 +134,11 @@ export default function Dashboard() {
           <CardHeader className="border-b border-border pb-4">
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
-              Entrées / Sorties récentes
+              Entrees / Sorties - 7 jours
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-4">
-            {loadingRecent ? (
+            {loadingChartMovements ? (
               <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase animate-pulse">Chargement...</div>
             ) : mvtByDate.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase">Aucun mouvement récent</div>

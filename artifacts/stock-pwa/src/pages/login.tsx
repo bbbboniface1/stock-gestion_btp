@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { setToken } = useAuthStore();
+  const { setAuth } = useAuthStore();
   const { toast } = useToast();
 
   const returnTo = (() => {
@@ -41,7 +41,7 @@ export default function Login() {
       { data: values },
       {
         onSuccess: (data) => {
-          setToken(data.token);
+          setAuth(data.token, data.user as Parameters<typeof setAuth>[1]);
           setLocation(returnTo);
         },
         onError: () => {
