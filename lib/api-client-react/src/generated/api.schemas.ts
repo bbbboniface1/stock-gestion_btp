@@ -407,6 +407,7 @@ project_id?: number;
 type?: ListStockMovementsType;
 from_date?: string;
 to_date?: string;
+created_by_id?: number;
 limit?: number;
 offset?: number;
 };

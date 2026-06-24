@@ -146,6 +146,7 @@ export const ListStockMovementsQueryParams = zod.object({
   "type": zod.enum(['IN', 'OUT']).optional(),
   "from_date": zod.coerce.string().optional(),
   "to_date": zod.coerce.string().optional(),
+  "created_by_id": zod.coerce.number().optional(),
   "limit": zod.coerce.number().default(listStockMovementsQueryLimitDefault),
   "offset": zod.coerce.number().default(listStockMovementsQueryOffsetDefault)
 })

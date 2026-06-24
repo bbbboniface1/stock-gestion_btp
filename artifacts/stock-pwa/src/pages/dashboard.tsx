@@ -1,6 +1,5 @@
-import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory, customFetch } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, AlertTriangle, ArrowRightLeft, Activity, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -14,17 +13,9 @@ import {
 type DayBucket = { date: string; IN: number; OUT: number };
 
 function useMovementsByDay(from: string, to: string) {
-  const { token } = useAuthStore();
   return useQuery<DayBucket[]>({
     queryKey: ["dashboard", "movements-by-day", from, to],
-    queryFn: async () => {
-      const res = await fetch(`/api/dashboard/movements-by-day?from=${from}&to=${to}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Erreur chargement graphique");
-      return res.json() as Promise<DayBucket[]>;
-    },
-    enabled: !!token,
+    queryFn: () => customFetch<DayBucket[]>(`/api/dashboard/movements-by-day?from=${from}&to=${to}`),
   });
 }
 

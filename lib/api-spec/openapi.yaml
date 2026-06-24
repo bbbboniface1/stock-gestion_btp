@@ -182,6 +182,9 @@ paths:
         - name: to_date
           in: query
           schema: { type: string }
+        - name: created_by_id
+          in: query
+          schema: { type: integer }
         - name: limit
           in: query
           schema: { type: integer, default: 50 }
