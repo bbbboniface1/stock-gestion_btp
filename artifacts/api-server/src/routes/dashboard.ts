@@ -15,18 +15,26 @@ import { getReportRange } from "../lib/date-ranges";
 const router: IRouter = Router();
 
 router.get("/dashboard/summary", requireAuth, async (_req, res): Promise<void> => {
-  const [productsCount] = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(productsTable);
-  const [stockTotal] = await db.select({ total: sql<number>`cast(coalesce(sum(${productsTable.quantityInStock}), 0) as int)` }).from(productsTable);
-  const [lowStockCount] = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(productsTable)
-    .where(sql`${productsTable.quantityInStock} < ${productsTable.minimumThreshold}`);
-  const [activeProjects] = await db.select({ count: sql<number>`cast(count(*) as int)` }).from(projectsTable)
-    .where(eq(projectsTable.status, "active"));
-
   const { start: todayStart, endExclusive: tomorrowStart } = getReportRange("day", new Date());
-  const [inToday] = await db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
-    .where(sql`${stockMovementsTable.type} = 'IN' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`);
-  const [outToday] = await db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
-    .where(sql`${stockMovementsTable.type} = 'OUT' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`);
+  const [
+    [productsCount],
+    [stockTotal],
+    [lowStockCount],
+    [activeProjects],
+    [inToday],
+    [outToday],
+  ] = await Promise.all([
+    db.select({ count: sql<number>`cast(count(*) as int)` }).from(productsTable),
+    db.select({ total: sql<number>`cast(coalesce(sum(${productsTable.quantityInStock}), 0) as int)` }).from(productsTable),
+    db.select({ count: sql<number>`cast(count(*) as int)` }).from(productsTable)
+      .where(sql`${productsTable.quantityInStock} < ${productsTable.minimumThreshold}`),
+    db.select({ count: sql<number>`cast(count(*) as int)` }).from(projectsTable)
+      .where(eq(projectsTable.status, "active")),
+    db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
+      .where(sql`${stockMovementsTable.type} = 'IN' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`),
+    db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
+      .where(sql`${stockMovementsTable.type} = 'OUT' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`),
+  ]);
 
   res.json(GetDashboardSummaryResponse.parse({
     totalProducts: productsCount?.count ?? 0,

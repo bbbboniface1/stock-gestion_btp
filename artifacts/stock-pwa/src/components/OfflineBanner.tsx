@@ -12,6 +12,7 @@ export function OfflineBanner() {
       const t = setTimeout(() => setShowSync(false), 3500);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [status]);
 
   if (status === "online" && !showSync) return null;

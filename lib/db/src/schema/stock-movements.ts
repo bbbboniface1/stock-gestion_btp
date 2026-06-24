@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, pgEnum, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { productsTable } from "./products";
@@ -16,7 +16,13 @@ export const stockMovementsTable = pgTable("stock_movements", {
   projectId: integer("project_id").references(() => projectsTable.id),
   createdById: integer("created_by").notNull().references(() => usersTable.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("stock_movements_created_at_idx").on(table.createdAt),
+  index("stock_movements_product_id_idx").on(table.productId),
+  index("stock_movements_project_id_idx").on(table.projectId),
+  index("stock_movements_created_by_idx").on(table.createdById),
+  index("stock_movements_type_created_at_idx").on(table.type, table.createdAt),
+]);
 
 export const insertStockMovementSchema = createInsertSchema(stockMovementsTable).omit({ id: true, createdAt: true });
 export type InsertStockMovement = z.infer<typeof insertStockMovementSchema>;

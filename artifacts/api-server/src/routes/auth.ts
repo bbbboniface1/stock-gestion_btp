@@ -1,21 +1,35 @@
-import { Router, IRouter } from "express";
-import rateLimit from "express-rate-limit";
+import { Router, IRouter, type RequestHandler } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { hashPassword, verifyPassword, generateToken } from "../lib/auth";
+import { verifyPassword, generateToken } from "../lib/auth";
 import { requireAuth, AuthenticatedRequest } from "../middlewares/auth";
 import { LoginBody } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Trop de tentatives de connexion. Réessayez dans 15 minutes." },
-  skipSuccessfulRequests: true,
-});
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_ATTEMPTS = 10;
+
+const loginLimiter: RequestHandler = (req, res, next) => {
+  const key = req.ip ?? "unknown";
+  const now = Date.now();
+  const current = loginAttempts.get(key);
+
+  if (!current || current.resetAt <= now) {
+    loginAttempts.set(key, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+    next();
+    return;
+  }
+
+  if (current.count >= LOGIN_MAX_ATTEMPTS) {
+    res.status(429).json({ error: "Trop de tentatives de connexion. Reessayez dans 15 minutes." });
+    return;
+  }
+
+  current.count += 1;
+  next();
+};
 
 router.post("/auth/login", loginLimiter, async (req, res): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
@@ -41,7 +55,7 @@ router.post("/auth/logout", (_req, res): void => {
 });
 
 router.get("/auth/me", requireAuth, (req: AuthenticatedRequest, res): void => {
-  if (!req.user) { res.status(401).json({ error: "Non authentifié" }); return; }
+  if (!req.user) { res.status(401).json({ error: "Non authentifie" }); return; }
   res.json(req.user);
 });
 
