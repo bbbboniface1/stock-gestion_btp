@@ -282,7 +282,7 @@ function Router() {
       <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
       <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />
       <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
-      <Route path="/scan" component={() => <ProtectedLayout><ScanPage /></ProtectedLayout>} />
+      <Route path="/scan" component={() => <ScanPage />} />
       <Route component={NotFound} />
     </Switch>
   );

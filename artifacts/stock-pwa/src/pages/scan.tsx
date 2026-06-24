@@ -49,6 +49,12 @@ export default function ScanPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [confirmedQty, setConfirmedQty] = useState(0);
   const [confirmedType, setConfirmedType] = useState<"IN" | "OUT">("OUT");
+  const [stockAfter, setStockAfter] = useState<number | null>(null);
+
+  const safeQty = (): number => {
+    const n = parseInt(quantity);
+    return isNaN(n) || n < 1 ? 1 : n;
+  };
 
   useEffect(() => {
     if (!token) {
@@ -60,8 +66,7 @@ export default function ScanPage() {
 
   const handleSubmit = () => {
     if (!me || !product) return;
-    const qty = parseInt(quantity);
-    if (!qty || qty < 1) return;
+    const qty = safeQty();
     if (!reason.trim()) return;
     if (type === "OUT" && qty > product.quantityInStock) return;
 
@@ -80,6 +85,7 @@ export default function ScanPage() {
       onSuccess: () => {
         setConfirmedQty(qty);
         setConfirmedType(type);
+        setStockAfter(type === "IN" ? product.quantityInStock + qty : product.quantityInStock - qty);
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListStockMovementsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
@@ -97,8 +103,8 @@ export default function ScanPage() {
     });
   };
 
-  const isOutOfStock = type === "OUT" && product && parseInt(quantity) > product.quantityInStock;
-  const canSubmit = reason.trim().length > 0 && parseInt(quantity) >= 1 && !isOutOfStock && !createMovement.isPending && !!me && !!product;
+  const isOutOfStock = type === "OUT" && product && safeQty() > product.quantityInStock;
+  const canSubmit = reason.trim().length > 0 && safeQty() >= 1 && !isOutOfStock && !createMovement.isPending && !!me && !!product;
 
   if (!token) return null;
 
@@ -162,9 +168,20 @@ export default function ScanPage() {
             <div>
               <div className="text-2xl font-bold uppercase">Enregistré !</div>
               <div className={`text-4xl font-bold font-mono mt-2 ${confirmedType === "IN" ? "text-green-500" : "text-orange-500"}`}>
-                {confirmedType === "IN" ? "+" : "-"}{confirmedQty}
+                {confirmedType === "IN" ? "+" : "-"}{confirmedQty} {product.unit}
               </div>
               <div className="text-muted-foreground uppercase text-sm mt-1">{product.name}</div>
+              {stockAfter !== null && (
+                <div className="mt-3 bg-card border border-border rounded-lg px-4 py-2 inline-block">
+                  <div className="text-xs text-muted-foreground uppercase">Stock restant</div>
+                  <div className={`text-2xl font-bold font-mono ${stockAfter < product.minimumThreshold ? "text-destructive" : "text-foreground"}`}>
+                    {stockAfter} {product.unit}
+                  </div>
+                  {stockAfter < product.minimumThreshold && (
+                    <div className="text-xs text-destructive font-bold uppercase mt-0.5">⚠ En dessous du seuil min</div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex flex-col gap-3 w-full">
               <Button
@@ -277,22 +294,23 @@ export default function ScanPage() {
               <div className="flex gap-3 items-center">
                 <button
                   type="button"
-                  onClick={() => setQuantity(q => String(Math.max(1, parseInt(q) - 1)))}
-                  className="h-14 w-14 rounded-lg border-2 border-border bg-card text-2xl font-bold flex items-center justify-center hover:border-primary/50 transition-all shrink-0"
+                  onClick={() => setQuantity(q => String(Math.max(1, (parseInt(q) || 1) - 1)))}
+                  className="h-14 w-14 rounded-lg border-2 border-border bg-card text-2xl font-bold flex items-center justify-center hover:border-primary/50 transition-all shrink-0 active:scale-95"
                 >
                   −
                 </button>
                 <Input
                   type="number"
                   min={1}
+                  inputMode="numeric"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  onChange={(e) => setQuantity(e.target.value === "" ? "1" : e.target.value)}
                   className="flex-1 h-14 text-center text-2xl font-bold font-mono bg-card border-border"
                 />
                 <button
                   type="button"
-                  onClick={() => setQuantity(q => String(parseInt(q) + 1))}
-                  className="h-14 w-14 rounded-lg border-2 border-border bg-card text-2xl font-bold flex items-center justify-center hover:border-primary/50 transition-all shrink-0"
+                  onClick={() => setQuantity(q => String((parseInt(q) || 0) + 1))}
+                  className="h-14 w-14 rounded-lg border-2 border-border bg-card text-2xl font-bold flex items-center justify-center hover:border-primary/50 transition-all shrink-0 active:scale-95"
                 >
                   +
                 </button>
