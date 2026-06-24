@@ -18,6 +18,7 @@ export function useOnlineStatus() {
   useEffect(() => {
     const handleOnline = () => {
       setStatus("syncing");
+      setPendingCount(0);
       setTimeout(() => setStatus("online"), 3000);
     };
     const handleOffline = () => setStatus("offline");

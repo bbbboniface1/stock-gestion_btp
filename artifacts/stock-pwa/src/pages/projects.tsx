@@ -17,7 +17,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { canCreateProject } from "@/lib/permissions";
-import { Plus, FolderOpen, Calendar } from "lucide-react";
+import { Plus, FolderOpen, Calendar, AlertCircle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -45,7 +45,7 @@ export default function Projects() {
   const canCreate = user ? canCreateProject(user.role) : false;
 
   const params = statusFilter !== "all" ? { status: statusFilter as "active" | "completed" | "paused" } : {};
-  const { data: projects, isLoading } = useListProjects(params);
+  const { data: projects, isLoading, isError, refetch } = useListProjects(params);
   const createProject = useCreateProject();
 
   const form = useForm<z.infer<typeof projectSchema>>({
@@ -140,8 +140,20 @@ export default function Projects() {
         ))}
       </div>
 
-      {isLoading ? (
-        <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement des projets...</div>
+      {isError ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center gap-4">
+          <AlertCircle className="h-12 w-12 text-destructive" />
+          <p className="text-muted-foreground uppercase text-sm font-mono">Impossible de charger les projets</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="uppercase text-xs font-bold gap-2">
+            <RefreshCw className="h-3.5 w-3.5" /> Réessayer
+          </Button>
+        </div>
+      ) : isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-32 rounded-lg bg-card border border-border animate-pulse" />
+          ))}
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {projects && projects.length > 0 ? projects.map(project => (

@@ -1,5 +1,5 @@
 import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
-import { QueryClient, QueryClientProvider, QueryCache } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, keepPreviousData } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/lib/auth";
@@ -39,11 +39,12 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30_000,
-      gcTime: 5 * 60_000,
+      staleTime: 20_000,
+      gcTime: 10 * 60_000,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       retry: 1,
+      placeholderData: keepPreviousData,
     },
   },
   queryCache: new QueryCache({

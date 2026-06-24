@@ -1,19 +1,28 @@
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { WifiOff, RefreshCw, Wifi } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function OfflineBanner() {
   const { status, pendingCount } = useOnlineStatus();
   const [showSync, setShowSync] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (status === "syncing") {
       setShowSync(true);
-      const t = setTimeout(() => setShowSync(false), 3500);
-      return () => clearTimeout(t);
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        setShowSync(false);
+        timerRef.current = null;
+      }, 4000);
     }
-    return undefined;
   }, [status]);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   if (status === "online" && !showSync) return null;
 

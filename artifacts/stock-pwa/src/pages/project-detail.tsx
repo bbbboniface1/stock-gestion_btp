@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Package, Calendar } from "lucide-react";
+import { ArrowLeft, Plus, Package, Calendar, AlertCircle, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useState } from "react";
@@ -45,7 +45,7 @@ export default function ProjectDetail() {
   const canEdit = user ? canUpdateProject(user.role) : false;
   const canAddMaterial = user ? canAddProjectMaterial(user.role) : false;
 
-  const { data: project, isLoading } = useGetProject(id, { query: { enabled: !!id, queryKey: getGetProjectQueryKey(id) } });
+  const { data: project, isLoading, isError, refetch } = useGetProject(id, { query: { enabled: !!id, queryKey: getGetProjectQueryKey(id) } });
   const { data: materials, isLoading: loadingMaterials } = useGetProjectMaterials(id, { query: { enabled: !!id, queryKey: getGetProjectMaterialsQueryKey(id) } });
   const { data: products } = useListProducts({});
   const updateProject = useUpdateProject();
@@ -81,7 +81,22 @@ export default function ProjectDetail() {
     });
   };
 
-  if (isLoading) return <div className="p-8 text-muted-foreground uppercase animate-pulse">Chargement...</div>;
+  if (isLoading) return (
+    <div className="space-y-4">
+      <div className="h-8 w-32 rounded bg-card border border-border animate-pulse" />
+      <div className="h-24 rounded-lg bg-card border border-border animate-pulse" />
+      <div className="h-64 rounded-lg bg-card border border-border animate-pulse" />
+    </div>
+  );
+  if (isError) return (
+    <div className="flex flex-col items-center justify-center p-12 text-center gap-4">
+      <AlertCircle className="h-12 w-12 text-destructive" />
+      <p className="text-muted-foreground uppercase text-sm font-mono">Impossible de charger ce projet</p>
+      <Button variant="outline" size="sm" onClick={() => refetch()} className="uppercase text-xs font-bold gap-2">
+        <RefreshCw className="h-3.5 w-3.5" /> Réessayer
+      </Button>
+    </div>
+  );
   if (!project) return <div className="p-8 text-muted-foreground uppercase">Projet introuvable</div>;
 
   const cfg = statusConfig[project.status];

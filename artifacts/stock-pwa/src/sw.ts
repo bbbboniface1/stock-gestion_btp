@@ -10,6 +10,8 @@ declare let self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
+let pendingQueueCount = 0;
+
 const bgSyncPlugin = new BackgroundSyncPlugin("stockbtp-mutations-queue", {
   maxRetentionTime: 7 * 24 * 60,
   onSync: async ({ queue }) => {
@@ -17,6 +19,7 @@ const bgSyncPlugin = new BackgroundSyncPlugin("stockbtp-mutations-queue", {
     while ((entry = await queue.shiftRequest())) {
       try {
         await fetch(entry.request.clone());
+        pendingQueueCount = Math.max(0, pendingQueueCount - 1);
         self.clients.matchAll().then((clients) => {
           clients.forEach((client) =>
             client.postMessage({ type: "SYNC_SUCCESS" })
@@ -69,10 +72,10 @@ registerRoute(
   ({ url }) => url.pathname.startsWith("/api/"),
   new NetworkFirst({
     cacheName: "api-cache",
-    networkTimeoutSeconds: 5,
+    networkTimeoutSeconds: 3,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 150,
+        maxEntries: 200,
         maxAgeSeconds: 7 * 24 * 60 * 60,
       }),
     ],
@@ -97,5 +100,11 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL("/index.html")));
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+  if (event.data?.type === "GET_QUEUE_COUNT") {
+    (event.source as any)?.postMessage({ type: "QUEUE_COUNT", count: pendingQueueCount });
+  }
+  if (event.data?.type === "MUTATION_QUEUED") {
+    pendingQueueCount = Math.max(0, pendingQueueCount + 1);
   }
 });
