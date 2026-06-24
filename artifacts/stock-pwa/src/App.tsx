@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider, QueryCache, keepPreviousData } from "
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/lib/auth";
+import { CompanyProvider } from "@/contexts/CompanyContext";
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Package, ArrowRightLeft, LayoutGrid, Users, Settings, LogOut,
-  FileText, HardHat, FileDown, ClipboardList, Menu, MoreHorizontal, QrCode,
+  FileText, HardHat, FileDown, ClipboardList, Menu, MoreHorizontal, QrCode, Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,6 +32,9 @@ import SettingsPage from "@/pages/settings";
 import ReportsPage from "@/pages/reports";
 import AuditPage from "@/pages/audit";
 import ScanPage from "@/pages/scan";
+import InvoicesPage from "@/pages/invoices";
+import InvoiceNewPage from "@/pages/invoice-new";
+import InvoiceDetailPage from "@/pages/invoice-detail";
 import { AuthBootstrap } from "@/components/AuthBootstrap";
 import { RoleGuard } from "@/components/RoleGuard";
 import { filterNavByRole } from "@/lib/permissions";
@@ -64,6 +68,7 @@ const mainNav = [
 ];
 
 const moreNav = [
+  { name: "Factures", href: "/invoices", icon: Receipt },
   { name: "Traçabilité", href: "/audit", icon: ClipboardList },
   { name: "Rapports", href: "/reports", icon: FileDown },
   { name: "Utilisateurs", href: "/users", icon: Users },
@@ -77,6 +82,7 @@ function pageTitleFromPath(path: string): string {
   if (path.startsWith("/products")) return "Produits";
   if (path.startsWith("/movements")) return "Mouvements";
   if (path.startsWith("/projects")) return "Projets";
+  if (path.startsWith("/invoices")) return "Factures";
   if (path.startsWith("/audit")) return "Traçabilité";
   if (path.startsWith("/reports")) return "Rapports";
   if (path.startsWith("/users")) return "Utilisateurs";
@@ -288,6 +294,9 @@ function Router() {
       <Route path="/movements" component={() => <ProtectedLayout><Movements /></ProtectedLayout>} />
       <Route path="/projects" component={() => <ProtectedLayout><Projects /></ProtectedLayout>} />
       <Route path="/projects/:id" component={() => <ProtectedLayout><ProjectDetail /></ProtectedLayout>} />
+      <Route path="/invoices" component={() => <ProtectedLayout><InvoicesPage /></ProtectedLayout>} />
+      <Route path="/invoices/new" component={() => <ProtectedLayout><InvoiceNewPage /></ProtectedLayout>} />
+      <Route path="/invoices/:id" component={() => <ProtectedLayout><InvoiceDetailPage /></ProtectedLayout>} />
       <Route path="/audit" component={() => <ProtectedLayout><RoleGuard path="/audit"><AuditPage /></RoleGuard></ProtectedLayout>} />
       <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
       <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />
@@ -304,9 +313,11 @@ function App() {
       <TooltipProvider>
         <OfflineBanner />
         <AuthBootstrap>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-            <Router />
-          </WouterRouter>
+          <CompanyProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <Router />
+            </WouterRouter>
+          </CompanyProvider>
         </AuthBootstrap>
         <Toaster />
       </TooltipProvider>

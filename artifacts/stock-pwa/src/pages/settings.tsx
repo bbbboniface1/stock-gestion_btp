@@ -1,9 +1,13 @@
+import { useState, useEffect } from "react";
 import { useGetMe } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/auth";
+import { useCompany, useUpdateCompany } from "@/contexts/CompanyContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, User, Shield, Wrench, HardHat } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { LogOut, User, Shield, Wrench, HardHat, Building2, Save } from "lucide-react";
 
 const roleConfig: Record<string, { label: string; icon: any }> = {
   admin: { label: "Administrateur", icon: Shield },
@@ -12,9 +16,69 @@ const roleConfig: Record<string, { label: string; icon: any }> = {
 };
 
 export default function Settings() {
-  const { logout } = useAuthStore();
+  const { logout, user } = useAuthStore();
   const { data: me } = useGetMe();
+  const company = useCompany();
+  const updateCompany = useUpdateCompany();
+  const { toast } = useToast();
   const cfg = me ? roleConfig[me.role] : null;
+  const isAdmin = user?.role === "admin";
+
+  const [form, setForm] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    taxNumber: "",
+    currency: "EUR",
+    signatureText: "",
+    logoUrl: "",
+  });
+
+  useEffect(() => {
+    if (company) {
+      setForm({
+        name: company.name ?? "",
+        address: company.address ?? "",
+        phone: company.phone ?? "",
+        email: company.email ?? "",
+        taxNumber: company.taxNumber ?? "",
+        currency: company.currency ?? "EUR",
+        signatureText: company.signatureText ?? "",
+        logoUrl: company.logoUrl ?? "",
+      });
+    }
+  }, [company]);
+
+  const handleSaveCompany = () => {
+    updateCompany.mutate({
+      name: form.name || undefined,
+      address: form.address || null,
+      phone: form.phone || null,
+      email: form.email || null,
+      taxNumber: form.taxNumber || null,
+      currency: form.currency || "EUR",
+      signatureText: form.signatureText || null,
+      logoUrl: form.logoUrl || null,
+    }, {
+      onSuccess: () => toast({ title: "Paramètres entreprise sauvegardés" }),
+      onError: (err: any) => toast({ variant: "destructive", title: err.message ?? "Erreur lors de la sauvegarde" }),
+    });
+  };
+
+  const field = (label: string, key: keyof typeof form, placeholder?: string, type = "text") => (
+    <div>
+      <label className="text-xs uppercase text-muted-foreground font-bold">{label}</label>
+      <Input
+        type={type}
+        value={form[key]}
+        onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
+        placeholder={placeholder}
+        className="bg-background mt-1"
+        disabled={!isAdmin}
+      />
+    </div>
+  );
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -29,25 +93,75 @@ export default function Settings() {
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           {me ? (
-            <>
-              <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-sm bg-primary/10 flex items-center justify-center">
-                  <User className="h-7 w-7 text-primary" />
-                </div>
-                <div>
-                  <div className="font-bold text-lg">{me.fullName}</div>
-                  <div className="text-sm text-muted-foreground">{me.email}</div>
-                  {cfg && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <cfg.icon className="h-3 w-3 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground uppercase">{cfg.label}</span>
-                    </div>
-                  )}
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="h-14 w-14 rounded-sm bg-primary/10 flex items-center justify-center">
+                <User className="h-7 w-7 text-primary" />
               </div>
-            </>
+              <div>
+                <div className="font-bold text-lg">{me.fullName}</div>
+                <div className="text-sm text-muted-foreground">{me.email}</div>
+                {cfg && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <cfg.icon className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground uppercase">{cfg.label}</span>
+                  </div>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="text-muted-foreground uppercase text-sm animate-pulse">Chargement...</div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader className="border-b border-border pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+              <Building2 className="h-4 w-4" /> Entreprise
+            </CardTitle>
+            {!isAdmin && (
+              <span className="text-xs text-muted-foreground uppercase">Lecture seule (admin requis)</span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 space-y-4">
+          {field("Nom de l'entreprise", "name", "Mon Entreprise BTP")}
+          {field("Adresse", "address", "1 rue du Chantier, 75000 Paris")}
+          <div className="grid grid-cols-2 gap-4">
+            {field("Téléphone", "phone", "+33 1 00 00 00 00")}
+            {field("Email", "email", "contact@entreprise.fr", "email")}
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            {field("Numéro TVA", "taxNumber", "FR00000000000")}
+            <div>
+              <label className="text-xs uppercase text-muted-foreground font-bold">Devise</label>
+              <select
+                value={form.currency}
+                onChange={e => setForm(prev => ({ ...prev, currency: e.target.value }))}
+                disabled={!isAdmin}
+                className="w-full mt-1 h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              >
+                <option value="EUR">EUR (€)</option>
+                <option value="USD">USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="MAD">MAD (DH)</option>
+                <option value="XOF">XOF (FCFA)</option>
+              </select>
+            </div>
+          </div>
+          {field("URL du logo", "logoUrl", "https://...")}
+          {field("Texte de signature (factures)", "signatureText", "Merci de votre confiance.")}
+
+          {isAdmin && (
+            <Button
+              className="w-full uppercase font-bold tracking-wide mt-2"
+              onClick={handleSaveCompany}
+              disabled={updateCompany.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {updateCompany.isPending ? "Sauvegarde..." : "Sauvegarder les paramètres entreprise"}
+            </Button>
           )}
         </CardContent>
       </Card>
