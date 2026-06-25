@@ -14,27 +14,34 @@ import { isDateOnly, parseDateBoundary } from "../lib/date-ranges";
 
 const router: IRouter = Router();
 
-async function getMovementsWithJoins(conditions: SQL[]) {
+const MOVEMENTS_SELECT = {
+  id: stockMovementsTable.id,
+  productId: stockMovementsTable.productId,
+  productName: productsTable.name,
+  type: stockMovementsTable.type,
+  quantity: stockMovementsTable.quantity,
+  reason: stockMovementsTable.reason,
+  projectId: stockMovementsTable.projectId,
+  projectName: projectsTable.name,
+  createdById: stockMovementsTable.createdById,
+  createdByName: usersTable.fullName,
+  createdAt: stockMovementsTable.createdAt,
+};
+
+async function getMovementsWithJoins(
+  conditions: SQL[],
+  opts: { limit?: number; offset?: number } = {},
+) {
   return db
-    .select({
-      id: stockMovementsTable.id,
-      productId: stockMovementsTable.productId,
-      productName: productsTable.name,
-      type: stockMovementsTable.type,
-      quantity: stockMovementsTable.quantity,
-      reason: stockMovementsTable.reason,
-      projectId: stockMovementsTable.projectId,
-      projectName: projectsTable.name,
-      createdById: stockMovementsTable.createdById,
-      createdByName: usersTable.fullName,
-      createdAt: stockMovementsTable.createdAt,
-    })
+    .select(MOVEMENTS_SELECT)
     .from(stockMovementsTable)
     .leftJoin(productsTable, eq(stockMovementsTable.productId, productsTable.id))
     .leftJoin(projectsTable, eq(stockMovementsTable.projectId, projectsTable.id))
     .leftJoin(usersTable, eq(stockMovementsTable.createdById, usersTable.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(sql`${stockMovementsTable.createdAt} desc`);
+    .orderBy(sql`${stockMovementsTable.createdAt} desc`)
+    .limit(opts.limit ?? 50)
+    .offset(opts.offset ?? 0);
 }
 
 router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
@@ -61,29 +68,7 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
 
   if (created_by_id) conditions.push(eq(stockMovementsTable.createdById, created_by_id));
 
-  const rows = await db
-    .select({
-      id: stockMovementsTable.id,
-      productId: stockMovementsTable.productId,
-      productName: productsTable.name,
-      type: stockMovementsTable.type,
-      quantity: stockMovementsTable.quantity,
-      reason: stockMovementsTable.reason,
-      projectId: stockMovementsTable.projectId,
-      projectName: projectsTable.name,
-      createdById: stockMovementsTable.createdById,
-      createdByName: usersTable.fullName,
-      createdAt: stockMovementsTable.createdAt,
-    })
-    .from(stockMovementsTable)
-    .leftJoin(productsTable, eq(stockMovementsTable.productId, productsTable.id))
-    .leftJoin(projectsTable, eq(stockMovementsTable.projectId, projectsTable.id))
-    .leftJoin(usersTable, eq(stockMovementsTable.createdById, usersTable.id))
-    .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(sql`${stockMovementsTable.createdAt} desc`)
-    .limit(limit ?? 50)
-    .offset(offset ?? 0);
-
+  const rows = await getMovementsWithJoins(conditions, { limit: limit ?? 50, offset: offset ?? 0 });
   res.json(ListStockMovementsResponse.parse(serializeDates(rows)));
 });
 

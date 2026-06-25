@@ -94,10 +94,20 @@ router.get("/dashboard/stock-by-category", requireAuth, async (_req, res): Promi
   res.json(GetStockByCategoryResponse.parse(serializeDates(rows)));
 });
 
+const DATE_ONLY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 router.get("/dashboard/movements-by-day", requireAuth, async (req, res): Promise<void> => {
   const from = req.query.from as string | undefined;
   const to = req.query.to as string | undefined;
   if (!from || !to) { res.status(400).json({ error: "from et to requis (YYYY-MM-DD)" }); return; }
+  if (!DATE_ONLY_RE.test(from) || !DATE_ONLY_RE.test(to)) {
+    res.status(400).json({ error: "Format de date invalide. Attendu: YYYY-MM-DD" });
+    return;
+  }
+  if (from > to) {
+    res.status(400).json({ error: "La date de début doit être antérieure à la date de fin" });
+    return;
+  }
 
   const rows = await db
     .select({

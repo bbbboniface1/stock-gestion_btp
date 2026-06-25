@@ -28,10 +28,10 @@ const CreateInvoiceBody = z.object({
   items: z.array(InvoiceItemInput).min(1),
 });
 
-async function getNextInvoiceNumber(): Promise<string> {
+async function getNextInvoiceNumber(client: Pick<typeof db, "select">): Promise<string> {
   const year = new Date().getFullYear();
   const prefix = `FAC-${year}-`;
-  const [last] = await db
+  const [last] = await client
     .select({ n: invoicesTable.invoiceNumber })
     .from(invoicesTable)
     .where(sql`${invoicesTable.invoiceNumber} LIKE ${prefix + "%"}`)
@@ -80,7 +80,7 @@ router.post("/invoices", requireAuth, requireRole("admin", "manager"), async (re
   const total = subtotal + taxAmount;
 
   const result = await db.transaction(async (tx) => {
-    const invoiceNumber = await getNextInvoiceNumber();
+    const invoiceNumber = await getNextInvoiceNumber(tx);
     const [invoice] = await tx.insert(invoicesTable).values({
       invoiceNumber,
       ...invoiceData,
@@ -132,7 +132,7 @@ router.post("/invoices", requireAuth, requireRole("admin", "manager"), async (re
   res.status(201).json(full);
 });
 
-router.get("/invoices/:id", requireAuth, async (req, res): Promise<void> => {
+router.get("/invoices/:id", requireAuth, requireRole("admin", "manager"), async (req, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
   if (!id) { res.status(400).json({ error: "ID invalide" }); return; }
   const data = await getInvoiceWithItems(id);
@@ -143,7 +143,10 @@ router.get("/invoices/:id", requireAuth, async (req, res): Promise<void> => {
 router.patch("/invoices/:id/status", requireAuth, requireRole("admin", "manager"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
   if (!id) { res.status(400).json({ error: "ID invalide" }); return; }
-  const { status } = z.object({ status: z.enum(["draft", "unpaid", "paid"]) }).parse(req.body);
+
+  const bodyParsed = z.object({ status: z.enum(["draft", "unpaid", "paid"]) }).safeParse(req.body);
+  if (!bodyParsed.success) { res.status(400).json({ error: bodyParsed.error.message }); return; }
+  const { status } = bodyParsed.data;
 
   const result = await db.transaction(async (tx) => {
     const [invoice] = await tx.select().from(invoicesTable).where(eq(invoicesTable.id, id));
@@ -174,6 +177,30 @@ router.patch("/invoices/:id/status", requireAuth, requireRole("admin", "manager"
       }
     }
 
+    if (invoice.status === "paid" && status !== "paid") {
+      const outMovements = await tx
+        .select()
+        .from(stockMovementsTable)
+        .where(and(
+          eq(stockMovementsTable.reason, `Facture ${invoice.invoiceNumber}`),
+          eq(stockMovementsTable.type, "OUT"),
+        ));
+
+      for (const mov of outMovements) {
+        if (!mov.productId) continue;
+        await tx.update(productsTable)
+          .set({ quantityInStock: sql`${productsTable.quantityInStock} + ${mov.quantity}` })
+          .where(eq(productsTable.id, mov.productId));
+        await tx.insert(stockMovementsTable).values({
+          productId: mov.productId,
+          type: "IN",
+          quantity: mov.quantity,
+          reason: `Annulation facture ${invoice.invoiceNumber}`,
+          createdById: req.user!.id,
+        });
+      }
+    }
+
     const [updated] = await tx.update(invoicesTable)
       .set({ status, updatedAt: new Date() })
       .where(eq(invoicesTable.id, id))
@@ -186,7 +213,7 @@ router.patch("/invoices/:id/status", requireAuth, requireRole("admin", "manager"
   res.json(serializeDates(result.invoice));
 });
 
-router.get("/invoices/:id/pdf", requireAuth, async (req, res): Promise<void> => {
+router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), async (req, res): Promise<void> => {
   const id = parseInt(String(req.params.id), 10);
   if (!id) { res.status(400).json({ error: "ID invalide" }); return; }
   const data = await getInvoiceWithItems(id);
