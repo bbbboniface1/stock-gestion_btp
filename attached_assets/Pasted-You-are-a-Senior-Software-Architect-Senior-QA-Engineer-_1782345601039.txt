@@ -1,0 +1,368 @@
+You are a Senior Software Architect, Senior QA Engineer, Senior Security Auditor, Senior DevOps Engineer, and Senior Product Reviewer.
+
+Your mission is NOT to add features.
+
+Your mission is to perform a COMPLETE AUDIT of the entire application and identify every possible problem before production deployment.
+
+The application is a stock management and invoicing ERP-like system built with:
+
+- React PWA
+- TypeScript
+- Node.js / Express
+- pnpm monorepo
+- Supabase PostgreSQL
+- PDF generation
+- Company settings module
+- Stock management module
+- Invoice module
+- Stock-to-invoice integration
+
+You must inspect the ENTIRE codebase.
+
+DO NOT ASSUME ANYTHING.
+
+Verify everything.
+
+Produce a detailed audit report.
+
+---
+
+# PHASE 1 — ARCHITECTURE AUDIT
+
+Verify:
+
+- Project structure
+- Monorepo consistency
+- Dependency organization
+- Circular dependencies
+- Dead code
+- Duplicate code
+- Unused packages
+- Unused files
+- Naming consistency
+- Folder organization
+- Scalability issues
+- Maintainability issues
+
+Identify any architecture weaknesses.
+
+---
+
+# PHASE 2 — DATABASE AUDIT
+
+Verify:
+
+- All tables
+- All columns
+- All relationships
+- Foreign keys
+- Indexes
+- Constraints
+- Cascading rules
+- Unique constraints
+- Data integrity
+
+Check for:
+
+- orphan records
+- duplicated data
+- missing constraints
+- missing indexes
+- unsafe deletes
+- race conditions
+- data corruption risks
+
+Verify stock and invoice consistency.
+
+---
+
+# PHASE 3 — STOCK MODULE AUDIT
+
+Test every stock operation.
+
+Verify:
+
+- create product
+- edit product
+- delete product
+- stock entry
+- stock exit
+- inventory updates
+- stock calculations
+
+Check:
+
+- negative stock prevention
+- incorrect quantity calculations
+- duplicate products
+- concurrency issues
+- edge cases
+
+Simulate failures.
+
+Attempt to break the system.
+
+Report all weaknesses.
+
+---
+
+# PHASE 4 — INVOICE MODULE AUDIT
+
+Verify:
+
+- invoice creation
+- invoice editing
+- invoice deletion
+- invoice numbering
+- invoice status updates
+- invoice calculations
+
+Validate:
+
+- subtotal accuracy
+- tax calculations
+- total calculations
+- rounding behavior
+
+Ensure no calculation errors are possible.
+
+---
+
+# PHASE 5 — STOCK TO INVOICE INTEGRATION
+
+This section is critical.
+
+Verify:
+
+- product selection from stock
+- quantity synchronization
+- stock deduction rules
+- invoice validation rules
+
+Check for:
+
+- double deductions
+- missed deductions
+- incorrect stock levels
+- rollback failures
+- transaction failures
+
+Ensure stock cannot become inconsistent.
+
+---
+
+# PHASE 6 — COMPANY SETTINGS AUDIT
+
+Verify:
+
+- company information storage
+- logo handling
+- company data retrieval
+- global company context
+
+Ensure:
+
+- company data appears correctly everywhere
+- no duplication exists
+- PDF branding remains consistent
+
+---
+
+# PHASE 7 — PDF AUDIT
+
+Generate multiple PDFs.
+
+Verify:
+
+- layout integrity
+- page overflow
+- long company names
+- long client names
+- large invoices
+- large item counts
+- missing logos
+- missing signatures
+
+Check:
+
+- alignment
+- spacing
+- typography
+- branding consistency
+
+Ensure PDFs never break.
+
+---
+
+# PHASE 8 — API AUDIT
+
+Inspect all endpoints.
+
+Verify:
+
+- request validation
+- response validation
+- error handling
+- status codes
+- security
+
+Test:
+
+- invalid payloads
+- malformed requests
+- missing fields
+- unexpected values
+
+Find every API weakness.
+
+---
+
+# PHASE 9 — FRONTEND AUDIT
+
+Verify:
+
+- forms
+- navigation
+- loading states
+- error states
+- responsiveness
+- mobile behavior
+- tablet behavior
+- desktop behavior
+
+Find:
+
+- broken UI
+- visual bugs
+- accessibility issues
+- inconsistent behavior
+
+---
+
+# PHASE 10 — SECURITY AUDIT
+
+Inspect:
+
+- authentication
+- authorization
+- Supabase access
+- environment variables
+- secrets exposure
+
+Test for:
+
+- SQL injection
+- XSS
+- CSRF
+- privilege escalation
+- insecure API routes
+- leaked credentials
+
+Report all vulnerabilities.
+
+Severity:
+- Critical
+- High
+- Medium
+- Low
+
+---
+
+# PHASE 11 — PERFORMANCE AUDIT
+
+Inspect:
+
+- React rendering
+- database queries
+- API performance
+- bundle size
+- unnecessary rerenders
+
+Identify:
+
+- bottlenecks
+- slow queries
+- excessive requests
+- memory leaks
+
+---
+
+# PHASE 12 — ERROR HANDLING AUDIT
+
+Force failures.
+
+Test:
+
+- Supabase offline
+- API offline
+- invalid responses
+- network timeout
+- browser refresh
+- interrupted requests
+
+Verify graceful recovery.
+
+---
+
+# PHASE 13 — PWA AUDIT
+
+Verify:
+
+- service worker
+- offline mode
+- installability
+- cache strategy
+- updates
+
+Check for:
+
+- stale data
+- cache conflicts
+- offline bugs
+
+---
+
+# PHASE 14 — CROSS PLATFORM AUDIT
+
+Verify:
+
+- Windows compatibility
+- Linux compatibility
+- environment variable handling
+- pnpm scripts
+- build scripts
+
+Detect:
+
+- bash-only scripts
+- export command issues
+- OS-specific failures
+
+---
+
+# PHASE 15 — FINAL REPORT
+
+Produce a professional audit report containing:
+
+1. Executive Summary
+2. Critical Issues
+3. High Priority Issues
+4. Medium Issues
+5. Low Issues
+6. Security Findings
+7. Performance Findings
+8. Database Findings
+9. UI Findings
+10. Production Readiness Score
+
+For every issue provide:
+
+- Description
+- Severity
+- Impact
+- Reproduction steps
+- Root cause
+- Recommended fix
+- Exact files involved
+
+Do not stop until the entire codebase has been audited.
