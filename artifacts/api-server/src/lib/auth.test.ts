@@ -7,16 +7,16 @@ describe("auth lib", () => {
     process.env.SESSION_SECRET = "test-secret-key";
   });
 
-  it("hashPassword produces consistent hashes", () => {
-    const hash = hashPassword("admin123");
-    expect(hash).toHaveLength(64);
-    expect(hashPassword("admin123")).toBe(hash);
+  it("hashPassword produces consistent hashes", async () => {
+    const hash = await hashPassword("admin123");
+    expect(hash.startsWith("$2")).toBe(true);
+    expect(await hashPassword("admin123")).not.toBe(hash); // bcrypt salts differ
   });
 
-  it("verifyPassword validates correct and rejects wrong passwords", () => {
-    const hash = hashPassword("manager123");
-    expect(verifyPassword("manager123", hash)).toBe(true);
-    expect(verifyPassword("wrong", hash)).toBe(false);
+  it("verifyPassword validates correct and rejects wrong passwords", async () => {
+    const hash = await hashPassword("manager123");
+    expect(await verifyPassword("manager123", hash)).toBe(true);
+    expect(await verifyPassword("wrong", hash)).toBe(false);
   });
 
   it("generateToken and verifyToken round-trip", () => {

@@ -28,7 +28,7 @@ router.get("/users", requireAuth, requireRole("admin"), async (_req, res): Promi
   res.json(ListUsersResponse.parse(serializeDates(users)));
 });
 
-router.post("/users", requireAuth, requireRole("admin"), async (req, res): Promise<void> => {
+router.post("/users", requireAuth, requireRole("admin"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const parsed = CreateUserBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });

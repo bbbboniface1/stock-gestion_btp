@@ -36,7 +36,7 @@ async function ensureUser(email: string, password: string, role: "admin" | "mana
     await db.insert(usersTable).values({
       fullName,
       email,
-      passwordHash: hashPassword(password),
+      passwordHash: await hashPassword(password),
       role,
     });
   }

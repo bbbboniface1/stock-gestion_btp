@@ -12,6 +12,11 @@
     "db:seed": "pnpm --filter @workspace/db run seed"
   },
   "private": true,
+  "pnpm": {
+    "overrides": {
+      "drizzle-orm": "0.45.2"
+    }
+  },
   "devDependencies": {
     "@rollup/rollup-win32-x64-msvc": "^4.62.2",
     "@tailwindcss/oxide-win32-x64-msvc": "^4.3.1",

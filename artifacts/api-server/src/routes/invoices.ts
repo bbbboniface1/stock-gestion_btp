@@ -133,7 +133,7 @@ router.post("/invoices", requireAuth, requireRole("admin", "manager"), async (re
 });
 
 router.get("/invoices/:id", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (!id) { res.status(400).json({ error: "ID invalide" }); return; }
   const data = await getInvoiceWithItems(id);
   if (!data) { res.status(404).json({ error: "Facture introuvable" }); return; }
@@ -141,7 +141,7 @@ router.get("/invoices/:id", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.patch("/invoices/:id/status", requireAuth, requireRole("admin", "manager"), async (req: AuthenticatedRequest, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (!id) { res.status(400).json({ error: "ID invalide" }); return; }
   const { status } = z.object({ status: z.enum(["draft", "unpaid", "paid"]) }).parse(req.body);
 
@@ -187,7 +187,7 @@ router.patch("/invoices/:id/status", requireAuth, requireRole("admin", "manager"
 });
 
 router.get("/invoices/:id/pdf", requireAuth, async (req, res): Promise<void> => {
-  const id = parseInt(req.params.id, 10);
+  const id = parseInt(String(req.params.id), 10);
   if (!id) { res.status(400).json({ error: "ID invalide" }); return; }
   const data = await getInvoiceWithItems(id);
   if (!data) { res.status(404).json({ error: "Facture introuvable" }); return; }
