@@ -1,15 +1,14 @@
-import { useState, useMemo } from "react";
-import { useLocation } from "wouter";
-import { useCreateInvoice, getInvoiceApiError, type CreateInvoiceItemInput } from "@/lib/invoiceApi";
+import { useState, useMemo, useEffect } from "react";
+import { useParams, useLocation } from "wouter";
+import { useGetInvoice, useUpdateInvoice, getInvoiceApiError, type CreateInvoiceItemInput } from "@/lib/invoiceApi";
 import { useListProducts } from "@workspace/api-client-react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Plus, Trash2, Search, Package } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Search, Package, FileText } from "lucide-react";
 
 interface LineItem extends CreateInvoiceItemInput {
   _key: number;
@@ -21,26 +20,55 @@ function nextKey() { return ++keyCounter; }
 
 function fmt(n: number) { return n.toFixed(2); }
 
-export default function InvoiceNew() {
+export default function InvoiceEdit() {
+  const params = useParams<{ id: string }>();
+  const id = parseInt(params.id ?? "0", 10);
   const [, setLocation] = useLocation();
   const company = useCompany();
   const { toast } = useToast();
-  const createInvoice = useCreateInvoice();
+
+  const { data: invoice, isLoading, isError } = useGetInvoice(id);
+  const updateInvoice = useUpdateInvoice(id);
 
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientAddress, setClientAddress] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [status, setStatus] = useState<"draft" | "unpaid" | "paid">("draft");
+  const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
   const [taxRate, setTaxRate] = useState(0);
   const [items, setItems] = useState<LineItem[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
   const [productSearch, setProductSearch] = useState("");
   const [showPicker, setShowPicker] = useState(false);
 
   const { data: products } = useListProducts({ limit: 200 });
+
+  useEffect(() => {
+    if (!invoice || initialized) return;
+    if (invoice.status !== "draft") {
+      toast({ variant: "destructive", title: "Seules les factures brouillon peuvent être modifiées" });
+      setLocation(`/invoices/${id}`);
+      return;
+    }
+    setClientName(invoice.clientName);
+    setClientPhone(invoice.clientPhone ?? "");
+    setClientEmail(invoice.clientEmail ?? "");
+    setClientAddress(invoice.clientAddress ?? "");
+    setDate(invoice.date);
+    setNotes(invoice.notes ?? "");
+    setTaxRate(invoice.taxRate);
+    setItems(invoice.items.map(item => ({
+      _key: nextKey(),
+      productId: item.productId ?? undefined,
+      description: item.description,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      _fromStock: !!item.productId,
+    })));
+    setInitialized(true);
+  }, [invoice, initialized, id, setLocation, toast]);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -102,37 +130,22 @@ export default function InvoiceNew() {
       return;
     }
 
-    if (status === "paid") {
-      for (const item of items) {
-        if (!item.productId) continue;
-        const product = products?.find(p => p.id === item.productId);
-        if (product && item.quantity > product.quantityInStock) {
-          toast({
-            variant: "destructive",
-            title: `Stock insuffisant pour ${product.name} (${product.quantityInStock} dispo)`,
-          });
-          return;
-        }
-      }
-    }
-
-    createInvoice.mutate({
+    updateInvoice.mutate({
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim() || undefined,
       clientEmail: clientEmail.trim() || undefined,
       clientAddress: clientAddress.trim() || undefined,
       date,
-      status,
       notes: notes.trim() || undefined,
       taxRate,
       items: items.map(({ _key, _fromStock, ...rest }) => rest),
     }, {
-      onSuccess: (inv) => {
-        toast({ title: `Facture ${inv.invoiceNumber} créée` });
-        setLocation(`/invoices/${inv.id}`);
+      onSuccess: () => {
+        toast({ title: "Facture mise à jour" });
+        setLocation(`/invoices/${id}`);
       },
       onError: (err) => {
-        toast({ variant: "destructive", title: getInvoiceApiError(err, "Erreur lors de la création") });
+        toast({ variant: "destructive", title: getInvoiceApiError(err, "Erreur lors de la mise à jour") });
       },
     });
   };
@@ -140,17 +153,29 @@ export default function InvoiceNew() {
   const currency = company?.currency ?? "EUR";
   const currSym = currency === "EUR" ? "€" : currency === "USD" ? "$" : currency;
 
+  if (isLoading || (!initialized && invoice)) {
+    return <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement...</div>;
+  }
+
+  if (isError || !invoice) {
+    return (
+      <div className="p-8 text-center">
+        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <p className="text-destructive uppercase text-sm font-mono">Impossible de charger la facture</p>
+        <Button className="mt-4" onClick={() => setLocation("/invoices")}>Retour aux factures</Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => setLocation("/invoices")} className="h-8 w-8 p-0">
+        <Button variant="ghost" size="sm" onClick={() => setLocation(`/invoices/${id}`)} className="h-8 w-8 p-0">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold uppercase tracking-tight">Nouvelle Facture</h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">
-            {company?.name ?? "Mon Entreprise"}
-          </p>
+          <h1 className="text-3xl font-bold uppercase tracking-tight">Modifier {invoice.invoiceNumber}</h1>
+          <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">Brouillon — édition autorisée</p>
         </div>
       </div>
 
@@ -173,15 +198,15 @@ export default function InvoiceNew() {
               </div>
               <div>
                 <label className="text-xs uppercase text-muted-foreground font-bold">Téléphone</label>
-                <Input value={clientPhone} onChange={e => setClientPhone(e.target.value)} placeholder="+33 6 00 00 00 00" className="bg-background mt-1" />
+                <Input value={clientPhone} onChange={e => setClientPhone(e.target.value)} className="bg-background mt-1" />
               </div>
               <div>
                 <label className="text-xs uppercase text-muted-foreground font-bold">Email</label>
-                <Input value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="client@example.com" className="bg-background mt-1" />
+                <Input value={clientEmail} onChange={e => setClientEmail(e.target.value)} className="bg-background mt-1" />
               </div>
               <div>
                 <label className="text-xs uppercase text-muted-foreground font-bold">Adresse</label>
-                <Input value={clientAddress} onChange={e => setClientAddress(e.target.value)} placeholder="Adresse complète" className="bg-background mt-1" />
+                <Input value={clientAddress} onChange={e => setClientAddress(e.target.value)} className="bg-background mt-1" />
               </div>
             </CardContent>
           </Card>
@@ -196,28 +221,12 @@ export default function InvoiceNew() {
                 <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="bg-background mt-1" />
               </div>
               <div>
-                <label className="text-xs uppercase text-muted-foreground font-bold">Statut</label>
-                <Select value={status} onValueChange={v => setStatus(v as any)}>
-                  <SelectTrigger className="bg-background mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">Brouillon</SelectItem>
-                    <SelectItem value="unpaid">Non payée</SelectItem>
-                    <SelectItem value="paid">Payée</SelectItem>
-                  </SelectContent>
-                </Select>
-                {status === "paid" && (
-                  <p className="text-xs text-orange-400 mt-1">⚠ Le stock sera débité automatiquement pour les articles liés</p>
-                )}
-              </div>
-              <div>
                 <label className="text-xs uppercase text-muted-foreground font-bold">TVA (%)</label>
                 <Input type="number" min={0} max={100} value={taxRate} onChange={e => setTaxRate(Number(e.target.value))} className="bg-background mt-1" />
               </div>
               <div>
                 <label className="text-xs uppercase text-muted-foreground font-bold">Notes</label>
-                <Input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes optionnelles" className="bg-background mt-1" />
+                <Input value={notes} onChange={e => setNotes(e.target.value)} className="bg-background mt-1" />
               </div>
             </CardContent>
           </Card>
@@ -265,9 +274,6 @@ export default function InvoiceNew() {
                     <Plus className="h-4 w-4 text-primary shrink-0 ml-2" />
                   </button>
                 ))}
-                {filteredProducts.length === 0 && (
-                  <div className="col-span-2 text-center text-muted-foreground text-sm uppercase py-4">Aucun produit trouvé</div>
-                )}
               </div>
             </div>
           )}
@@ -290,7 +296,6 @@ export default function InvoiceNew() {
                         <Input
                           value={item.description}
                           onChange={e => updateItem(item._key, { description: e.target.value })}
-                          placeholder="Description de l'article"
                           className="bg-background text-sm h-8"
                         />
                       </div>
@@ -309,7 +314,6 @@ export default function InvoiceNew() {
                         value={item.unitPrice}
                         onChange={e => updateItem(item._key, { unitPrice: Number(e.target.value) })}
                         className="bg-background text-sm h-8"
-                        placeholder="0.00"
                       />
                       <div className="text-right font-mono font-bold text-sm pr-1">
                         {fmt(item.quantity * item.unitPrice)} {currSym}
@@ -323,7 +327,7 @@ export default function InvoiceNew() {
               </>
             ) : (
               <div className="p-8 text-center text-muted-foreground text-sm uppercase">
-                Aucun article — ajoutez des produits du stock ou des lignes libres
+                Aucun article
               </div>
             )}
           </CardContent>
@@ -353,11 +357,11 @@ export default function InvoiceNew() {
         )}
 
         <div className="flex gap-3 justify-end">
-          <Button type="button" variant="outline" className="uppercase font-bold" onClick={() => setLocation("/invoices")}>
+          <Button type="button" variant="outline" className="uppercase font-bold" onClick={() => setLocation(`/invoices/${id}`)}>
             Annuler
           </Button>
-          <Button type="submit" className="uppercase font-bold tracking-wide" disabled={createInvoice.isPending}>
-            {createInvoice.isPending ? "Création..." : "Créer la facture"}
+          <Button type="submit" className="uppercase font-bold tracking-wide" disabled={updateInvoice.isPending}>
+            {updateInvoice.isPending ? "Enregistrement..." : "Enregistrer"}
           </Button>
         </div>
       </form>

@@ -2,14 +2,14 @@ import { config } from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import { eq } from "drizzle-orm";
-import crypto from "crypto";
+import bcryptjs from "bcryptjs";
 import { db, pool, usersTable, productsTable, projectsTable } from "./index";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 config({ path: path.resolve(__dirname, "../../../.env") });
 
-function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + "stockbtp_salt").digest("hex");
+async function hashPassword(password: string): Promise<string> {
+  return bcryptjs.hash(password, 12);
 }
 
 const SEED_USERS = [
@@ -39,7 +39,7 @@ async function seed() {
       await db.insert(usersTable).values({
         fullName: user.fullName,
         email: user.email,
-        passwordHash: hashPassword(user.password),
+        passwordHash: await hashPassword(user.password),
         role: user.role,
       });
       console.log(`  ✓ Utilisateur créé: ${user.email} (${user.role})`);

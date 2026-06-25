@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 import type { UserRole } from "./permissions";
+import { appPath } from "./paths";
 
 export interface AuthUser {
   id: number;
@@ -50,12 +51,23 @@ export const useAuthStore = create<AuthState>((set) => {
       localStorage.setItem(USER_KEY, JSON.stringify(user));
       set({ user });
     },
-    logout: () => {
+    logout: async () => {
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (token) {
+        try {
+          await fetch(appPath("/api/auth/logout"), {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch {
+          // Clear local session even if revoke request fails
+        }
+      }
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       setAuthTokenGetter(() => null);
       set({ token: null, user: null });
-      window.location.href = "/login";
+      window.location.href = appPath("/login");
     },
   };
 });

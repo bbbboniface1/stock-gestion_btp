@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useLocation } from "wouter";
+import { useEffect } from "react";
+import { useLocation, Redirect } from "wouter";
 import { useAuthStore } from "@/lib/auth";
 import { useLogin } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HardHat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { safeReturnPath } from "@/lib/paths";
 
 const loginSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -18,14 +20,21 @@ const loginSchema = z.object({
 
 export default function Login() {
   const [, setLocation] = useLocation();
-  const { setAuth } = useAuthStore();
+  const { token, setAuth } = useAuthStore();
   const { toast } = useToast();
 
-  const returnTo = (() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("returnTo") ?? "/";
-  })();
-  
+  const returnTo = safeReturnPath(
+    new URLSearchParams(window.location.search).get("returnTo"),
+  );
+
+  useEffect(() => {
+    if (token) setLocation(returnTo);
+  }, [token, returnTo, setLocation]);
+
+  if (token) {
+    return <Redirect to={returnTo} />;
+  }
+
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {

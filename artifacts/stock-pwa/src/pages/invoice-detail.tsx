@@ -1,13 +1,14 @@
 import { useParams, useLocation } from "wouter";
-import { useGetInvoice, useUpdateInvoiceStatus } from "@/lib/invoiceApi";
+import { useGetInvoice, useUpdateInvoiceStatus, useDeleteInvoice, getInvoiceApiError } from "@/lib/invoiceApi";
 import { useCompany } from "@/contexts/CompanyContext";
+import { CompanyBranding } from "@/components/CompanyBranding";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Download, Package, CheckCircle, Clock, FileText } from "lucide-react";
+import { ArrowLeft, Download, Package, CheckCircle, Clock, FileText, Pencil, Trash2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
-import { customFetch } from "@workspace/api-client-react";
+import { downloadInvoicePdf } from "@/lib/downloadInvoicePdf";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Brouillon", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
@@ -29,11 +30,22 @@ export default function InvoiceDetail() {
   const { user } = useAuthStore();
   const canManage = user?.role === "admin" || user?.role === "manager";
 
-  const { data: invoice, isLoading } = useGetInvoice(id);
+  const { data: invoice, isLoading, isError } = useGetInvoice(id);
   const updateStatus = useUpdateInvoiceStatus();
+  const deleteInvoice = useDeleteInvoice();
 
   if (isLoading) {
     return <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="p-8 text-center">
+        <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <p className="text-destructive uppercase text-sm font-mono">Impossible de charger la facture</p>
+        <Button className="mt-4" onClick={() => setLocation("/invoices")}>Retour aux factures</Button>
+      </div>
+    );
   }
 
   if (!invoice) {
@@ -48,36 +60,42 @@ export default function InvoiceDetail() {
 
   const st = statusConfig[invoice.status] ?? statusConfig.draft;
   const currency = company?.currency ?? "EUR";
+  const stockMovements = invoice.stockMovements ?? [];
 
   const handleStatusChange = (newStatus: "draft" | "unpaid" | "paid") => {
+    if (newStatus === invoice.status) return;
+
     if (newStatus === "paid" && invoice.status !== "paid") {
       const hasStock = invoice.items.some(i => i.productId);
       if (hasStock && !confirm("Passer en Payée va débiter automatiquement le stock pour les articles liés. Confirmer ?")) return;
     }
+
+    if (invoice.status === "paid" && newStatus !== "paid") {
+      const hasStock = stockMovements.some(m => m.type === "OUT" && !m.reversedByMovementId);
+      if (hasStock && !confirm("Ce changement va restaurer le stock débité par cette facture. Confirmer ?")) return;
+    }
+
     updateStatus.mutate({ id, status: newStatus }, {
       onSuccess: () => toast({ title: "Statut mis à jour" }),
-      onError: (err: any) => toast({ variant: "destructive", title: err.message ?? "Erreur" }),
+      onError: (err) => toast({ variant: "destructive", title: getInvoiceApiError(err, "Erreur") }),
+    });
+  };
+
+  const handleDelete = () => {
+    if (!confirm(`Supprimer définitivement la facture ${invoice.invoiceNumber} ?`)) return;
+    deleteInvoice.mutate(id, {
+      onSuccess: () => {
+        toast({ title: "Facture supprimée" });
+        setLocation("/invoices");
+      },
+      onError: (err) => toast({ variant: "destructive", title: getInvoiceApiError(err, "Erreur lors de la suppression") }),
     });
   };
 
   const handleDownloadPdf = async () => {
     try {
-      const response = await fetch(`/api/invoices/${id}/pdf`, {
-        headers: {
-          'Authorization': `Bearer ${useAuthStore.getState().token}`
-        }
-      });
-      if (!response.ok) throw new Error('Erreur lors du téléchargement');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `facture-${invoice.invoiceNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
+      await downloadInvoicePdf(id, invoice.invoiceNumber);
+    } catch {
       toast({ variant: "destructive", title: "Erreur lors du téléchargement du PDF" });
     }
   };
@@ -95,16 +113,46 @@ export default function InvoiceDetail() {
           </div>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{invoice.clientName}</p>
         </div>
-        <Button
-          variant="outline"
-          className="uppercase font-bold text-xs shrink-0"
-          onClick={handleDownloadPdf}
-        >
-          <Download className="h-4 w-4 mr-2" /> PDF
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          {canManage && invoice.status === "draft" && (
+            <>
+              <Button
+                variant="outline"
+                className="uppercase font-bold text-xs"
+                onClick={() => setLocation(`/invoices/${id}/edit`)}
+              >
+                <Pencil className="h-4 w-4 mr-2" /> Modifier
+              </Button>
+              <Button
+                variant="outline"
+                className="uppercase font-bold text-xs border-destructive/40 text-destructive hover:bg-destructive/10"
+                onClick={handleDelete}
+                disabled={deleteInvoice.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" /> Supprimer
+              </Button>
+            </>
+          )}
+          <Button
+            variant="outline"
+            className="uppercase font-bold text-xs"
+            onClick={handleDownloadPdf}
+          >
+            <Download className="h-4 w-4 mr-2" /> PDF
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-card border-border">
+          <CardHeader className="border-b border-border pb-3">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider">Émetteur</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <CompanyBranding />
+          </CardContent>
+        </Card>
+
         <Card className="bg-card border-border">
           <CardHeader className="border-b border-border pb-3">
             <CardTitle className="text-xs font-bold uppercase tracking-wider">Client</CardTitle>
@@ -117,7 +165,7 @@ export default function InvoiceDetail() {
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card className="bg-card border-border md:col-span-2">
           <CardHeader className="border-b border-border pb-3">
             <CardTitle className="text-xs font-bold uppercase tracking-wider">Détails</CardTitle>
           </CardHeader>
@@ -179,6 +227,41 @@ export default function InvoiceDetail() {
           </div>
         </CardContent>
       </Card>
+
+      {stockMovements.length > 0 && (
+        <Card className="bg-card border-border">
+          <CardHeader className="border-b border-border pb-3">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider">Impact stock</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {stockMovements.map(mov => (
+                <div key={mov.id} className="px-4 py-3 flex items-center justify-between gap-3 text-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {mov.type === "OUT" ? (
+                      <ArrowUpRight className="h-4 w-4 text-destructive shrink-0" />
+                    ) : (
+                      <ArrowDownLeft className="h-4 w-4 text-green-500 shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{mov.productName ?? "Produit"}</div>
+                      <div className="text-xs text-muted-foreground truncate">{mov.reason}</div>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className={`font-mono font-bold ${mov.type === "OUT" ? "text-destructive" : "text-green-500"}`}>
+                      {mov.type === "OUT" ? "-" : "+"}{mov.quantity}
+                    </div>
+                    {mov.reversedByMovementId && (
+                      <div className="text-xs text-muted-foreground uppercase">Annulé</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {canManage && (
         <Card className="bg-card border-border">

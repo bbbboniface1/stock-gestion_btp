@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider, QueryCache, keepPreviousData } from "
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/lib/auth";
-import { CompanyProvider } from "@/contexts/CompanyContext";
+import { CompanyProvider, useCompany } from "@/contexts/CompanyContext";
 import {
   SidebarProvider, Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
@@ -36,6 +36,7 @@ const AuditPage = lazy(() => import("@/pages/audit"));
 const ScanPage = lazy(() => import("@/pages/scan"));
 const InvoicesPage = lazy(() => import("@/pages/invoices"));
 const InvoiceNewPage = lazy(() => import("@/pages/invoice-new"));
+const InvoiceEditPage = lazy(() => import("@/pages/invoice-edit"));
 const InvoiceDetailPage = lazy(() => import("@/pages/invoice-detail"));
 import { RoleGuard } from "@/components/RoleGuard";
 import { filterNavByRole } from "@/lib/permissions";
@@ -94,6 +95,7 @@ function pageTitleFromPath(path: string): string {
 function AppSidebar() {
   const [location, setLocation] = useLocation();
   const { logout, user } = useAuthStore();
+  const company = useCompany();
   const { setOpenMobile } = useSidebar();
 
   const visibleNav = filterNavByRole(allNav, user?.role ?? null);
@@ -110,9 +112,20 @@ function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-border bg-sidebar">
-      <SidebarHeader className="p-4 flex items-center justify-start gap-2 text-primary font-mono font-bold text-xl uppercase">
-        <HardHat className="h-6 w-6" />
-        <span>STOCK BTP</span>
+      <SidebarHeader className="p-4 flex items-center justify-start gap-3 text-primary">
+        {company?.logoUrl ? (
+          <img
+            src={company.logoUrl}
+            alt={company.name}
+            className="h-8 w-8 rounded-sm object-contain bg-white/10 border border-border shrink-0"
+          />
+        ) : (
+          <HardHat className="h-6 w-6 shrink-0" />
+        )}
+        <div className="min-w-0">
+          <div className="font-mono font-bold text-sm uppercase truncate">{company?.name ?? "Stock BTP"}</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Gestion stock</div>
+        </div>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -300,9 +313,10 @@ function Router() {
         <Route path="/movements" component={() => <ProtectedLayout><Movements /></ProtectedLayout>} />
         <Route path="/projects" component={() => <ProtectedLayout><Projects /></ProtectedLayout>} />
         <Route path="/projects/:id" component={() => <ProtectedLayout><ProjectDetail /></ProtectedLayout>} />
-        <Route path="/invoices" component={() => <ProtectedLayout><InvoicesPage /></ProtectedLayout>} />
-        <Route path="/invoices/new" component={() => <ProtectedLayout><InvoiceNewPage /></ProtectedLayout>} />
-        <Route path="/invoices/:id" component={() => <ProtectedLayout><InvoiceDetailPage /></ProtectedLayout>} />
+        <Route path="/invoices" component={() => <ProtectedLayout><RoleGuard path="/invoices"><InvoicesPage /></RoleGuard></ProtectedLayout>} />
+        <Route path="/invoices/new" component={() => <ProtectedLayout><RoleGuard path="/invoices"><InvoiceNewPage /></RoleGuard></ProtectedLayout>} />
+        <Route path="/invoices/:id/edit" component={() => <ProtectedLayout><RoleGuard path="/invoices"><InvoiceEditPage /></RoleGuard></ProtectedLayout>} />
+        <Route path="/invoices/:id" component={() => <ProtectedLayout><RoleGuard path="/invoices"><InvoiceDetailPage /></RoleGuard></ProtectedLayout>} />
         <Route path="/audit" component={() => <ProtectedLayout><RoleGuard path="/audit"><AuditPage /></RoleGuard></ProtectedLayout>} />
         <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
         <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />

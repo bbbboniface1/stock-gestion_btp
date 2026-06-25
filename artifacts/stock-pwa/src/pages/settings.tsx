@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User, Shield, Wrench, HardHat, Building2, Save } from "lucide-react";
+import { LogOut, User, Shield, Wrench, HardHat, Building2, Save, Upload, X } from "lucide-react";
+import { OnlineStatusBadge } from "@/components/OnlineStatusBadge";
 
 const roleConfig: Record<string, { label: string; icon: any }> = {
   admin: { label: "Administrateur", icon: Shield },
@@ -52,18 +53,39 @@ export default function Settings() {
 
   const handleSaveCompany = () => {
     updateCompany.mutate({
-      name: form.name || undefined,
-      address: form.address || null,
-      phone: form.phone || null,
-      email: form.email || null,
-      taxNumber: form.taxNumber || null,
+      name: form.name.trim() || undefined,
+      address: form.address.trim() || null,
+      phone: form.phone.trim() || null,
+      email: form.email.trim() || null,
+      taxNumber: form.taxNumber.trim() || null,
       currency: form.currency || "EUR",
-      signatureText: form.signatureText || null,
-      logoUrl: form.logoUrl || null,
+      signatureText: form.signatureText.trim() || null,
+      logoUrl: form.logoUrl.trim() || null,
     }, {
       onSuccess: () => toast({ title: "Paramètres entreprise sauvegardés" }),
       onError: (err: any) => toast({ variant: "destructive", title: err.message ?? "Erreur lors de la sauvegarde" }),
     });
+  };
+
+  const handleLogoFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({ variant: "destructive", title: "Format image requis (PNG, JPEG, WebP, GIF)" });
+      return;
+    }
+    if (file.size > 1_500_000) {
+      toast({ variant: "destructive", title: "Logo trop volumineux (max 1,5 Mo)" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setForm(prev => ({ ...prev, logoUrl: String(reader.result ?? "") }));
+    };
+    reader.readAsDataURL(file);
+    event.target.value = "";
   };
 
   const field = (label: string, key: keyof typeof form, placeholder?: string, type = "text") => (
@@ -150,8 +172,58 @@ export default function Settings() {
               </select>
             </div>
           </div>
-          {field("URL du logo", "logoUrl", "https://...")}
           {field("Texte de signature (factures)", "signatureText", "Merci de votre confiance.")}
+
+          <div className="space-y-2 pt-2 border-t border-border">
+            <label className="text-xs uppercase text-muted-foreground font-bold">Logo entreprise</label>
+            <p className="text-xs text-muted-foreground">
+              Affiché sur les factures PDF et dans l&apos;application. Import recommandé (PNG/JPEG).
+            </p>
+            {form.logoUrl ? (
+              <div className="flex items-center gap-3 p-3 rounded-md border border-border bg-muted/20">
+                <img
+                  src={form.logoUrl}
+                  alt="Aperçu logo"
+                  className="h-16 w-16 object-contain rounded-sm bg-white border border-border"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-mono truncate text-muted-foreground">
+                    {form.logoUrl.startsWith("data:") ? "Image importée (base64)" : form.logoUrl}
+                  </div>
+                </div>
+                {isAdmin && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive shrink-0"
+                    onClick={() => setForm(prev => ({ ...prev, logoUrl: "" }))}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="text-xs text-muted-foreground uppercase">Aucun logo configuré</div>
+            )}
+            {isAdmin && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" className="uppercase text-xs font-bold" asChild>
+                  <label className="cursor-pointer">
+                    <Upload className="h-3 w-3 mr-2 inline" />
+                    Importer une image
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      className="hidden"
+                      onChange={handleLogoFile}
+                    />
+                  </label>
+                </Button>
+              </div>
+            )}
+            {field("Ou URL du logo", "logoUrl", "https://example.com/logo.png")}
+          </div>
 
           {isAdmin && (
             <Button
@@ -181,7 +253,9 @@ export default function Settings() {
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground uppercase">Statut</span>
-            <Badge className="bg-primary/20 text-primary border-primary/30 uppercase text-xs">En ligne</Badge>
+            <Badge className="bg-primary/20 text-primary border-primary/30 uppercase text-xs font-mono">
+              <OnlineStatusBadge />
+            </Badge>
           </div>
         </CardContent>
       </Card>

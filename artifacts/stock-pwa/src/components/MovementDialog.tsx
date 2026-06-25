@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useEffect } from "react";
 import {
   useCreateStockMovement, useListProducts, useListProjects, useGetMe,
   getListProductsQueryKey, getListStockMovementsQueryKey, getGetProductQueryKey,
@@ -20,7 +21,7 @@ const NONE_PROJECT = "__none__";
 const schema = z.object({
   productId: z.coerce.number().min(1, "Produit requis"),
   type: z.enum(["IN", "OUT"]),
-  quantity: z.coerce.number().min(1, "Quantité min 1"),
+  quantity: z.coerce.number().int("Quantité entière requise").min(1, "Quantité min 1"),
   reason: z.string().min(1, "Raison requise"),
   projectId: z.string().optional(),
 });
@@ -37,7 +38,7 @@ interface Props {
 export default function MovementDialog({ open, onClose, productId, productName, currentStock, initialType }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { data: products } = useListProducts({});
+  const { data: products } = useListProducts({ limit: 200 });
   const { data: projects } = useListProjects({});
   const { data: me } = useGetMe();
   const createMovement = useCreateStockMovement();
@@ -58,8 +59,26 @@ export default function MovementDialog({ open, onClose, productId, productName, 
   const selectedProduct = products?.find(p => p.id === watchProductId);
   const effectiveStock = productId ? currentStock : selectedProduct?.quantityInStock;
 
+  useEffect(() => {
+    if (!open) return;
+    form.reset({
+      productId: productId ?? 0,
+      type: initialType,
+      quantity: 1,
+      reason: "",
+      projectId: NONE_PROJECT,
+    });
+  }, [open, productId, initialType, form]);
+
   const onSubmit = (values: z.infer<typeof schema>) => {
     if (!me) { toast({ variant: "destructive", title: "Non authentifié" }); return; }
+    if (values.type === "OUT" && effectiveStock != null && values.quantity > effectiveStock) {
+      toast({
+        variant: "destructive",
+        title: `Stock insuffisant (disponible: ${effectiveStock})`,
+      });
+      return;
+    }
     const resolvedProjectId = values.projectId && values.projectId !== NONE_PROJECT ? parseInt(values.projectId) : null;
     createMovement.mutate({
       data: {
@@ -153,7 +172,7 @@ export default function MovementDialog({ open, onClose, productId, productName, 
             <FormField control={form.control} name="quantity" render={({ field }) => (
               <FormItem><FormLabel className="uppercase text-xs">Quantité</FormLabel>
                 <FormControl>
-                  <Input type="number" min={1} {...field} data-testid="input-movement-qty" className="bg-background font-mono text-lg" />
+                  <Input type="number" min={1} step={1} {...field} data-testid="input-movement-qty" className="bg-background font-mono text-lg" />
                 </FormControl>
                 {watchType === "OUT" && effectiveStock !== null && effectiveStock !== undefined && (
                   <div className="text-xs text-muted-foreground">Stock disponible : {effectiveStock}</div>

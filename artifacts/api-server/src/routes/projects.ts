@@ -105,9 +105,27 @@ router.post("/projects/:id/materials", requireAuth, requireRole("admin", "manage
       return { error: "Stock insuffisant pour cette consommation" as const };
     }
 
-    const [createdMaterial] = await tx.insert(projectMaterialsTable)
-      .values({ projectId: params.data.id, productId: parsed.data.productId, quantityUsed: parsed.data.quantityUsed })
-      .returning();
+    const [existingMaterial] = await tx
+      .select({ id: projectMaterialsTable.id, quantityUsed: projectMaterialsTable.quantityUsed })
+      .from(projectMaterialsTable)
+      .where(and(
+        eq(projectMaterialsTable.projectId, params.data.id),
+        eq(projectMaterialsTable.productId, parsed.data.productId),
+      ));
+
+    let materialRow;
+    if (existingMaterial) {
+      const [updatedMaterial] = await tx.update(projectMaterialsTable)
+        .set({ quantityUsed: existingMaterial.quantityUsed + parsed.data.quantityUsed })
+        .where(eq(projectMaterialsTable.id, existingMaterial.id))
+        .returning();
+      materialRow = updatedMaterial;
+    } else {
+      const [createdMaterial] = await tx.insert(projectMaterialsTable)
+        .values({ projectId: params.data.id, productId: parsed.data.productId, quantityUsed: parsed.data.quantityUsed })
+        .returning();
+      materialRow = createdMaterial;
+    }
 
     await tx.insert(stockMovementsTable).values({
       productId: parsed.data.productId,
@@ -118,7 +136,7 @@ router.post("/projects/:id/materials", requireAuth, requireRole("admin", "manage
       createdById: req.user!.id,
     });
 
-    return { material: createdMaterial };
+    return { material: materialRow };
   });
 
   if ("error" in material && material.error) {

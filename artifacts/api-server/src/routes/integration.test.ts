@@ -9,8 +9,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import app from "../app";
 import { hashPassword } from "../lib/auth";
-import { auditLogsTable, db, usersTable, productsTable, stockMovementsTable, projectsTable, projectMaterialsTable, pool } from "@workspace/db";
-import { eq, inArray } from "drizzle-orm";
+import { auditLogsTable, db, usersTable, productsTable, stockMovementsTable, projectsTable, projectMaterialsTable, invoicesTable, invoiceItemsTable, revokedTokensTable, pool } from "@workspace/db";
+import { eq, inArray, like } from "drizzle-orm";
 
 const ADMIN_EMAIL = "test-admin-integration@stockbtp.fr";
 const MANAGER_EMAIL = "test-manager-integration@stockbtp.fr";
@@ -56,6 +56,13 @@ async function cleanupTestArtifacts() {
     await db.delete(stockMovementsTable).where(eq(stockMovementsTable.productId, product.id));
   }
   await db.delete(auditLogsTable).where(inArray(auditLogsTable.userEmail, [ADMIN_EMAIL, MANAGER_EMAIL, WORKER_EMAIL]));
+  const testInvoices = await db.select({ id: invoicesTable.id }).from(invoicesTable).where(like(invoicesTable.clientName, "Client Test%"));
+  for (const invoice of testInvoices) {
+    await db.delete(stockMovementsTable).where(eq(stockMovementsTable.invoiceId, invoice.id));
+    await db.delete(invoiceItemsTable).where(eq(invoiceItemsTable.invoiceId, invoice.id));
+  }
+  await db.delete(invoicesTable).where(like(invoicesTable.clientName, "Client Test%"));
+  await db.delete(revokedTokensTable);
   await db.delete(productsTable).where(inArray(productsTable.name, TEST_PRODUCT_NAMES));
   await db.delete(usersTable).where(eq(usersTable.email, ADMIN_EMAIL));
   await db.delete(usersTable).where(eq(usersTable.email, MANAGER_EMAIL));
@@ -109,6 +116,20 @@ describe("API integration", () => {
     expect(res.body.role).toBe("admin");
   });
 
+  it("POST /api/auth/logout revokes the token", async () => {
+    const loginRes = await request(app).post("/api/auth/login").send({ email: ADMIN_EMAIL, password: "testpass123" });
+    expect(loginRes.status).toBe(200);
+    const tempToken = loginRes.body.token;
+
+    const logoutRes = await request(app)
+      .post("/api/auth/logout")
+      .set("Authorization", `Bearer ${tempToken}`);
+    expect(logoutRes.status).toBe(200);
+
+    const meRes = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${tempToken}`);
+    expect(meRes.status).toBe(401);
+  });
+
   it("GET /api/products requires auth", async () => {
     const res = await request(app).get("/api/products");
     expect(res.status).toBe(401);
@@ -158,6 +179,270 @@ describe("API integration", () => {
     const adminRes = await request(app).get("/api/users").set("Authorization", `Bearer ${adminToken}`);
     expect(adminRes.status).toBe(200);
     expect(Array.isArray(adminRes.body)).toBe(true);
+  });
+
+  it("worker cannot access invoices, manager can", async () => {
+    const workerRes = await request(app).get("/api/invoices").set("Authorization", `Bearer ${workerToken}`);
+    expect(workerRes.status).toBe(403);
+
+    const managerRes = await request(app).get("/api/invoices").set("Authorization", `Bearer ${managerToken}`);
+    expect(managerRes.status).toBe(200);
+  });
+
+  it("invoice payment deducts stock and cancellation restores it", async () => {
+    const before = await request(app)
+      .get(`/api/products/${testProductId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+    const stockBefore = before.body.quantityInStock;
+
+    const createRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Integration",
+        date: "2026-06-25",
+        status: "draft",
+        items: [{
+          productId: testProductId,
+          description: "Produit Test Integration",
+          quantity: 5,
+          unitPrice: 10,
+        }],
+      });
+    expect(createRes.status).toBe(201);
+    const invoiceId = createRes.body.id;
+
+    const payRes = await request(app)
+      .patch(`/api/invoices/${invoiceId}/status`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({ status: "paid" });
+    expect(payRes.status).toBe(200);
+
+    const afterPay = await request(app)
+      .get(`/api/products/${testProductId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+    expect(afterPay.body.quantityInStock).toBe(stockBefore - 5);
+
+    const cancelRes = await request(app)
+      .patch(`/api/invoices/${invoiceId}/status`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({ status: "unpaid" });
+    expect(cancelRes.status).toBe(200);
+
+    const afterCancel = await request(app)
+      .get(`/api/products/${testProductId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+    expect(afterCancel.body.quantityInStock).toBe(stockBefore);
+  });
+
+  it("invoice creation rejects unknown product and decimal quantities", async () => {
+    const unknownProductRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Inconnu",
+        date: "2026-06-25",
+        items: [{
+          productId: 999999,
+          description: "Produit fantôme",
+          quantity: 1,
+          unitPrice: 10,
+        }],
+      });
+    expect(unknownProductRes.status).toBe(400);
+
+    const decimalRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Decimal",
+        date: "2026-06-25",
+        items: [{
+          productId: testProductId,
+          description: "Produit Test Integration",
+          quantity: 1.5,
+          unitPrice: 10,
+        }],
+      });
+    expect(decimalRes.status).toBe(400);
+  });
+
+  it("draft invoice can be edited and deleted", async () => {
+    const createRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Edit",
+        date: "2026-06-25",
+        status: "draft",
+        taxRate: 20,
+        items: [{
+          productId: testProductId,
+          description: "Produit Test Integration",
+          quantity: 2,
+          unitPrice: 15,
+        }],
+      });
+    expect(createRes.status).toBe(201);
+    const invoiceId = createRes.body.id;
+    expect(createRes.body.subtotal).toBe(30);
+
+    const patchRes = await request(app)
+      .patch(`/api/invoices/${invoiceId}`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Edit Modifié",
+        date: "2026-06-26",
+        taxRate: 10,
+        items: [{
+          productId: testProductId,
+          description: "Produit Test Integration",
+          quantity: 3,
+          unitPrice: 20,
+        }],
+      });
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.clientName).toBe("Client Test Edit Modifié");
+    expect(patchRes.body.subtotal).toBe(60);
+    expect(patchRes.body.taxAmount).toBe(6);
+
+    const deleteRes = await request(app)
+      .delete(`/api/invoices/${invoiceId}`)
+      .set("Authorization", `Bearer ${managerToken}`);
+    expect(deleteRes.status).toBe(204);
+
+    const getRes = await request(app)
+      .get(`/api/invoices/${invoiceId}`)
+      .set("Authorization", `Bearer ${managerToken}`);
+    expect(getRes.status).toBe(404);
+  });
+
+  it("paid invoice cannot be edited or deleted", async () => {
+    const createRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Locked",
+        date: "2026-06-25",
+        status: "unpaid",
+        items: [{
+          description: "Service sans stock",
+          quantity: 1,
+          unitPrice: 100,
+        }],
+      });
+    expect(createRes.status).toBe(201);
+    const invoiceId = createRes.body.id;
+
+    await request(app)
+      .patch(`/api/invoices/${invoiceId}/status`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({ status: "paid" });
+
+    const patchRes = await request(app)
+      .patch(`/api/invoices/${invoiceId}`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Tentative",
+        date: "2026-06-25",
+        items: [{ description: "X", quantity: 1, unitPrice: 1 }],
+      });
+    expect(patchRes.status).toBe(400);
+
+    const deleteRes = await request(app)
+      .delete(`/api/invoices/${invoiceId}`)
+      .set("Authorization", `Bearer ${managerToken}`);
+    expect(deleteRes.status).toBe(400);
+  });
+
+  it("get invoice includes stock movements after payment", async () => {
+    const createRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test Movements",
+        date: "2026-06-25",
+        status: "draft",
+        items: [{
+          productId: testProductId,
+          description: "Produit Test Integration",
+          quantity: 1,
+          unitPrice: 10,
+        }],
+      });
+    expect(createRes.status).toBe(201);
+    const invoiceId = createRes.body.id;
+
+    await request(app)
+      .patch(`/api/invoices/${invoiceId}/status`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({ status: "paid" });
+
+    const getRes = await request(app)
+      .get(`/api/invoices/${invoiceId}`)
+      .set("Authorization", `Bearer ${managerToken}`);
+    expect(getRes.status).toBe(200);
+    expect(Array.isArray(getRes.body.stockMovements)).toBe(true);
+    expect(getRes.body.stockMovements.length).toBeGreaterThan(0);
+    expect(getRes.body.stockMovements[0].type).toBe("OUT");
+  });
+
+  it("invoice PDF is generated with company logo", async () => {
+    const tinyPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+    await request(app)
+      .put("/api/company-settings")
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({
+        name: "Entreprise PDF Test",
+        logoUrl: tinyPng,
+        address: "1 rue Test",
+        phone: "+33 1 00 00 00 00",
+      });
+
+    const createRes = await request(app)
+      .post("/api/invoices")
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({
+        clientName: "Client Test PDF Logo",
+        date: "2026-06-25",
+        status: "draft",
+        items: [{ description: "Prestation", quantity: 1, unitPrice: 100 }],
+      });
+    expect(createRes.status).toBe(201);
+
+    const pdfRes = await request(app)
+      .get(`/api/invoices/${createRes.body.id}/pdf`)
+      .set("Authorization", `Bearer ${managerToken}`);
+
+    expect(pdfRes.status).toBe(200);
+    expect(pdfRes.headers["content-type"]).toContain("application/pdf");
+    expect(typeof pdfRes.text).toBe("string");
+    expect(pdfRes.text.startsWith("%PDF")).toBe(true);
+  });
+
+  it("admin cannot demote their own account", async () => {
+    const meRes = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${adminToken}`);
+    const adminId = meRes.body.id;
+
+    const patchRes = await request(app)
+      .patch(`/api/users/${adminId}`)
+      .set("Authorization", `Bearer ${adminToken}`)
+      .send({ role: "manager" });
+    expect(patchRes.status).toBe(400);
+  });
+
+  it("stock movement rejects decimal quantity", async () => {
+    const res = await request(app)
+      .post("/api/stock-movements")
+      .set("Authorization", `Bearer ${workerToken}`)
+      .send({
+        productId: testProductId,
+        type: "IN",
+        quantity: 2.5,
+        reason: "Quantité décimale interdite",
+      });
+    expect(res.status).toBe(400);
   });
 
   it("stock movement OUT is rejected when insufficient stock", async () => {
@@ -334,6 +619,26 @@ describe("API integration", () => {
     expect(movements.body.some((movement: { quantity: number; reason: string }) =>
       movement.quantity === 4 && movement.reason.includes("Consommation projet")
     )).toBe(true);
+
+    const secondMaterialRes = await request(app)
+      .post(`/api/projects/${projectRes.body.id}/materials`)
+      .set("Authorization", `Bearer ${managerToken}`)
+      .send({ productId: testProductId, quantityUsed: 2 });
+    expect(secondMaterialRes.status).toBe(201);
+    expect(secondMaterialRes.body.quantityUsed).toBe(6);
+
+    const afterSecond = await request(app)
+      .get(`/api/products/${testProductId}`)
+      .set("Authorization", `Bearer ${adminToken}`);
+    expect(afterSecond.body.quantityInStock).toBe(stockBefore - 6);
+  });
+
+  it("GET /api/audit-logs returns system events for managers", async () => {
+    const res = await request(app)
+      .get("/api/audit-logs")
+      .set("Authorization", `Bearer ${managerToken}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
   });
 
   it("product deletion is refused when stock history exists", async () => {

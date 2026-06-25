@@ -8,6 +8,7 @@ import {
   canCreateProject,
   canUpdateProject,
   canAddProjectMaterial,
+  canManageInvoices,
   canAccessRoute,
   filterNavByRole,
 } from "./permissions";
@@ -38,6 +39,7 @@ describe("permissions", () => {
     expect(canManageUsers("worker")).toBe(false);
     expect(canViewAudit("worker")).toBe(false);
     expect(canExportReports("worker")).toBe(false);
+    expect(canManageInvoices("worker")).toBe(false);
     expect(canCreateProduct("worker")).toBe(false);
     expect(canDeleteProduct("worker")).toBe(false);
     expect(canCreateProject("worker")).toBe(false);
@@ -46,6 +48,12 @@ describe("permissions", () => {
     expect(canAccessRoute("worker", "/movements")).toBe(true);
     expect(canAccessRoute("worker", "/audit")).toBe(false);
     expect(canAccessRoute("worker", "/reports")).toBe(false);
+    expect(canAccessRoute("worker", "/invoices")).toBe(false);
+  });
+
+  it("manager can manage invoices", () => {
+    expect(canManageInvoices("manager")).toBe(true);
+    expect(canAccessRoute("manager", "/invoices")).toBe(true);
   });
 
   it("filterNavByRole hides restricted pages by role", () => {

@@ -1,12 +1,14 @@
 import crypto from "crypto";
 import bcryptjs from "bcryptjs";
+import { db, revokedTokensTable } from "@workspace/db";
+import { eq, lt } from "drizzle-orm";
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) {
   throw new Error("SESSION_SECRET env variable is required but not set");
 }
 
-const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
+export const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const BCRYPT_ROUNDS = 12;
 
 function legacyHash(password: string): string {
@@ -22,6 +24,44 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
     return bcryptjs.compare(password, hash);
   }
   return legacyHash(password) === hash;
+}
+
+export function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+function getTokenExpiry(token: string): Date | null {
+  try {
+    const decoded = Buffer.from(token, "base64url").toString("utf8");
+    const parts = decoded.split(":");
+    if (parts.length !== 4) return null;
+    const issuedAtMs = parseInt(parts[2], 10);
+    if (isNaN(issuedAtMs)) return null;
+    return new Date(issuedAtMs + TOKEN_TTL_MS);
+  } catch {
+    return null;
+  }
+}
+
+export async function revokeToken(token: string): Promise<void> {
+  const expiresAt = getTokenExpiry(token);
+  if (!expiresAt) return;
+
+  await db
+    .insert(revokedTokensTable)
+    .values({ tokenHash: hashToken(token), expiresAt })
+    .onConflictDoNothing();
+}
+
+export async function isTokenRevoked(token: string): Promise<boolean> {
+  await db.delete(revokedTokensTable).where(lt(revokedTokensTable.expiresAt, new Date()));
+
+  const [row] = await db
+    .select({ tokenHash: revokedTokensTable.tokenHash })
+    .from(revokedTokensTable)
+    .where(eq(revokedTokensTable.tokenHash, hashToken(token)));
+
+  return !!row;
 }
 
 export function generateToken(userId: number, role: string): string {

@@ -1,3 +1,5 @@
+import { notifyOfflineMutationQueued } from "./offline";
+
 export type CustomFetchOptions = RequestInit & {
   responseType?: "json" | "text" | "blob" | "auto";
 };
@@ -359,6 +361,10 @@ export async function customFetch<T = unknown>(
   }
 
   const requestInfo = { method, url: resolveUrl(input) };
+
+  if (typeof navigator !== "undefined" && !navigator.onLine && method !== "GET" && method !== "HEAD") {
+    notifyOfflineMutationQueued(method);
+  }
 
   const response = await fetch(input, { ...init, method, headers });
 

@@ -1,17 +1,35 @@
 import { useState, useMemo } from "react";
-import { useListStockMovements, useListProducts } from "@workspace/api-client-react";
+import { useQuery } from "@tanstack/react-query";
+import { useListStockMovements, useListProducts, customFetch } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ClipboardList, ArrowUp, ArrowDown, User, TrendingUp, TrendingDown, Activity, ChevronDown } from "lucide-react";
+import { ClipboardList, ArrowUp, ArrowDown, User, TrendingUp, TrendingDown, Activity, ChevronDown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const AUDIT_PAGE_SIZE = 100;
 
+type AuditLogRow = {
+  id: number;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  userEmail: string | null;
+  createdAt: string;
+};
+
+function useAuditLogs(limit: number) {
+  return useQuery<AuditLogRow[]>({
+    queryKey: ["/api/audit-logs", limit],
+    queryFn: () => customFetch<AuditLogRow[]>(`/api/audit-logs?limit=${limit}`),
+  });
+}
+
 export default function Audit() {
+  const [view, setView] = useState<"movements" | "system">("movements");
   const [userFilter, setUserFilter] = useState("all");
   const [productFilter, setProductFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -32,7 +50,8 @@ export default function Audit() {
 
   const { data: movements, isLoading, isError } = useListStockMovements(params as any);
   const { data: operatorMovements } = useListStockMovements(operatorParams as any);
-  const { data: products } = useListProducts({});
+  const { data: products } = useListProducts({ limit: 200 });
+  const { data: auditLogs, isLoading: loadingAuditLogs, isError: errorAuditLogs } = useAuditLogs(auditLimit);
 
   const operators = useMemo(() => {
     if (!operatorMovements) return [];
@@ -83,9 +102,73 @@ export default function Audit() {
           </p>
         </div>
         <div className="text-xs font-mono bg-card border border-border rounded-sm px-3 py-1.5 text-muted-foreground">
-          {movements?.length ?? 0} entrée{(movements?.length ?? 0) !== 1 ? "s" : ""} affichée{(movements?.length ?? 0) !== 1 ? "s" : ""}
+          {view === "movements"
+            ? `${movements?.length ?? 0} entrée${(movements?.length ?? 0) !== 1 ? "s" : ""} affichée${(movements?.length ?? 0) !== 1 ? "s" : ""}`
+            : `${auditLogs?.length ?? 0} événement${(auditLogs?.length ?? 0) !== 1 ? "s" : ""}`}
         </div>
       </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant={view === "movements" ? "default" : "outline"}
+          className="uppercase text-xs font-bold"
+          onClick={() => setView("movements")}
+        >
+          Mouvements stock
+        </Button>
+        <Button
+          size="sm"
+          variant={view === "system" ? "default" : "outline"}
+          className="uppercase text-xs font-bold"
+          onClick={() => setView("system")}
+        >
+          Journal système
+        </Button>
+      </div>
+
+      {view === "system" ? (
+        errorAuditLogs ? (
+          <div className="flex flex-col items-center gap-3 p-12 text-center">
+            <p className="text-destructive font-mono uppercase text-sm">Impossible de charger le journal système</p>
+          </div>
+        ) : loadingAuditLogs ? (
+          <div className="text-muted-foreground uppercase text-sm animate-pulse p-8 font-mono">Chargement...</div>
+        ) : (
+          <Card className="bg-card border-border">
+            <CardContent className="p-0">
+              {auditLogs && auditLogs.length > 0 ? (
+                <div className="divide-y divide-border">
+                  {auditLogs.map((log) => (
+                    <div key={log.id} className="px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="h-8 w-8 rounded-sm bg-primary/15 flex items-center justify-center shrink-0">
+                          <Shield className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-sm uppercase">{log.action} · {log.entityType}</div>
+                          <div className="text-xs text-muted-foreground font-mono truncate">
+                            {log.entityId ? `#${log.entityId}` : "—"} · {log.userEmail ?? "Système"}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono shrink-0">
+                        {format(new Date(log.createdAt), "dd MMM yyyy HH:mm", { locale: fr })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-16 text-center">
+                  <Shield className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground uppercase text-sm font-mono">Aucun événement système</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )
+      ) : (
+        <>
 
       {/* User activity summary cards */}
       {!isLoading && userStats.length > 0 && (
@@ -308,6 +391,8 @@ export default function Audit() {
             )}
           </CardContent>
         </Card>
+      )}
+        </>
       )}
     </div>
   );

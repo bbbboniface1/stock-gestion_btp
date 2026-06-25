@@ -78,6 +78,11 @@ router.post("/stock-movements", requireAuth, async (req: AuthenticatedRequest, r
 
   const { productId, type, quantity, reason, projectId } = parsed.data;
 
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    res.status(400).json({ error: "La quantité doit être un entier positif" });
+    return;
+  }
+
   const result = await db.transaction(async (tx) => {
     const [product] = await tx.select().from(productsTable).where(eq(productsTable.id, productId));
     if (!product) return { error: "Produit introuvable" as const, status: 404 };
