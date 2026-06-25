@@ -66,7 +66,7 @@ export default function Products() {
   if (categoryFilter !== "all") params.category = categoryFilter;
   if (lowStockOnly) params.low_stock = true;
 
-  const { data: products, isLoading } = useListProducts(params);
+  const { data: products, isLoading, isError } = useListProducts(params);
   const { data: categories } = useListProductCategories();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -246,7 +246,12 @@ export default function Products() {
       </div>
 
       {/* Products list */}
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center gap-3 p-12 text-center">
+          <p className="text-destructive font-mono uppercase text-sm">Impossible de charger les produits</p>
+          <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+        </div>
+      ) : isLoading ? (
         <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement des produits...</div>
       ) : (
         <Card className="bg-card border-border">

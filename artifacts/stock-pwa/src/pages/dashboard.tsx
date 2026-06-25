@@ -49,7 +49,7 @@ const CustomPieLegend = ({ payload }: any) => (
 );
 
 export default function Dashboard() {
-  const { data: summary, isLoading: loadingSummary } = useGetDashboardSummary();
+  const { data: summary, isLoading: loadingSummary, isError: errorSummary } = useGetDashboardSummary();
   const { data: lowStock, isLoading: loadingLowStock } = useGetLowStockProducts();
   const { data: recent, isLoading: loadingRecent } = useGetRecentMovements({ limit: 20 });
   const { data: byCategory, isLoading: loadingCategory } = useGetStockByCategory();
@@ -66,6 +66,15 @@ export default function Dashboard() {
     IN: d.IN,
     OUT: d.OUT,
   })).sort((a, b) => a.key.localeCompare(b.key));
+
+  if (errorSummary) {
+    return (
+      <div className="flex flex-col items-center gap-3 p-12 text-center">
+        <p className="text-destructive font-mono uppercase text-sm">Impossible de charger le tableau de bord</p>
+        <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+      </div>
+    );
+  }
 
   if (loadingSummary) {
     return <div className="p-8 text-muted-foreground animate-pulse font-mono uppercase">Chargement des données...</div>;

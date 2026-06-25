@@ -37,7 +37,7 @@ export default function UsersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuthStore();
-  const { data: users, isLoading } = useListUsers();
+  const { data: users, isLoading, isError } = useListUsers();
   const createUser = useCreateUser();
   const isAdmin = currentUser?.role === "admin";
 
@@ -114,7 +114,12 @@ export default function UsersPage() {
         )}
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center gap-3 p-12 text-center">
+          <p className="text-destructive font-mono uppercase text-sm">Impossible de charger les utilisateurs</p>
+          <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+        </div>
+      ) : isLoading ? (
         <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement des utilisateurs...</div>
       ) : (
         <Card className="bg-card border-border">

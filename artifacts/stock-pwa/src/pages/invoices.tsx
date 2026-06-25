@@ -22,7 +22,7 @@ function fmt(n: number, currency = "EUR") {
 export default function Invoices() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
-  const { data: invoices, isLoading } = useListInvoices();
+  const { data: invoices, isLoading, isError } = useListInvoices();
   const company = useCompany();
 
   const filtered = invoices?.filter(inv =>
@@ -78,7 +78,12 @@ export default function Invoices() {
         />
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center gap-3 p-12 text-center">
+          <p className="text-destructive font-mono uppercase text-sm">Impossible de charger les factures</p>
+          <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+        </div>
+      ) : isLoading ? (
         <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement...</div>
       ) : (
         <Card className="bg-card border-border">

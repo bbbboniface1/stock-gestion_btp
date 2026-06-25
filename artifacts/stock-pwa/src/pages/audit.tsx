@@ -30,7 +30,7 @@ export default function Audit() {
   const operatorParams = { ...params };
   delete operatorParams.created_by_id;
 
-  const { data: movements, isLoading } = useListStockMovements(params as any);
+  const { data: movements, isLoading, isError } = useListStockMovements(params as any);
   const { data: operatorMovements } = useListStockMovements(operatorParams as any);
   const { data: products } = useListProducts({});
 
@@ -193,7 +193,12 @@ export default function Audit() {
       </Card>
 
       {/* Movements table */}
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center gap-3 p-12 text-center">
+          <p className="text-destructive font-mono uppercase text-sm">Impossible de charger l'historique</p>
+          <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+        </div>
+      ) : isLoading ? (
         <div className="text-muted-foreground uppercase text-sm animate-pulse p-8 font-mono">Chargement de l'historique...</div>
       ) : (
         <Card className="bg-card border-border">

@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
@@ -11,6 +12,7 @@ app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
 }));
+
 app.use(
   pinoHttp({
     logger,
@@ -30,6 +32,7 @@ app.use(
     },
   }),
 );
+
 const corsOrigin = process.env.CORS_ORIGIN;
 if (!corsOrigin) {
   logger.warn("CORS_ORIGIN not set — API accepts all origins. Set CORS_ORIGIN in production.");
@@ -39,8 +42,30 @@ app.use(cors({
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
+
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 500,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop de requêtes, réessayez dans 15 minutes." },
+  skip: (req) => req.path === "/api/healthz",
+});
+
+const heavyLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Limite de génération de PDF atteinte. Réessayez dans une minute." },
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api", globalLimiter);
+app.use("/api/reports/pdf", heavyLimiter);
+app.use("/api/invoices/:id/pdf", heavyLimiter);
 
 app.use("/api", router);
 

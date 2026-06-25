@@ -17,25 +17,26 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 
-import NotFound from "@/pages/not-found";
-import Dashboard from "@/pages/dashboard";
 import Login from "@/pages/login";
-import Products from "@/pages/products";
-import ProductDetail from "@/pages/product-detail";
-import Movements from "@/pages/movements";
-import Projects from "@/pages/projects";
-import ProjectDetail from "@/pages/project-detail";
-import UsersPage from "@/pages/users";
-import SettingsPage from "@/pages/settings";
-import ReportsPage from "@/pages/reports";
-import AuditPage from "@/pages/audit";
-import ScanPage from "@/pages/scan";
-import InvoicesPage from "@/pages/invoices";
-import InvoiceNewPage from "@/pages/invoice-new";
-import InvoiceDetailPage from "@/pages/invoice-detail";
 import { AuthBootstrap } from "@/components/AuthBootstrap";
+
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Products = lazy(() => import("@/pages/products"));
+const ProductDetail = lazy(() => import("@/pages/product-detail"));
+const Movements = lazy(() => import("@/pages/movements"));
+const Projects = lazy(() => import("@/pages/projects"));
+const ProjectDetail = lazy(() => import("@/pages/project-detail"));
+const UsersPage = lazy(() => import("@/pages/users"));
+const SettingsPage = lazy(() => import("@/pages/settings"));
+const ReportsPage = lazy(() => import("@/pages/reports"));
+const AuditPage = lazy(() => import("@/pages/audit"));
+const ScanPage = lazy(() => import("@/pages/scan"));
+const InvoicesPage = lazy(() => import("@/pages/invoices"));
+const InvoiceNewPage = lazy(() => import("@/pages/invoice-new"));
+const InvoiceDetailPage = lazy(() => import("@/pages/invoice-detail"));
 import { RoleGuard } from "@/components/RoleGuard";
 import { filterNavByRole } from "@/lib/permissions";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -284,26 +285,32 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+const PageFallback = () => (
+  <div className="p-8 text-muted-foreground animate-pulse font-mono uppercase text-sm">Chargement...</div>
+);
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/" component={() => <ProtectedLayout><Dashboard /></ProtectedLayout>} />
-      <Route path="/products" component={() => <ProtectedLayout><Products /></ProtectedLayout>} />
-      <Route path="/products/:id" component={() => <ProtectedLayout><ProductDetail /></ProtectedLayout>} />
-      <Route path="/movements" component={() => <ProtectedLayout><Movements /></ProtectedLayout>} />
-      <Route path="/projects" component={() => <ProtectedLayout><Projects /></ProtectedLayout>} />
-      <Route path="/projects/:id" component={() => <ProtectedLayout><ProjectDetail /></ProtectedLayout>} />
-      <Route path="/invoices" component={() => <ProtectedLayout><InvoicesPage /></ProtectedLayout>} />
-      <Route path="/invoices/new" component={() => <ProtectedLayout><InvoiceNewPage /></ProtectedLayout>} />
-      <Route path="/invoices/:id" component={() => <ProtectedLayout><InvoiceDetailPage /></ProtectedLayout>} />
-      <Route path="/audit" component={() => <ProtectedLayout><RoleGuard path="/audit"><AuditPage /></RoleGuard></ProtectedLayout>} />
-      <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
-      <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />
-      <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
-      <Route path="/scan" component={() => <ScanPage />} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageFallback />}>
+      <Switch>
+        <Route path="/login" component={Login} />
+        <Route path="/" component={() => <ProtectedLayout><Dashboard /></ProtectedLayout>} />
+        <Route path="/products" component={() => <ProtectedLayout><Products /></ProtectedLayout>} />
+        <Route path="/products/:id" component={() => <ProtectedLayout><ProductDetail /></ProtectedLayout>} />
+        <Route path="/movements" component={() => <ProtectedLayout><Movements /></ProtectedLayout>} />
+        <Route path="/projects" component={() => <ProtectedLayout><Projects /></ProtectedLayout>} />
+        <Route path="/projects/:id" component={() => <ProtectedLayout><ProjectDetail /></ProtectedLayout>} />
+        <Route path="/invoices" component={() => <ProtectedLayout><InvoicesPage /></ProtectedLayout>} />
+        <Route path="/invoices/new" component={() => <ProtectedLayout><InvoiceNewPage /></ProtectedLayout>} />
+        <Route path="/invoices/:id" component={() => <ProtectedLayout><InvoiceDetailPage /></ProtectedLayout>} />
+        <Route path="/audit" component={() => <ProtectedLayout><RoleGuard path="/audit"><AuditPage /></RoleGuard></ProtectedLayout>} />
+        <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
+        <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />
+        <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
+        <Route path="/scan" component={() => <ScanPage />} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
