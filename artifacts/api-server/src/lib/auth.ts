@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import bcryptjs from "bcryptjs";
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) {
@@ -6,13 +7,21 @@ if (!SESSION_SECRET) {
 }
 
 const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
+const BCRYPT_ROUNDS = 12;
 
-export function hashPassword(password: string): string {
+function legacyHash(password: string): string {
   return crypto.createHash("sha256").update(password + "stockbtp_salt").digest("hex");
 }
 
-export function verifyPassword(password: string, hash: string): boolean {
-  return hashPassword(password) === hash;
+export async function hashPassword(password: string): Promise<string> {
+  return bcryptjs.hash(password, BCRYPT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  if (hash.startsWith("$2")) {
+    return bcryptjs.compare(password, hash);
+  }
+  return legacyHash(password) === hash;
 }
 
 export function generateToken(userId: number, role: string): string {

@@ -39,7 +39,7 @@ router.post("/auth/login", loginLimiter, async (req, res): Promise<void> => {
   }
   const { email, password } = parsed.data;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  if (!user || !(await verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: "Email ou mot de passe incorrect" });
     return;
   }

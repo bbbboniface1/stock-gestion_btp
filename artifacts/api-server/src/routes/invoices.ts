@@ -62,7 +62,7 @@ async function getInvoiceWithItems(id: number) {
   return { ...serializeDates(invoice), items: serializeDates(items) };
 }
 
-router.get("/invoices", requireAuth, async (_req, res): Promise<void> => {
+router.get("/invoices", requireAuth, requireRole("admin", "manager"), async (_req, res): Promise<void> => {
   const rows = await db
     .select()
     .from(invoicesTable)
@@ -78,9 +78,9 @@ router.post("/invoices", requireAuth, requireRole("admin", "manager"), async (re
   const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const taxAmount = Math.round(subtotal * taxRate) / 100;
   const total = subtotal + taxAmount;
-  const invoiceNumber = await getNextInvoiceNumber();
 
   const result = await db.transaction(async (tx) => {
+    const invoiceNumber = await getNextInvoiceNumber();
     const [invoice] = await tx.insert(invoicesTable).values({
       invoiceNumber,
       ...invoiceData,

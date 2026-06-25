@@ -35,7 +35,7 @@ router.post("/users", requireAuth, requireRole("admin"), async (req, res): Promi
     return;
   }
   const { fullName, email, role, password } = parsed.data;
-  const passwordHash = hashPassword(password);
+  const passwordHash = await hashPassword(password);
   let user;
   try {
     [user] = await db.insert(usersTable).values({ fullName, email, role, passwordHash }).returning();
