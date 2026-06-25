@@ -25,3 +25,29 @@
 [2m13:25:52[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
 [2m13:29:21[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/OfflineBanner.tsx[22m
 [2m13:31:16[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/users.tsx[22m
+[2m15:19:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/OfflineBanner.tsx[22m
+[2m15:19:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m15:19:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/OfflineBanner.tsx[22m
+[2m15:19:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/project-detail.tsx[22m
+[2m15:19:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/components/RoleGuard.tsx, /src/pages/projects.tsx, /src/pages/project-detail.tsx, /src/pages/products.tsx[22m
+[2m15:19:45[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/projects.tsx[22m
+[2m15:19:46[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m00:41:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/index.css[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/audit.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/reports.tsx, /src/components/RoleGuard.tsx, /src/components/AuthBootstrap.tsx, /src/pages/users.tsx, /src/pages/settings.tsx, /src/pages/login.tsx, /src/pages/dashboard.tsx, /src/pages/projects.tsx, /src/pages/project-detail.tsx, /src/pages/scan.tsx, /src/pages/products.tsx, /src/App.tsx, /src/pages/movements.tsx, /src/pages/product-detail.tsx, /src/pages/audit.tsx, /src/components/MovementDialog.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m changed tsconfig file detected: C:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/audit.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/dashboard.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/products.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/settings.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css, /src/pages/users.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/reports.tsx, /src/components/RoleGuard.tsx, /src/components/AuthBootstrap.tsx, /src/pages/users.tsx, /src/pages/settings.tsx, /src/pages/login.tsx, /src/pages/dashboard.tsx, /src/pages/projects.tsx, /src/pages/project-detail.tsx, /src/pages/scan.tsx, /src/pages/products.tsx, /src/App.tsx, /src/pages/movements.tsx, /src/pages/product-detail.tsx, /src/pages/audit.tsx, /src/components/MovementDialog.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/reports.tsx, /src/components/RoleGuard.tsx, /src/components/AuthBootstrap.tsx, /src/pages/users.tsx, /src/pages/settings.tsx, /src/pages/login.tsx, /src/pages/dashboard.tsx, /src/pages/projects.tsx, /src/pages/project-detail.tsx, /src/pages/scan.tsx, /src/pages/products.tsx, /src/App.tsx, /src/pages/movements.tsx, /src/pages/product-detail.tsx, /src/pages/audit.tsx, /src/components/MovementDialog.tsx[22m
+[2m00:41:12[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/reports.tsx, /src/components/RoleGuard.tsx, /src/components/AuthBootstrap.tsx, /src/pages/users.tsx, /src/pages/settings.tsx, /src/pages/login.tsx, /src/pages/dashboard.tsx, /src/pages/projects.tsx, /src/pages/project-detail.tsx, /src/pages/scan.tsx, /src/pages/products.tsx, /src/App.tsx, /src/pages/movements.tsx, /src/pages/product-detail.tsx, /src/pages/audit.tsx, /src/components/MovementDialog.tsx[22m
+[2m11:40:28[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m11:40:41[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m11:40:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m11:40:55[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m11:47:15[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m11:48:05[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/ui/input.tsx, /src/index.css[22m

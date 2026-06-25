@@ -1230,3 +1230,717 @@
       "statusCode": 304
     }
     [35mresponseTime[39m: 5490
+[14:45:48.905] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 119,
+      "method": "GET",
+      "url": "/"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[14:46:04.135] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 120,
+      "method": "GET",
+      "url": "/HNAP1/"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[14:46:07.640] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 121,
+      "method": "GET",
+      "url": "/"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[14:46:07.676] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 122,
+      "method": "GET",
+      "url": "/loginMsg.js"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 0
+[14:46:07.681] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 123,
+      "method": "GET",
+      "url": "/cgi/get.cgi"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[17:54:54.807] [32mINFO[39m (25180): [36mrequest errored[39m
+    [35mreq[39m: {
+      "id": 124,
+      "method": "GET",
+      "url": "/api/products/categories"
+    }
+    [35mres[39m: {
+      "statusCode": 500
+    }
+    [35mresponseTime[39m: 13003
+    err: {
+      "type": "Error",
+      "message": "failed with status code 500",
+      "stack":
+          Error: failed with status code 500
+              at onResFinished (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:115:39)
+              at ServerResponse.onResponseComplete (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:178:14)
+              at ServerResponse.emit (node:events:531:35)
+              at onFinish (node:_http_outgoing:1082:10)
+              at callback (node:internal/streams/writable:766:21)
+              at afterWrite (node:internal/streams/writable:710:5)
+              at afterWriteTick (node:internal/streams/writable:696:10)
+              at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+    }
+[17:54:55.202] [32mINFO[39m (25180): [36mrequest errored[39m
+    [35mreq[39m: {
+      "id": 125,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 500
+    }
+    [35mresponseTime[39m: 13259
+    err: {
+      "type": "Error",
+      "message": "failed with status code 500",
+      "stack":
+          Error: failed with status code 500
+              at onResFinished (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:115:39)
+              at ServerResponse.onResponseComplete (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:178:14)
+              at ServerResponse.emit (node:events:531:35)
+              at onFinish (node:_http_outgoing:1082:10)
+              at callback (node:internal/streams/writable:766:21)
+              at afterWrite (node:internal/streams/writable:710:5)
+              at afterWriteTick (node:internal/streams/writable:696:10)
+              at processTicksAndRejections (node:internal/process/task_queues:89:21)
+              at runNextTicks (node:internal/process/task_queues:69:3)
+              at process.processImmediate (node:internal/timers:453:9)
+    }
+[17:55:00.960] [32mINFO[39m (25180): [36mrequest aborted[39m
+    [35mreq[39m: {
+      "id": 126,
+      "method": "GET",
+      "url": "/api/products"
+    }
+    [35mres[39m: {
+      "statusCode": null
+    }
+    [35mresponseTime[39m: 19001
+[17:55:06.651] [32mINFO[39m (25180): [36mrequest errored[39m
+    [35mreq[39m: {
+      "id": 127,
+      "method": "GET",
+      "url": "/api/products/categories"
+    }
+    [35mres[39m: {
+      "statusCode": 500
+    }
+    [35mresponseTime[39m: 11575
+    err: {
+      "type": "Error",
+      "message": "failed with status code 500",
+      "stack":
+          Error: failed with status code 500
+              at onResFinished (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:115:39)
+              at ServerResponse.onResponseComplete (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:178:14)
+              at ServerResponse.emit (node:events:531:35)
+              at onFinish (node:_http_outgoing:1082:10)
+              at callback (node:internal/streams/writable:766:21)
+              at afterWrite (node:internal/streams/writable:710:5)
+              at afterWriteTick (node:internal/streams/writable:696:10)
+              at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+    }
+[17:55:18.754] [32mINFO[39m (25180): [36mrequest errored[39m
+    [35mreq[39m: {
+      "id": 129,
+      "method": "GET",
+      "url": "/api/products"
+    }
+    [35mres[39m: {
+      "statusCode": 500
+    }
+    [35mresponseTime[39m: 17781
+    err: {
+      "type": "Error",
+      "message": "failed with status code 500",
+      "stack":
+          Error: failed with status code 500
+              at onResFinished (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:115:39)
+              at ServerResponse.onResponseComplete (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:178:14)
+              at ServerResponse.emit (node:events:531:35)
+              at onFinish (node:_http_outgoing:1082:10)
+              at callback (node:internal/streams/writable:766:21)
+              at afterWrite (node:internal/streams/writable:710:5)
+              at afterWriteTick (node:internal/streams/writable:696:10)
+              at process.processTicksAndRejections (node:internal/process/task_queues:89:21)
+    }
+[17:55:18.820] [32mINFO[39m (25180): [36mrequest errored[39m
+    [35mreq[39m: {
+      "id": 128,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 500
+    }
+    [35mresponseTime[39m: 23131
+    err: {
+      "type": "Error",
+      "message": "failed with status code 500",
+      "stack":
+          Error: failed with status code 500
+              at onResFinished (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:115:39)
+              at ServerResponse.onResponseComplete (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\pino-http@10.5.0\node_modules\pino-http\logger.js:178:14)
+              at ServerResponse.emit (node:events:531:35)
+              at onFinish (node:_http_outgoing:1082:10)
+              at callback (node:internal/streams/writable:766:21)
+              at afterWrite (node:internal/streams/writable:710:5)
+              at afterWriteTick (node:internal/streams/writable:696:10)
+              at processTicksAndRejections (node:internal/process/task_queues:89:21)
+              at runNextTicks (node:internal/process/task_queues:69:3)
+              at process.processImmediate (node:internal/timers:453:9)
+    }
+[00:41:28.722] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 130,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 17
+[00:41:29.716] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 131,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 27
+[00:41:31.395] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 132,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[00:41:34.223] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 133,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[11:18:58.544] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 134,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 73
+[11:18:59.374] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 135,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 46
+[11:19:02.574] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 136,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 33
+[11:19:03.634] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 137,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 11
+[11:19:05.978] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 138,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:19:07.036] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 139,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 10
+[11:19:11.904] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 140,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 7
+[11:19:12.962] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 141,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:19:19.177] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 142,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[11:19:19.704] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 143,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[11:19:20.767] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 144,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 16
+[11:19:36.306] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 145,
+      "method": "POST",
+      "url": "/api/auth/login"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 1594
+[11:19:36.564] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 146,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 146
+[11:19:36.713] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 151,
+      "method": "GET",
+      "url": "/api/dashboard/movements-by-day"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 8
+[11:19:37.740] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 152,
+      "method": "GET",
+      "url": "/api/dashboard/movements-by-day"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:19:37.869] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 147,
+      "method": "GET",
+      "url": "/api/dashboard/summary"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 1187
+[11:19:38.021] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 148,
+      "method": "GET",
+      "url": "/api/dashboard/low-stock"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1336
+[11:19:38.035] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 149,
+      "method": "GET",
+      "url": "/api/dashboard/stock-by-category"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1339
+[11:19:38.409] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 150,
+      "method": "GET",
+      "url": "/api/dashboard/recent-movements"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1707
+[11:20:37.180] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 153,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1220
+[11:30:06.735] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 154,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[11:30:07.803] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 155,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:30:28.029] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 156,
+      "method": "POST",
+      "url": "/api/auth/login"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 1421
+[11:30:28.444] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 157,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 135
+[11:30:28.849] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 162,
+      "method": "GET",
+      "url": "/api/dashboard/movements-by-day"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 8
+[11:30:29.682] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 158,
+      "method": "GET",
+      "url": "/api/dashboard/summary"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 1005
+[11:30:29.923] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 159,
+      "method": "GET",
+      "url": "/api/dashboard/stock-by-category"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1199
+[11:30:29.940] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 161,
+      "method": "GET",
+      "url": "/api/dashboard/low-stock"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1181
+[11:30:29.961] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 160,
+      "method": "GET",
+      "url": "/api/dashboard/recent-movements"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1209
+[11:30:30.177] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 163,
+      "method": "GET",
+      "url": "/api/dashboard/movements-by-day"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:30:37.549] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 164,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 3
+[11:30:38.576] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 165,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[11:30:44.548] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 166,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[11:30:44.849] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 168,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:30:45.588] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 169,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[11:30:45.624] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 167,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 962
+[11:30:45.873] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 170,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:30:53.624] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 171,
+      "method": "GET",
+      "url": "/api/stock-movements"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 284
+[11:30:54.441] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 172,
+      "method": "GET",
+      "url": "/api/products"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1099
+[11:31:06.786] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 173,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:31:07.806] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 174,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[11:31:12.524] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 175,
+      "method": "GET",
+      "url": "/api/projects"
+    }
+    [35mres[39m: {
+      "statusCode": 304
+    }
+    [35mresponseTime[39m: 1073
+[11:33:07.686] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 176,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:33:08.699] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 177,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[11:33:41.751] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 178,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:33:41.927] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 180,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 1
+[11:33:42.789] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 181,
+      "method": "GET",
+      "url": "/api/company-settings"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:33:42.949] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 182,
+      "method": "GET",
+      "url": "/api/invoices"
+    }
+    [35mres[39m: {
+      "statusCode": 404
+    }
+    [35mresponseTime[39m: 2
+[11:33:43.064] [32mINFO[39m (25180): [36mrequest completed[39m
+    [35mreq[39m: {
+      "id": 179,
+      "method": "GET",
+      "url": "/api/auth/me"
+    }
+    [35mres[39m: {
+      "statusCode": 200
+    }
+    [35mresponseTime[39m: 1253

@@ -227,7 +227,7 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
 
   const statusLabel: Record<string, string> = { draft: "Brouillon", unpaid: "Non payée", paid: "Payée" };
 
-  const doc = new PDFDocument({ size: "A4", margin: 50 });
+  const doc = new PDFDocument({ size: "A4", margin: 50, bufferPages: true });
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="facture-${data.invoiceNumber}.pdf"`);
   doc.pipe(res);
@@ -237,13 +237,42 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
   const DARK = "#1c1917";
   const GRAY = "#78716c";
   const LIGHT_BG = "#f5f5f4";
+  const PAGE_BOTTOM = 750;
+
+  // Helper pour ajouter une nouvelle page
+  function addNewPage() {
+    doc.addPage();
+    return 50;
+  }
+
+  // Helper pour vérifier et ajouter une page si nécessaire
+  function checkPageSpace(currentY: number, neededSpace: number): number {
+    if (currentY + neededSpace > PAGE_BOTTOM) {
+      return addNewPage();
+    }
+    return currentY;
+  }
 
   // ---- Header background band ----
   doc.rect(50, 50, W, 90).fill(DARK);
 
-  // Company name
+  // Load and display logo if URL exists
+  if (company.logoUrl) {
+    try {
+      const logoResponse = await fetch(company.logoUrl);
+      if (logoResponse.ok) {
+        const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
+        doc.image(logoBuffer, 65, 55, { width: 80, height: 80 });
+      }
+    } catch (err) {
+      // Silently fail if logo cannot be loaded
+    }
+  }
+
+  // Company name (offset if logo exists)
+  const nameX = company.logoUrl ? 160 : 65;
   doc.fillColor("white").fontSize(22).font("Helvetica-Bold")
-    .text(company.name, 65, 65, { width: 300 });
+    .text(company.name, nameX, 65, { width: 300 - (company.logoUrl ? 95 : 0) });
 
   // Company details (right side of header)
   doc.fontSize(8).font("Helvetica").fillColor("#d6d3d1");
@@ -271,18 +300,20 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
   doc.font("Helvetica").fillColor(sColor).text(sLabel, 200, y + 12);
 
   // ---- Client block ----
-  doc.rect(50, 220, W, 80).fill(LIGHT_BG);
-  doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9).text("FACTURER À", 65, 228);
-  doc.font("Helvetica-Bold").fontSize(11).fillColor(DARK).text(data.clientName, 65, 241);
+  y = checkPageSpace(y + 10, 100);
+  doc.rect(50, y, W, 80).fill(LIGHT_BG);
+  doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9).text("FACTURER À", 65, y + 8);
+  doc.font("Helvetica-Bold").fontSize(11).fillColor(DARK).text(data.clientName, 65, y + 21);
   doc.font("Helvetica").fontSize(8).fillColor(GRAY);
-  let cY = 255;
+  let cY = y + 35;
   if (data.clientAddress) { doc.text(data.clientAddress, 65, cY); cY += 11; }
   if (data.clientPhone) { doc.text(data.clientPhone, 65, cY); cY += 11; }
   if (data.clientEmail) { doc.text(data.clientEmail, 65, cY); }
 
   // ---- Items table ----
-  y = 315;
+  y = checkPageSpace(cY + 15, 50);
   const colDesc = 65, colQty = 330, colPrix = 390, colTotal = 460;
+  const MAX_ITEMS_PER_PAGE = 20;
 
   // Table header
   doc.rect(50, y, W, 22).fill(DARK);
@@ -294,7 +325,25 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
 
   y += 22;
   let rowAlt = false;
+  let itemsOnPage = 0;
+
   for (const item of data.items) {
+    // Check if we need a new page
+    if (itemsOnPage >= MAX_ITEMS_PER_PAGE) {
+      doc.rect(50, y + 4, W, 0.5).fill("#e7e5e4");
+      y = addNewPage();
+      // Re-add table header on new page
+      doc.rect(50, y, W, 22).fill(DARK);
+      doc.fillColor("white").font("Helvetica-Bold").fontSize(8.5)
+        .text("DESCRIPTION", colDesc, y + 7)
+        .text("QTÉ", colQty, y + 7)
+        .text("PRIX UNIT.", colPrix, y + 7)
+        .text("TOTAL", colTotal, y + 7);
+      y += 22;
+      itemsOnPage = 0;
+      rowAlt = false;
+    }
+
     const rowH = 22;
     if (rowAlt) doc.rect(50, y, W, rowH).fill("#fafaf9");
     rowAlt = !rowAlt;
@@ -304,13 +353,15 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
       .text(fmt(item.unitPrice), colPrix, y + 7, { width: 60, align: "right" })
       .text(fmt(item.totalPrice), colTotal, y + 7, { width: 70, align: "right" });
     y += rowH;
+    itemsOnPage++;
   }
 
   // Divider
-  doc.moveTo(50, y + 4).lineTo(545, y + 4).strokeColor("#e7e5e4").lineWidth(0.5).stroke();
+  doc.rect(50, y + 4, W, 0.5).fill("#e7e5e4");
   y += 14;
 
   // ---- Totals ----
+  y = checkPageSpace(y, 100);
   const totX = 370;
   const totW = 175;
   doc.fillColor(GRAY).font("Helvetica").fontSize(9)
@@ -333,7 +384,7 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
 
   // Notes
   if (data.notes) {
-    y += 10;
+    y = checkPageSpace(y, 50);
     doc.fillColor(DARK).font("Helvetica-Bold").fontSize(8).text("NOTES", 65, y);
     doc.font("Helvetica").fillColor(GRAY).fontSize(8).text(data.notes, 65, y + 12, { width: 300 });
     y += 30;
@@ -341,17 +392,25 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
 
   // Signature
   if (company.signatureText) {
+    y = checkPageSpace(y, 30);
     y = Math.max(y, 680);
     doc.fillColor(GRAY).font("Helvetica").fontSize(8)
       .text(company.signatureText, 65, y, { width: W, align: "center" });
   }
 
-  // Footer line
-  doc.moveTo(50, 780).lineTo(545, 780).strokeColor("#e7e5e4").lineWidth(0.5).stroke();
-  doc.fillColor(GRAY).font("Helvetica").fontSize(7)
-    .text(company.name, 65, 785, { width: W / 2 });
-  if (company.taxNumber) {
-    doc.text(`N° TVA: ${company.taxNumber}`, 65, 785, { width: W, align: "right" });
+  // Footer line on each page
+  const range = doc.bufferedPageRange();
+  for (let i = 0; i < range.count; i++) {
+    doc.switchToPage(i);
+    doc.moveTo(50, 780).lineTo(545, 780).strokeColor("#e7e5e4").lineWidth(0.5).stroke();
+    doc.fillColor(GRAY).font("Helvetica").fontSize(7)
+      .text(company.name, 65, 785, { width: W / 2 });
+    if (company.taxNumber) {
+      doc.text(`N° TVA: ${company.taxNumber}`, 65, 785, { width: W, align: "right" });
+    }
+    if (range.count > 1) {
+      doc.text(`Page ${i + 1}/${range.count}`, 65, 785, { width: W, align: "center" });
+    }
   }
 
   doc.end();

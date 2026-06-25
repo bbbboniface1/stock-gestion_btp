@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, Package, CheckCircle, Clock, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
+import { customFetch } from "@workspace/api-client-react";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Brouillon", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
@@ -59,6 +60,28 @@ export default function InvoiceDetail() {
     });
   };
 
+  const handleDownloadPdf = async () => {
+    try {
+      const response = await fetch(`/api/invoices/${id}/pdf`, {
+        headers: {
+          'Authorization': `Bearer ${useAuthStore.getState().token}`
+        }
+      });
+      if (!response.ok) throw new Error('Erreur lors du téléchargement');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `facture-${invoice.invoiceNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Erreur lors du téléchargement du PDF" });
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-4xl">
       <div className="flex items-center gap-3">
@@ -75,7 +98,7 @@ export default function InvoiceDetail() {
         <Button
           variant="outline"
           className="uppercase font-bold text-xs shrink-0"
-          onClick={() => window.open(`/api/invoices/${id}/pdf`, "_blank")}
+          onClick={handleDownloadPdf}
         >
           <Download className="h-4 w-4 mr-2" /> PDF
         </Button>

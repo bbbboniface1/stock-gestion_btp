@@ -166,6 +166,11 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  input, textarea {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+  }
 }
 
 @layer utilities {
