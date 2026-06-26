@@ -1,0 +1,165 @@
+
+## PROBLÈME 1 — Pagination "limit croissant" (CRITIQUE 🔴)
+
+### Fichiers concernés
+- `movements.tsx` ligne 24
+- `products.tsx` ligne 62
+
+### Ce qui se passe actuellement
+À chaque clic "Voir plus", une variable `limit` augmente de façon cumulative (ex. 50 → 100 → 150 → … → 5 000).  
+L'API renvoie alors 5 000 lignes × 3 JOINs en une seule requête. À terme : timeout garanti, crash mémoire, UX morte.
+
+### Fix attendu — Frontend (`movements.tsx` + `products.tsx`)
+
+Remplacer `useQuery` + variable `limit` croissante par **`useInfiniteQuery`** de TanStack Query :
+
+```typescript
+const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
+  queryKey: ['movements', filters],
+  queryFn: ({ pageParam = 0 }) =>
+    fetchMovements({ limit: 50, offset: pageParam, ...filters }),
+  getNextPageParam: (lastPage, allPages) =>
+    lastPage.data.length === 50 ? allPages.length * 50 : undefined,
+});
+```
+
+Règles impératives :
+- Chaque page charge exactement **50 lignes maximum**, jamais plus
+- Le bouton "Load more" appelle `fetchNextPage()` — il transmet l'`offset` au backend, ne cumule pas les lignes dans une seule requête
+- Afficher les pages concaténées côté React : `data.pages.flatMap(p => p.data)`
+- Afficher / désactiver le bouton "Load more" selon `hasNextPage`
+
+### Fix attendu — Backend (`routes/movements.ts` + `routes/products.ts`)
+
+Accepter les query params `?limit=50&offset=0` et toujours répondre avec :
+
+```typescript
+// Forme de réponse standardisée
+{
+  data: Movement[],       // exactement limit éléments max
+  total: number,          // count(*) pour affichage "X résultats"
+  nextOffset: number | null  // null si dernière page
+}
+```
+
+La requête SQL doit **toujours** contenir `LIMIT $limit OFFSET $offset` — jamais de LIMIT dynamique sans plafond fixe de 50.
+
+---
+
+## PROBLÈME 2 — Recherche ILIKE sans index + sans debounce (BLOQUANT 🟠)
+
+### Fichiers concernés
+- `routes/products.ts` ligne 44 (ILIKE côté backend)
+- `products.tsx` lignes 65–70 (déclenchement côté frontend)
+
+### Ce qui se passe actuellement
+- `ILIKE '%terme%'` → PostgreSQL fait un **sequential scan** complet à chaque requête (l'index B-tree ne peut pas être utilisé avec `%` en préfixe)
+- Aucun debounce → **1 requête DB est lancée par touche clavier**
+
+Résultat : au-delà de 10 000 produits, chaque frappe ralentit perceptiblement et la DB est martelée inutilement.
+
+### Fix 2a — Migration Drizzle (pg_trgm + index GIN)
+
+Créer une nouvelle migration Drizzle avec ce SQL :
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm
+  ON products
+  USING GIN (name gin_trgm_ops);
+```
+
+> ⚠️ Cette migration doit passer par le système de migration Drizzle du projet (pas de SQL brut hors migration).  
+> L'extension pg_trgm est disponible nativement sur PostgreSQL 12+.
+
+### Fix 2b — Backend (`routes/products.ts` L44)
+
+Conserver `ILIKE '%terme%'` (compatible avec l'index GIN trigram) mais s'assurer que la recherche est **toujours combinée avec LIMIT 50** :
+
+```typescript
+// ✅ Correct après la migration
+WHERE name ILIKE ${'%' + search + '%'}
+LIMIT 50
+OFFSET $offset
+```
+
+### Fix 2c — Frontend (`products.tsx` L65–70)
+
+Ajouter un debounce de **300 ms** sur la valeur de recherche avant de déclencher la query :
+
+```typescript
+// Hook useDebounce simple à ajouter dans lib/hooks.ts
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
+// Dans products.tsx
+const debouncedSearch = useDebounce(searchInput, 300);
+
+const { data } = useInfiniteQuery({
+  queryKey: ['products', debouncedSearch, filters],  // ← debouncedSearch ici
+  queryFn: ({ pageParam = 0 }) =>
+    fetchProducts({ search: debouncedSearch, limit: 50, offset: pageParam }),
+  enabled: true,
+  // ...
+});
+```
+
+La query TanStack Query ne se déclenche que 300 ms après la dernière frappe.
+
+---
+
+## QUICK WINS à faire en même temps (5 min chacun)
+
+### QW-1 — `/dashboard/low-stock` sans LIMIT (`routes/dashboard.ts` L79)
+Ajouter `LIMIT 100` à la requête low-stock pour éviter un full-table-scan en production :
+```sql
+-- Avant
+SELECT * FROM products WHERE quantity <= reorder_point ORDER BY quantity ASC
+
+-- Après
+SELECT * FROM products WHERE quantity <= reorder_point ORDER BY quantity ASC LIMIT 100
+```
+
+### QW-2 — Dropdown produits tronquée à 50 (`movements.tsx` L37)
+Créer un endpoint dédié `GET /products/names` qui retourne les produits triés `name ASC` avec pagination ou un maximum configurable (500) pour que le dropdown ne coupe pas les produits récents :
+```typescript
+// Endpoint léger — pas de JOINs inutiles
+SELECT id, name FROM products ORDER BY name ASC LIMIT 500
+```
+
+---
+
+## Contraintes absolues
+
+- ❌ Ne pas casser les types TypeScript strict existants
+- ❌ Ne pas modifier le schéma Drizzle sauf pour ajouter la migration pg_trgm
+- ✅ Toutes les modifications SQL passent par des migrations Drizzle
+- ✅ Le script `load-test-insert.ts --cleanup` doit continuer à fonctionner
+- ✅ Les builds doivent rester verts
+
+---
+
+## Ordre d'exécution recommandé
+
+1. **Migration pg_trgm** (sans elle, le ILIKE restera lent même avec debounce)
+2. **`useInfiniteQuery` sur `movements.tsx`** (le plus critique — 5 000 lignes × 3 JOINs)
+3. **`useInfiniteQuery` sur `products.tsx`** + debounce 300 ms
+4. **LIMIT 100 sur low-stock** (1 ligne de SQL)
+5. **Endpoint `/products/names`** pour le dropdown
+
+---
+
+## Résultat attendu
+
+| Scénario | Avant | Après |
+|---|---|---|
+| 50 clics "Load more" sur Mouvements | 5 000 lignes × 3 JOINs | 50 lignes × 3 JOINs (toujours) |
+| Frappe dans la recherche produits | seq scan complet par touche | index GIN, 1 requête / 300 ms |
+| Low-stock dashboard avec 10 k produits | full-table-scan | LIMIT 100, index utilisé |

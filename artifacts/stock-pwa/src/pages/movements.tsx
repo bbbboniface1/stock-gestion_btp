@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
-import { useListStockMovements, useListProducts, useListProjects, getListStockMovementsQueryKey } from "@workspace/api-client-react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useListProducts, useListProjects, listStockMovements, getListStockMovementsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,8 +11,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, ArrowRightLeft, ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
 import MovementDialog from "@/components/MovementDialog";
+import type { ListStockMovementsParams } from "@workspace/api-zod";
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 export default function Movements() {
   const [typeFilter, setTypeFilter] = useState("all");
@@ -21,20 +22,34 @@ export default function Movements() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [openNew, setOpenNew] = useState(false);
-  const [limit, setLimit] = useState(PAGE_SIZE);
   const queryClient = useQueryClient();
 
-  const resetLimit = () => setLimit(PAGE_SIZE);
+  const filterParams: ListStockMovementsParams = {};
+  if (typeFilter !== "all") filterParams.type = typeFilter as "IN" | "OUT";
+  if (productFilter !== "all") filterParams.product_id = parseInt(productFilter);
+  if (projectFilter !== "all") filterParams.project_id = parseInt(projectFilter);
+  if (fromDate) filterParams.from_date = fromDate;
+  if (toDate) filterParams.to_date = toDate;
 
-  const params: Record<string, string | number> = { limit };
-  if (typeFilter !== "all") params.type = typeFilter;
-  if (productFilter !== "all") params.product_id = parseInt(productFilter);
-  if (projectFilter !== "all") params.project_id = parseInt(projectFilter);
-  if (fromDate) params.from_date = fromDate;
-  if (toDate) params.to_date = toDate;
+  const {
+    data: movementsData,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["/api/stock-movements", filterParams] as const,
+    queryFn: ({ pageParam }) =>
+      listStockMovements({ ...filterParams, limit: PAGE_SIZE, offset: pageParam }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined,
+  });
 
-  const { data: movements, isLoading, isError } = useListStockMovements(params);
-  const { data: products } = useListProducts({});
+  const movements = movementsData?.pages.flat() ?? [];
+
+  const { data: products } = useListProducts({ limit: 1000 });
   const { data: projects } = useListProjects({});
 
   return (
@@ -42,7 +57,7 @@ export default function Movements() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold uppercase tracking-tight">Mouvements de Stock</h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{movements?.length ?? 0} mouvements trouvés</p>
+          <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{movements.length} mouvements chargés</p>
         </div>
         <Button onClick={() => setOpenNew(true)} data-testid="button-new-movement" className="uppercase font-bold tracking-wide">
           <Plus className="h-4 w-4 mr-2" /> Nouveau Mouvement
@@ -51,7 +66,7 @@ export default function Movements() {
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <Select value={typeFilter} onValueChange={v => { setTypeFilter(v); resetLimit(); }}>
+        <Select value={typeFilter} onValueChange={v => setTypeFilter(v)}>
           <SelectTrigger className="bg-card border-border" data-testid="select-type-filter">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -61,7 +76,7 @@ export default function Movements() {
             <SelectItem value="OUT">Sorties (OUT)</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={productFilter} onValueChange={v => { setProductFilter(v); resetLimit(); }}>
+        <Select value={productFilter} onValueChange={v => setProductFilter(v)}>
           <SelectTrigger className="bg-card border-border" data-testid="select-product-filter">
             <SelectValue placeholder="Produit" />
           </SelectTrigger>
@@ -70,7 +85,7 @@ export default function Movements() {
             {products?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={projectFilter} onValueChange={v => { setProjectFilter(v); resetLimit(); }}>
+        <Select value={projectFilter} onValueChange={v => setProjectFilter(v)}>
           <SelectTrigger className="bg-card border-border" data-testid="select-project-filter">
             <SelectValue placeholder="Projet" />
           </SelectTrigger>
@@ -79,8 +94,8 @@ export default function Movements() {
             {projects?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); resetLimit(); }} className="bg-card border-border text-sm" data-testid="input-from-date" />
-        <Input type="date" value={toDate} onChange={e => { setToDate(e.target.value); resetLimit(); }} className="bg-card border-border text-sm" data-testid="input-to-date" />
+        <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-from-date" />
+        <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-to-date" />
       </div>
 
       {isError ? (
@@ -93,7 +108,7 @@ export default function Movements() {
       ) : (
         <Card className="bg-card border-border">
           <CardContent className="p-0">
-            {movements && movements.length > 0 ? (
+            {movements.length > 0 ? (
               <div className="divide-y divide-border">
                 {movements.map(m => (
                   <div key={m.id} data-testid={`row-movement-${m.id}`} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
@@ -132,15 +147,16 @@ export default function Movements() {
         </Card>
       )}
 
-      {movements && movements.length === limit && (
+      {hasNextPage && (
         <div className="flex justify-center">
           <Button
             variant="outline"
             className="uppercase font-bold tracking-wide border-border gap-2"
-            onClick={() => setLimit(l => l + PAGE_SIZE)}
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
           >
             <ChevronDown className="h-4 w-4" />
-            Charger {PAGE_SIZE} suivants
+            {isFetchingNextPage ? "Chargement..." : `Charger ${PAGE_SIZE} suivants`}
           </Button>
         </div>
       )}
