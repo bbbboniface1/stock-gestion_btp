@@ -48,7 +48,7 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
   const params = ListStockMovementsQueryParams.safeParse(req.query);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
-  const { product_id, project_id, type, from_date, to_date, created_by_id, limit = 50, offset = 0 } = params.data;
+  const { product_id, project_id, type, from_date, to_date, limit = 50, offset = 0 } = params.data;
   const conditions: SQL[] = [];
   if (product_id) conditions.push(eq(stockMovementsTable.productId, product_id));
   if (project_id) conditions.push(eq(stockMovementsTable.projectId, project_id));
@@ -66,7 +66,14 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
     conditions.push(isDateOnly(to_date) ? lt(stockMovementsTable.createdAt, toDate) : lte(stockMovementsTable.createdAt, toDate));
   }
 
-  if (created_by_id) conditions.push(eq(stockMovementsTable.createdById, created_by_id));
+  const createdByIdParam = typeof req.query.created_by_id === "string" ? Number(req.query.created_by_id) : undefined;
+  if (createdByIdParam !== undefined) {
+    if (!Number.isInteger(createdByIdParam) || createdByIdParam <= 0) {
+      res.status(400).json({ error: "created_by_id invalide" });
+      return;
+    }
+    conditions.push(eq(stockMovementsTable.createdById, createdByIdParam));
+  }
 
   const rows = await getMovementsWithJoins(conditions, { limit: limit ?? 50, offset: offset ?? 0 });
   res.json(ListStockMovementsResponse.parse(serializeDates(rows)));

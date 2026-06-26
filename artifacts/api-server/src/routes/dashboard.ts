@@ -1,5 +1,5 @@
 import { Router, IRouter } from "express";
-import { db, productsTable, stockMovementsTable, projectsTable, usersTable } from "@workspace/db";
+import { db, pool, productsTable, stockMovementsTable, projectsTable, usersTable } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import {
@@ -16,33 +16,34 @@ const router: IRouter = Router();
 
 router.get("/dashboard/summary", requireAuth, async (_req, res): Promise<void> => {
   const { start: todayStart, endExclusive: tomorrowStart } = getReportRange("day", new Date());
-  const [
-    [productsCount],
-    [stockTotal],
-    [lowStockCount],
-    [activeProjects],
-    [inToday],
-    [outToday],
-  ] = await Promise.all([
-    db.select({ count: sql<number>`cast(count(*) as int)` }).from(productsTable),
-    db.select({ total: sql<number>`cast(coalesce(sum(${productsTable.quantityInStock}), 0) as int)` }).from(productsTable),
-    db.select({ count: sql<number>`cast(count(*) as int)` }).from(productsTable)
-      .where(sql`${productsTable.quantityInStock} < ${productsTable.minimumThreshold}`),
-    db.select({ count: sql<number>`cast(count(*) as int)` }).from(projectsTable)
-      .where(eq(projectsTable.status, "active")),
-    db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
-      .where(sql`${stockMovementsTable.type} = 'IN' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`),
-    db.select({ total: sql<number>`cast(coalesce(sum(${stockMovementsTable.quantity}), 0) as int)` }).from(stockMovementsTable)
-      .where(sql`${stockMovementsTable.type} = 'OUT' AND ${stockMovementsTable.createdAt} >= ${todayStart} AND ${stockMovementsTable.createdAt} < ${tomorrowStart}`),
-  ]);
+  const { rows } = await pool.query<{
+    totalProducts: number;
+    totalStockValue: number;
+    lowStockCount: number;
+    activeProjects: number;
+    todayMovementsIn: number;
+    todayMovementsOut: number;
+  }>(
+    `
+      select
+        (select count(*)::int from products) as "totalProducts",
+        (select coalesce(sum(quantity_in_stock), 0)::int from products) as "totalStockValue",
+        (select count(*)::int from products where quantity_in_stock < minimum_threshold) as "lowStockCount",
+        (select count(*)::int from projects where status = 'active') as "activeProjects",
+        (select coalesce(sum(quantity), 0)::int from stock_movements where type = 'IN' and created_at >= $1 and created_at < $2) as "todayMovementsIn",
+        (select coalesce(sum(quantity), 0)::int from stock_movements where type = 'OUT' and created_at >= $1 and created_at < $2) as "todayMovementsOut"
+    `,
+    [todayStart, tomorrowStart],
+  );
+  const summary = rows[0];
 
   res.json(GetDashboardSummaryResponse.parse({
-    totalProducts: productsCount?.count ?? 0,
-    totalStockValue: stockTotal?.total ?? 0,
-    lowStockCount: lowStockCount?.count ?? 0,
-    activeProjects: activeProjects?.count ?? 0,
-    todayMovementsIn: inToday?.total ?? 0,
-    todayMovementsOut: outToday?.total ?? 0,
+    totalProducts: summary?.totalProducts ?? 0,
+    totalStockValue: summary?.totalStockValue ?? 0,
+    lowStockCount: summary?.lowStockCount ?? 0,
+    activeProjects: summary?.activeProjects ?? 0,
+    todayMovementsIn: summary?.todayMovementsIn ?? 0,
+    todayMovementsOut: summary?.todayMovementsOut ?? 0,
   }));
 });
 

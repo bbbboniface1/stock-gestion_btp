@@ -237,179 +237,202 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
   const DARK = "#1c1917";
   const GRAY = "#78716c";
   const LIGHT_BG = "#f5f5f4";
-  const PAGE_BOTTOM = 750;
+  const PAGE_BOTTOM = 720;
+  const PAGE_MARGIN = 50;
 
-  // Helper pour ajouter une nouvelle page
+  let currentPageY = PAGE_MARGIN;
+
+  // Helper pour ajouter une nouvelle page et réinitialiser Y
   function addNewPage() {
     doc.addPage();
-    return 50;
+    currentPageY = PAGE_MARGIN;
+    return currentPageY;
   }
 
   // Helper pour vérifier et ajouter une page si nécessaire
-  function checkPageSpace(currentY: number, neededSpace: number): number {
-    if (currentY + neededSpace > PAGE_BOTTOM) {
-      return addNewPage();
+  function checkPageSpace(neededSpace: number) {
+    if (currentPageY + neededSpace > PAGE_BOTTOM) {
+      currentPageY = addNewPage();
     }
-    return currentY;
   }
 
   // ---- Header background band ----
-  doc.rect(50, 50, W, 90).fill(DARK);
+  doc.rect(PAGE_MARGIN, currentPageY, W, 90).fill(DARK);
 
   // Load and display logo if URL exists
+  let logoLoaded = false;
   if (company.logoUrl) {
+    const logoAbortController = new AbortController();
+    const logoTimeoutId = setTimeout(() => logoAbortController.abort(), 5000);
     try {
-      const logoResponse = await fetch(company.logoUrl);
+      const logoResponse = await fetch(company.logoUrl, { signal: logoAbortController.signal });
       if (logoResponse.ok) {
-        const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
-        doc.image(logoBuffer, 65, 55, { width: 80, height: 80 });
+        const contentType = logoResponse.headers.get('content-type');
+        if (contentType && contentType.startsWith('image/')) {
+          const logoBuffer = Buffer.from(await logoResponse.arrayBuffer());
+          doc.image(logoBuffer, PAGE_MARGIN + 15, currentPageY + 5, { width: 80, height: 80 });
+          logoLoaded = true;
+        } else {
+          console.error('Logo URL is not an image:', contentType);
+        }
+      } else {
+        console.error('Logo fetch failed:', logoResponse.status);
       }
     } catch (err) {
-      // Silently fail if logo cannot be loaded
+      console.error('Error loading logo:', err);
+    } finally {
+      clearTimeout(logoTimeoutId);
     }
   }
 
   // Company name (offset if logo exists)
-  const nameX = company.logoUrl ? 160 : 65;
+  const nameX = logoLoaded ? PAGE_MARGIN + 110 : PAGE_MARGIN + 15;
   doc.fillColor("white").fontSize(22).font("Helvetica-Bold")
-    .text(company.name, nameX, 65, { width: 300 - (company.logoUrl ? 95 : 0) });
+    .text(company.name, nameX, currentPageY + 15, { width: 300 - (logoLoaded ? 95 : 0) });
 
   // Company details (right side of header)
   doc.fontSize(8).font("Helvetica").fillColor("#d6d3d1");
-  let hY = 68;
-  if (company.address) { doc.text(company.address, 350, hY, { width: 180, align: "right" }); hY += 11; }
-  if (company.phone) { doc.text(company.phone, 350, hY, { width: 180, align: "right" }); hY += 11; }
-  if (company.email) { doc.text(company.email, 350, hY, { width: 180, align: "right" }); hY += 11; }
-  if (company.taxNumber) { doc.text(`N° TVA: ${company.taxNumber}`, 350, hY, { width: 180, align: "right" }); }
+  let hY = currentPageY + 18;
+  if (company.address) { doc.text(company.address, PAGE_MARGIN + 300, hY, { width: 180, align: "right" }); hY += 11; }
+  if (company.phone) { doc.text(company.phone, PAGE_MARGIN + 300, hY, { width: 180, align: "right" }); hY += 11; }
+  if (company.email) { doc.text(company.email, PAGE_MARGIN + 300, hY, { width: 180, align: "right" }); hY += 11; }
+  if (company.taxNumber) { doc.text(`N° TVA: ${company.taxNumber}`, PAGE_MARGIN + 300, hY, { width: 180, align: "right" }); }
+
+  currentPageY += 100;
 
   // ---- Invoice title strip ----
-  doc.rect(50, 140, W, 28).fill(ORANGE);
+  doc.rect(PAGE_MARGIN, currentPageY, W, 28).fill(ORANGE);
   doc.fillColor("white").fontSize(13).font("Helvetica-Bold")
-    .text("FACTURE", 65, 147);
+    .text("FACTURE", PAGE_MARGIN + 15, currentPageY + 7);
   doc.fontSize(11).font("Helvetica")
-    .text(`N° ${data.invoiceNumber}`, 65, 148, { align: "right", width: W - 30 });
+    .text(`N° ${data.invoiceNumber}`, PAGE_MARGIN + 15, currentPageY + 8, { align: "right", width: W - 30 });
+
+  currentPageY += 42;
 
   // ---- Invoice meta ----
-  let y = 182;
-  doc.fillColor(DARK).fontSize(9).font("Helvetica-Bold").text("DATE", 65, y);
-  doc.font("Helvetica").fillColor(GRAY).text(new Date(data.date + "T00:00:00Z").toLocaleDateString("fr-FR"), 65, y + 12);
+  doc.fillColor(DARK).fontSize(9).font("Helvetica-Bold").text("DATE", PAGE_MARGIN + 15, currentPageY);
+  doc.font("Helvetica").fillColor(GRAY).text(new Date(data.date + "T00:00:00Z").toLocaleDateString("fr-FR"), PAGE_MARGIN + 15, currentPageY + 12);
 
-  doc.fillColor(DARK).font("Helvetica-Bold").text("STATUT", 200, y);
+  doc.fillColor(DARK).font("Helvetica-Bold").text("STATUT", PAGE_MARGIN + 150, currentPageY);
   const sLabel = statusLabel[data.status] ?? data.status;
   const sColor = data.status === "paid" ? "#16a34a" : data.status === "unpaid" ? "#dc2626" : GRAY;
-  doc.font("Helvetica").fillColor(sColor).text(sLabel, 200, y + 12);
+  doc.font("Helvetica").fillColor(sColor).text(sLabel, PAGE_MARGIN + 150, currentPageY + 12);
+
+  currentPageY += 30;
 
   // ---- Client block ----
-  y = checkPageSpace(y + 10, 100);
-  doc.rect(50, y, W, 80).fill(LIGHT_BG);
-  doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9).text("FACTURER À", 65, y + 8);
-  doc.font("Helvetica-Bold").fontSize(11).fillColor(DARK).text(data.clientName, 65, y + 21);
+  checkPageSpace(100);
+  doc.rect(PAGE_MARGIN, currentPageY, W, 80).fill(LIGHT_BG);
+  doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9).text("FACTURER À", PAGE_MARGIN + 15, currentPageY + 8);
+  doc.font("Helvetica-Bold").fontSize(11).fillColor(DARK).text(data.clientName, PAGE_MARGIN + 15, currentPageY + 21);
   doc.font("Helvetica").fontSize(8).fillColor(GRAY);
-  let cY = y + 35;
-  if (data.clientAddress) { doc.text(data.clientAddress, 65, cY); cY += 11; }
-  if (data.clientPhone) { doc.text(data.clientPhone, 65, cY); cY += 11; }
-  if (data.clientEmail) { doc.text(data.clientEmail, 65, cY); }
+  let cY = currentPageY + 35;
+  if (data.clientAddress) { doc.text(data.clientAddress, PAGE_MARGIN + 15, cY); cY += 11; }
+  if (data.clientPhone) { doc.text(data.clientPhone, PAGE_MARGIN + 15, cY); cY += 11; }
+  if (data.clientEmail) { doc.text(data.clientEmail, PAGE_MARGIN + 15, cY); }
+
+  currentPageY += 95;
 
   // ---- Items table ----
-  y = checkPageSpace(cY + 15, 50);
-  const colDesc = 65, colQty = 330, colPrix = 390, colTotal = 460;
-  const MAX_ITEMS_PER_PAGE = 20;
+  checkPageSpace(50);
+  const colDesc = PAGE_MARGIN + 15, colQty = PAGE_MARGIN + 280, colPrix = PAGE_MARGIN + 340, colTotal = PAGE_MARGIN + 410;
+  const MAX_ITEMS_PER_PAGE = 18;
 
   // Table header
-  doc.rect(50, y, W, 22).fill(DARK);
+  doc.rect(PAGE_MARGIN, currentPageY, W, 22).fill(DARK);
   doc.fillColor("white").font("Helvetica-Bold").fontSize(8.5)
-    .text("DESCRIPTION", colDesc, y + 7)
-    .text("QTÉ", colQty, y + 7)
-    .text("PRIX UNIT.", colPrix, y + 7)
-    .text("TOTAL", colTotal, y + 7);
+    .text("DESCRIPTION", colDesc, currentPageY + 7)
+    .text("QTÉ", colQty, currentPageY + 7)
+    .text("PRIX UNIT.", colPrix, currentPageY + 7)
+    .text("TOTAL", colTotal, currentPageY + 7);
 
-  y += 22;
+  currentPageY += 22;
   let rowAlt = false;
   let itemsOnPage = 0;
 
   for (const item of data.items) {
     // Check if we need a new page
     if (itemsOnPage >= MAX_ITEMS_PER_PAGE) {
-      doc.rect(50, y + 4, W, 0.5).fill("#e7e5e4");
-      y = addNewPage();
+      doc.rect(PAGE_MARGIN, currentPageY + 4, W, 0.5).fill("#e7e5e4");
+      currentPageY = addNewPage();
       // Re-add table header on new page
-      doc.rect(50, y, W, 22).fill(DARK);
+      doc.rect(PAGE_MARGIN, currentPageY, W, 22).fill(DARK);
       doc.fillColor("white").font("Helvetica-Bold").fontSize(8.5)
-        .text("DESCRIPTION", colDesc, y + 7)
-        .text("QTÉ", colQty, y + 7)
-        .text("PRIX UNIT.", colPrix, y + 7)
-        .text("TOTAL", colTotal, y + 7);
-      y += 22;
+        .text("DESCRIPTION", colDesc, currentPageY + 7)
+        .text("QTÉ", colQty, currentPageY + 7)
+        .text("PRIX UNIT.", colPrix, currentPageY + 7)
+        .text("TOTAL", colTotal, currentPageY + 7);
+      currentPageY += 22;
       itemsOnPage = 0;
       rowAlt = false;
     }
 
     const rowH = 22;
-    if (rowAlt) doc.rect(50, y, W, rowH).fill("#fafaf9");
+    if (rowAlt) doc.rect(PAGE_MARGIN, currentPageY, W, rowH).fill("#fafaf9");
     rowAlt = !rowAlt;
     doc.fillColor(DARK).font("Helvetica").fontSize(8.5)
-      .text(item.description, colDesc, y + 7, { width: 255, ellipsis: true })
-      .text(String(item.quantity), colQty, y + 7, { width: 50, align: "right" })
-      .text(fmt(item.unitPrice), colPrix, y + 7, { width: 60, align: "right" })
-      .text(fmt(item.totalPrice), colTotal, y + 7, { width: 70, align: "right" });
-    y += rowH;
+      .text(item.description, colDesc, currentPageY + 7, { width: 255, ellipsis: true })
+      .text(String(item.quantity), colQty, currentPageY + 7, { width: 50, align: "right" })
+      .text(fmt(item.unitPrice), colPrix, currentPageY + 7, { width: 60, align: "right" })
+      .text(fmt(item.totalPrice), colTotal, currentPageY + 7, { width: 70, align: "right" });
+    currentPageY += rowH;
     itemsOnPage++;
   }
 
   // Divider
-  doc.rect(50, y + 4, W, 0.5).fill("#e7e5e4");
-  y += 14;
+  doc.rect(PAGE_MARGIN, currentPageY + 4, W, 0.5).fill("#e7e5e4");
+  currentPageY += 14;
 
   // ---- Totals ----
-  y = checkPageSpace(y, 100);
-  const totX = 370;
+  checkPageSpace(100);
+  const totX = PAGE_MARGIN + 320;
   const totW = 175;
   doc.fillColor(GRAY).font("Helvetica").fontSize(9)
-    .text("Sous-total", totX, y, { width: 95 })
-    .text(fmt(data.subtotal), totX + 95, y, { width: 80, align: "right" });
-  y += 14;
+    .text("Sous-total", totX, currentPageY, { width: 95 })
+    .text(fmt(data.subtotal), totX + 95, currentPageY, { width: 80, align: "right" });
+  currentPageY += 14;
 
   if (data.taxRate > 0) {
-    doc.text(`TVA (${data.taxRate}%)`, totX, y, { width: 95 })
-      .text(fmt(data.taxAmount), totX + 95, y, { width: 80, align: "right" });
-    y += 14;
+    doc.text(`TVA (${data.taxRate}%)`, totX, currentPageY, { width: 95 })
+      .text(fmt(data.taxAmount), totX + 95, currentPageY, { width: 80, align: "right" });
+    currentPageY += 14;
   }
 
   // Total row
-  doc.rect(totX - 5, y - 2, totW + 10, 22).fill(ORANGE);
+  doc.rect(totX - 5, currentPageY - 2, totW + 10, 22).fill(ORANGE);
   doc.fillColor("white").font("Helvetica-Bold").fontSize(10)
-    .text("TOTAL", totX, y + 4, { width: 95 })
-    .text(fmt(data.total), totX + 95, y + 4, { width: 80, align: "right" });
-  y += 30;
+    .text("TOTAL", totX, currentPageY + 4, { width: 95 })
+    .text(fmt(data.total), totX + 95, currentPageY + 4, { width: 80, align: "right" });
+  currentPageY += 30;
 
   // Notes
   if (data.notes) {
-    y = checkPageSpace(y, 50);
-    doc.fillColor(DARK).font("Helvetica-Bold").fontSize(8).text("NOTES", 65, y);
-    doc.font("Helvetica").fillColor(GRAY).fontSize(8).text(data.notes, 65, y + 12, { width: 300 });
-    y += 30;
+    checkPageSpace(50);
+    doc.fillColor(DARK).font("Helvetica-Bold").fontSize(8).text("NOTES", PAGE_MARGIN + 15, currentPageY);
+    doc.font("Helvetica").fillColor(GRAY).fontSize(8).text(data.notes, PAGE_MARGIN + 15, currentPageY + 12, { width: 300 });
+    currentPageY += 30;
   }
 
   // Signature
   if (company.signatureText) {
-    y = checkPageSpace(y, 30);
-    y = Math.max(y, 680);
+    checkPageSpace(30);
+    currentPageY = Math.max(currentPageY, 650);
     doc.fillColor(GRAY).font("Helvetica").fontSize(8)
-      .text(company.signatureText, 65, y, { width: W, align: "center" });
+      .text(company.signatureText, PAGE_MARGIN + 15, currentPageY, { width: W, align: "center" });
   }
 
   // Footer line on each page
   const range = doc.bufferedPageRange();
   for (let i = 0; i < range.count; i++) {
     doc.switchToPage(i);
-    doc.moveTo(50, 780).lineTo(545, 780).strokeColor("#e7e5e4").lineWidth(0.5).stroke();
+    doc.moveTo(PAGE_MARGIN, 750).lineTo(PAGE_MARGIN + W, 750).strokeColor("#e7e5e4").lineWidth(0.5).stroke();
     doc.fillColor(GRAY).font("Helvetica").fontSize(7)
-      .text(company.name, 65, 785, { width: W / 2 });
+      .text(company.name, PAGE_MARGIN + 15, 755, { width: W / 2 });
     if (company.taxNumber) {
-      doc.text(`N° TVA: ${company.taxNumber}`, 65, 785, { width: W, align: "right" });
+      doc.text(`N° TVA: ${company.taxNumber}`, PAGE_MARGIN + 15, 755, { width: W, align: "right" });
     }
     if (range.count > 1) {
-      doc.text(`Page ${i + 1}/${range.count}`, 65, 785, { width: W, align: "center" });
+      doc.text(`Page ${i + 1}/${range.count}`, PAGE_MARGIN + 15, 755, { width: W, align: "center" });
     }
   }
 

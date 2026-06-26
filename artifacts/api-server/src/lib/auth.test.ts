@@ -1,12 +1,12 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import crypto from "crypto";
 import { hashPassword, verifyPassword, generateToken, verifyToken } from "./auth";
 
-describe("auth lib", () => {
-  beforeAll(() => {
-    process.env.SESSION_SECRET = "test-secret-key";
-  });
+vi.hoisted(() => {
+  process.env.SESSION_SECRET = "test-secret-key";
+});
 
+describe("auth lib", () => {
   it("hashPassword produces consistent hashes", async () => {
     const hash = await hashPassword("admin123");
     expect(hash.startsWith("$2")).toBe(true);

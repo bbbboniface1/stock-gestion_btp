@@ -12,6 +12,10 @@ type CachedUser = NonNullable<AuthenticatedRequest["user"]> & { expiresAt: numbe
 const AUTH_USER_CACHE_TTL_MS = 30_000;
 const authUserCache = new Map<number, CachedUser>();
 
+export function invalidateAuthUserCache(userId: number): void {
+  authUserCache.delete(userId);
+}
+
 export async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
