@@ -1,8 +1,12 @@
 import { Router, IRouter } from "express";
 import { db, usersTable, stockMovementsTable } from "@workspace/db";
-import { eq, count } from "drizzle-orm";
+import { eq, count, and, ne } from "drizzle-orm";
 import { hashPassword } from "../lib/auth";
+<<<<<<< HEAD
 import { invalidateAuthUserCache, requireAuth, requireRole, AuthenticatedRequest } from "../middlewares/auth";
+=======
+import { requireAuth, requireRole, AuthenticatedRequest, invalidateAuthUserCache } from "../middlewares/auth";
+>>>>>>> 3a3aca335d2c3956388be7e41b8c82622a782384
 import { recordAuditLog } from "../lib/audit";
 import {
   ListUsersResponse,
@@ -16,6 +20,18 @@ import {
 import { serializeDates } from "../lib/serialize";
 
 const router: IRouter = Router();
+
+async function countAdmins(excludeUserId?: number): Promise<number> {
+  const conditions = [eq(usersTable.role, "admin")];
+  if (excludeUserId !== undefined) {
+    conditions.push(ne(usersTable.id, excludeUserId));
+  }
+  const [result] = await db
+    .select({ total: count() })
+    .from(usersTable)
+    .where(and(...conditions));
+  return result?.total ?? 0;
+}
 
 router.get("/users", requireAuth, requireRole("admin"), async (_req, res): Promise<void> => {
   const users = await db.select({
@@ -70,8 +86,27 @@ router.patch("/users/:id", requireAuth, requireRole("admin"), async (req: Authen
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
   const [before] = await db.select({ id: usersTable.id, role: usersTable.role, fullName: usersTable.fullName }).from(usersTable).where(eq(usersTable.id, params.data.id));
   if (!before) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+
+  if (parsed.data.role && parsed.data.role !== "admin" && before.role === "admin") {
+    if (req.user?.id === params.data.id) {
+      res.status(400).json({ error: "Vous ne pouvez pas rétrograder votre propre compte administrateur" });
+      return;
+    }
+    const remainingAdmins = await countAdmins(params.data.id);
+    if (remainingAdmins === 0) {
+      res.status(400).json({ error: "Impossible de retirer le dernier administrateur" });
+      return;
+    }
+  }
+
   const [user] = await db.update(usersTable).set(parsed.data).where(eq(usersTable.id, params.data.id)).returning();
+<<<<<<< HEAD
   invalidateAuthUserCache(user.id);
+=======
+  if (parsed.data.role && parsed.data.role !== before.role) {
+    invalidateAuthUserCache(user.id);
+  }
+>>>>>>> 3a3aca335d2c3956388be7e41b8c82622a782384
   void recordAuditLog({ action: "update", entityType: "user", entityId: user.id, user: req.user, oldValue: { role: before.role, fullName: before.fullName }, newValue: { role: user.role, fullName: user.fullName } });
   res.json(UpdateUserResponse.parse(serializeDates({
     id: user.id, fullName: user.fullName, email: user.email, role: user.role, createdAt: user.createdAt,
@@ -99,10 +134,29 @@ router.delete("/users/:id", requireAuth, requireRole("admin"), async (req: Authe
     return;
   }
 
+<<<<<<< HEAD
   const [user] = await db.delete(usersTable).where(eq(usersTable.id, params.data.id)).returning();
   if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
   invalidateAuthUserCache(user.id);
   void recordAuditLog({ action: "delete", entityType: "user", entityId: user.id, user: req.user, oldValue: { email: user.email, role: user.role } });
+=======
+  const [target] = await db
+    .select({ id: usersTable.id, role: usersTable.role, email: usersTable.email })
+    .from(usersTable)
+    .where(eq(usersTable.id, params.data.id));
+  if (!target) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
+
+  if (target.role === "admin") {
+    const remainingAdmins = await countAdmins(params.data.id);
+    if (remainingAdmins === 0) {
+      res.status(400).json({ error: "Impossible de supprimer le dernier administrateur" });
+      return;
+    }
+  }
+
+  await db.delete(usersTable).where(eq(usersTable.id, params.data.id));
+  void recordAuditLog({ action: "delete", entityType: "user", entityId: target.id, user: req.user, oldValue: { email: target.email, role: target.role } });
+>>>>>>> 3a3aca335d2c3956388be7e41b8c82622a782384
   res.sendStatus(204);
 });
 

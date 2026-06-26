@@ -34,6 +34,11 @@ app.use(
 );
 
 const corsOrigin = process.env.CORS_ORIGIN;
+const isProduction = process.env.NODE_ENV === "production";
+
+if (isProduction && !corsOrigin) {
+  throw new Error("CORS_ORIGIN must be set in production");
+}
 if (!corsOrigin) {
   logger.warn("CORS_ORIGIN not set — API accepts all origins. Set CORS_ORIGIN in production.");
 }
@@ -41,6 +46,7 @@ app.use(cors({
   origin: corsOrigin || "*",
   methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: Boolean(corsOrigin && corsOrigin !== "*"),
 }));
 
 const globalLimiter = rateLimit({

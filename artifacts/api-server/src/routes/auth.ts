@@ -1,9 +1,10 @@
 import { Router, IRouter, type RequestHandler } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { verifyPassword, generateToken } from "../lib/auth";
+import { verifyPassword, generateToken, revokeToken } from "../lib/auth";
 import { requireAuth, AuthenticatedRequest } from "../middlewares/auth";
 import { LoginBody } from "@workspace/api-zod";
+import { serializeDates } from "../lib/serialize";
 
 const router: IRouter = Router();
 
@@ -44,19 +45,23 @@ router.post("/auth/login", loginLimiter, async (req, res): Promise<void> => {
     return;
   }
   const token = generateToken(user.id, user.role);
-  res.json({
+  res.json(serializeDates({
     user: { id: user.id, fullName: user.fullName, email: user.email, role: user.role, createdAt: user.createdAt },
     token,
-  });
+  }));
 });
 
-router.post("/auth/logout", (_req, res): void => {
+router.post("/auth/logout", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    await revokeToken(authHeader.slice(7));
+  }
   res.json({ success: true });
 });
 
 router.get("/auth/me", requireAuth, (req: AuthenticatedRequest, res): void => {
   if (!req.user) { res.status(401).json({ error: "Non authentifie" }); return; }
-  res.json(req.user);
+  res.json(serializeDates(req.user));
 });
 
 export default router;

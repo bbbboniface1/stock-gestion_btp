@@ -32,7 +32,7 @@ export const invoiceItemsTable = pgTable("invoice_items", {
   invoiceId: integer("invoice_id").notNull().references(() => invoicesTable.id, { onDelete: "cascade" }),
   productId: integer("product_id").references(() => productsTable.id, { onDelete: "set null" }),
   description: text("description").notNull(),
-  quantity: doublePrecision("quantity").notNull().default(1),
+  quantity: integer("quantity").notNull().default(1),
   unitPrice: doublePrecision("unit_price").notNull().default(0),
   totalPrice: doublePrecision("total_price").notNull().default(0),
   position: integer("position").notNull().default(0),

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  useListUsers, useCreateUser, getListUsersQueryKey,
+  useListUsers, useCreateUser, useUpdateUser, getListUsersQueryKey,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/lib/auth";
@@ -39,6 +39,7 @@ export default function UsersPage() {
   const { user: currentUser } = useAuthStore();
   const { data: users, isLoading, isError } = useListUsers();
   const createUser = useCreateUser();
+  const updateUser = useUpdateUser();
   const isAdmin = currentUser?.role === "admin";
 
   const form = useForm<z.infer<typeof userSchema>>({
@@ -55,6 +56,19 @@ export default function UsersPage() {
         toast({ title: "Utilisateur cree" });
       },
       onError: () => toast({ variant: "destructive", title: "Erreur lors de la creation" }),
+    });
+  };
+
+  const handleRoleChange = (userId: number, role: "admin" | "manager" | "worker") => {
+    updateUser.mutate({ id: userId, data: { role } }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+        toast({ title: "Role mis a jour" });
+      },
+      onError: (err: any) => toast({
+        variant: "destructive",
+        title: err?.data?.error ?? err?.message ?? "Erreur lors de la modification du role",
+      }),
     });
   };
 
@@ -144,7 +158,24 @@ export default function UsersPage() {
                         <div className="text-xs text-muted-foreground hidden md:block">
                           Depuis {format(new Date(user.createdAt), "dd MMM yyyy", { locale: fr })}
                         </div>
-                        <Badge className={`text-xs uppercase ${cfg.className}`}>{cfg.label}</Badge>
+                        {isAdmin && user.id !== currentUser?.id ? (
+                          <Select
+                            value={user.role}
+                            onValueChange={(value) => handleRoleChange(user.id, value as "admin" | "manager" | "worker")}
+                            disabled={updateUser.isPending}
+                          >
+                            <SelectTrigger className="h-8 w-[120px] bg-background text-xs uppercase font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="manager">Manager</SelectItem>
+                              <SelectItem value="worker">Ouvrier</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Badge className={`text-xs uppercase ${cfg.className}`}>{cfg.label}</Badge>
+                        )}
                       </div>
                     </div>
                   );

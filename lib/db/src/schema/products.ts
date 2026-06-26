@@ -1,4 +1,5 @@
-import { pgTable, text, serial, timestamp, integer, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, pgEnum, index, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -20,6 +21,8 @@ export const productsTable = pgTable("products", {
   index("products_category_idx").on(table.category),
   index("products_location_idx").on(table.location),
   index("products_quantity_threshold_idx").on(table.quantityInStock, table.minimumThreshold),
+  check("products_quantity_non_negative", sql`${table.quantityInStock} >= 0`),
+  check("products_threshold_non_negative", sql`${table.minimumThreshold} >= 0`),
 ]);
 
 export const insertProductSchema = createInsertSchema(productsTable).omit({ id: true, createdAt: true, updatedAt: true });

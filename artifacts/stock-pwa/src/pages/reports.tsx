@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
+import { useLocation } from "wouter";
 import { CalendarDays, CalendarRange, FileDown, FileText, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/auth";
-
-const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { appPath } from "@/lib/paths";
 
 type ReportPeriod = "day" | "week" | "month";
 type Status = "idle" | "success" | "error";
@@ -46,6 +46,7 @@ function todayInputValue(): string {
 
 export default function Reports() {
   const { token } = useAuthStore();
+  const [, setLocation] = useLocation();
   const [referenceDate, setReferenceDate] = useState(todayInputValue());
   const [loadingPeriod, setLoadingPeriod] = useState<ReportPeriod | null>(null);
   const [statusByPeriod, setStatusByPeriod] = useState<Record<ReportPeriod, Status>>({
@@ -61,13 +62,21 @@ export default function Reports() {
   }, [referenceDate]);
 
   const downloadPDF = async (period: ReportPeriod) => {
+    if (!token) {
+      setLocation("/login?returnTo=/reports");
+      return;
+    }
     setLoadingPeriod(period);
     setStatusByPeriod((current) => ({ ...current, [period]: "idle" }));
     try {
       const params = new URLSearchParams({ period, date: referenceDate });
-      const res = await fetch(`${API_BASE}/api/reports/pdf?${params.toString()}`, {
+      const res = await fetch(appPath(`/api/reports/pdf?${params.toString()}`), {
         headers: { Authorization: `Bearer ${token}` },
       });
+      if (res.status === 401) {
+        setLocation("/login?returnTo=/reports");
+        return;
+      }
       if (!res.ok) throw new Error("Erreur serveur");
 
       const blob = await res.blob();

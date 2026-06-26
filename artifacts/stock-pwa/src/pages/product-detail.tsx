@@ -25,13 +25,21 @@ export default function ProductDetail() {
 
   const [movLimit, setMovLimit] = useState(50);
 
-  const { data: product, isLoading } = useGetProduct(id, { query: { enabled: !!id, queryKey: getGetProductQueryKey(id) } });
+  const { data: product, isLoading, isError } = useGetProduct(id, { query: { enabled: !!id, queryKey: getGetProductQueryKey(id) } });
   const { data: movements, isLoading: loadingMovements } = useListStockMovements(
     { product_id: id, limit: movLimit },
     { query: { enabled: !!id, queryKey: getListStockMovementsQueryKey({ product_id: id, limit: movLimit }) } }
   );
 
   if (isLoading) return <div className="p-8 text-muted-foreground uppercase animate-pulse">Chargement...</div>;
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 p-12 text-center">
+        <p className="text-destructive font-mono uppercase text-sm">Impossible de charger le produit</p>
+        <Button variant="outline" onClick={() => setLocation("/products")}>Retour aux produits</Button>
+      </div>
+    );
+  }
   if (!product) return <div className="p-8 text-muted-foreground uppercase">Produit introuvable</div>;
 
   const isLow = product.quantityInStock < product.minimumThreshold;

@@ -33,7 +33,7 @@ export default function Movements() {
   if (fromDate) params.from_date = fromDate;
   if (toDate) params.to_date = toDate;
 
-  const { data: movements, isLoading } = useListStockMovements(params);
+  const { data: movements, isLoading, isError } = useListStockMovements(params);
   const { data: products } = useListProducts({});
   const { data: projects } = useListProjects({});
 
@@ -80,10 +80,15 @@ export default function Movements() {
           </SelectContent>
         </Select>
         <Input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); resetLimit(); }} className="bg-card border-border text-sm" data-testid="input-from-date" />
-        <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-to-date" />
+        <Input type="date" value={toDate} onChange={e => { setToDate(e.target.value); resetLimit(); }} className="bg-card border-border text-sm" data-testid="input-to-date" />
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center gap-3 p-12 text-center">
+          <p className="text-destructive font-mono uppercase text-sm">Impossible de charger les mouvements</p>
+          <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+        </div>
+      ) : isLoading ? (
         <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement de l'historique...</div>
       ) : (
         <Card className="bg-card border-border">

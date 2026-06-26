@@ -25,7 +25,7 @@ import { canUpdateProject, canAddProjectMaterial } from "@/lib/permissions";
 
 const materialSchema = z.object({
   productId: z.coerce.number().min(1, "Produit requis"),
-  quantityUsed: z.coerce.number().min(1, "Quantité requise"),
+  quantityUsed: z.coerce.number().int("Quantité entière requise").min(1, "Quantité requise"),
 });
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -77,6 +77,12 @@ export default function ProjectDetail() {
         queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(id) });
         queryClient.invalidateQueries({ queryKey: getListProjectsQueryKey() });
         toast({ title: "Statut mis à jour" });
+      },
+      onError: (err: any) => {
+        toast({
+          variant: "destructive",
+          title: err?.data?.error ?? "Erreur lors de la mise à jour du statut",
+        });
       },
     });
   };

@@ -3,12 +3,18 @@ import { db, companySettingsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireRole } from "../middlewares/auth";
 import { z } from "zod";
+import { isValidLogoUrl } from "../lib/company-logo";
 
 const router: IRouter = Router();
 
+const logoUrlSchema = z.string().nullish().refine(
+  (value) => value == null || value === "" || isValidLogoUrl(value),
+  { message: "URL ou image base64 invalide (png, jpeg, webp, gif)" },
+);
+
 const UpdateCompanyBody = z.object({
   name: z.string().min(1).optional(),
-  logoUrl: z.string().url().nullish(),
+  logoUrl: logoUrlSchema,
   address: z.string().nullish(),
   phone: z.string().nullish(),
   email: z.string().email().nullish(),

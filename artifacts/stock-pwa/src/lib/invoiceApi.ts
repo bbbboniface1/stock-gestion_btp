@@ -1,5 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { customFetch } from "@workspace/api-client-react";
+import { customFetch, ApiError } from "@workspace/api-client-react";
+
+export interface InvoiceStockMovement {
+  id: number;
+  productId: number | null;
+  productName: string | null;
+  type: "IN" | "OUT";
+  quantity: number;
+  reason: string;
+  createdAt: string;
+  reversedByMovementId: number | null;
+}
 
 export interface InvoiceItem {
   id: number;
@@ -33,6 +44,7 @@ export interface Invoice {
 
 export interface InvoiceWithItems extends Invoice {
   items: InvoiceItem[];
+  stockMovements?: InvoiceStockMovement[];
 }
 
 export interface CreateInvoiceItemInput {
@@ -54,13 +66,34 @@ export interface CreateInvoiceInput {
   items: CreateInvoiceItemInput[];
 }
 
+export type UpdateInvoiceInput = Omit<CreateInvoiceInput, "status">;
+
 export const INVOICES_KEY = ["/api/invoices"];
 export const invoiceKey = (id: number) => ["/api/invoices", id];
 
-export function useListInvoices() {
+export function getInvoiceApiError(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    const data = err.data as { error?: string } | null;
+    if (data?.error) return data.error;
+    return err.message;
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
+function invalidateInvoiceQueries(qc: ReturnType<typeof useQueryClient>, id?: number) {
+  qc.invalidateQueries({ queryKey: INVOICES_KEY });
+  if (id) qc.invalidateQueries({ queryKey: invoiceKey(id) });
+  qc.invalidateQueries({ queryKey: ["/api/products"] });
+  qc.invalidateQueries({ queryKey: ["/api/stock-movements"] });
+  qc.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
+}
+
+export function useListInvoices(status?: "draft" | "unpaid" | "paid") {
+  const query = status ? `?status=${status}` : "";
   return useQuery<Invoice[]>({
-    queryKey: INVOICES_KEY,
-    queryFn: () => customFetch<Invoice[]>("/api/invoices"),
+    queryKey: status ? [...INVOICES_KEY, status] : INVOICES_KEY,
+    queryFn: () => customFetch<Invoice[]>(`/api/invoices${query}`),
   });
 }
 
@@ -80,9 +113,28 @@ export function useCreateInvoice() {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: INVOICES_KEY });
-    },
+    onSuccess: () => invalidateInvoiceQueries(qc),
+  });
+}
+
+export function useUpdateInvoice(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: UpdateInvoiceInput) =>
+      customFetch<InvoiceWithItems>(`/api/invoices/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => invalidateInvoiceQueries(qc, id),
+  });
+}
+
+export function useDeleteInvoice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      customFetch<void>(`/api/invoices/${id}`, { method: "DELETE" }),
+    onSuccess: () => invalidateInvoiceQueries(qc),
   });
 }
 
@@ -90,15 +142,10 @@ export function useUpdateInvoiceStatus() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, status }: { id: number; status: "draft" | "unpaid" | "paid" }) =>
-      customFetch<Invoice>(`/api/invoices/${id}/status`, {
+      customFetch<InvoiceWithItems>(`/api/invoices/${id}/status`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       }),
-    onSuccess: (_, { id }) => {
-      qc.invalidateQueries({ queryKey: INVOICES_KEY });
-      qc.invalidateQueries({ queryKey: invoiceKey(id) });
-      qc.invalidateQueries({ queryKey: ["/api/products"] });
-      qc.invalidateQueries({ queryKey: ["/api/dashboard/summary"] });
-    },
+    onSuccess: (_, { id }) => invalidateInvoiceQueries(qc, id),
   });
 }

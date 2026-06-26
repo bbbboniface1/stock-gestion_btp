@@ -4,22 +4,24 @@ type SyncStatus = "online" | "offline" | "syncing";
 
 export function useOnlineStatus() {
   const [status, setStatus] = useState<SyncStatus>(
-    navigator.onLine ? "online" : "offline"
+    typeof navigator !== "undefined" && navigator.onLine ? "online" : "offline",
   );
   const [pendingCount, setPendingCount] = useState(0);
 
   const checkQueue = useCallback(async () => {
     if (!("serviceWorker" in navigator)) return;
     const reg = await navigator.serviceWorker.getRegistration();
-    if (!reg) return;
-    reg.active?.postMessage({ type: "GET_QUEUE_COUNT" });
+    reg?.active?.postMessage({ type: "GET_QUEUE_COUNT" });
   }, []);
 
   useEffect(() => {
     const handleOnline = () => {
       setStatus("syncing");
-      setPendingCount(0);
-      setTimeout(() => setStatus("online"), 3000);
+      checkQueue();
+      setTimeout(() => {
+        setStatus("online");
+        checkQueue();
+      }, 3000);
     };
     const handleOffline = () => setStatus("offline");
 
@@ -34,6 +36,9 @@ export function useOnlineStatus() {
       if (event.data?.type === "QUEUE_COUNT") {
         setPendingCount(event.data.count ?? 0);
       }
+      if (event.data?.type === "MUTATION_QUEUED") {
+        setPendingCount((c) => c + 1);
+      }
     };
 
     navigator.serviceWorker?.addEventListener("message", handleSWMessage);
@@ -46,11 +51,5 @@ export function useOnlineStatus() {
     };
   }, [checkQueue]);
 
-  const trackMutation = useCallback(() => {
-    if (!navigator.onLine) {
-      setPendingCount((c) => c + 1);
-    }
-  }, []);
-
-  return { status, pendingCount, trackMutation, isOffline: status === "offline" };
+  return { status, pendingCount, isOffline: status === "offline" };
 }

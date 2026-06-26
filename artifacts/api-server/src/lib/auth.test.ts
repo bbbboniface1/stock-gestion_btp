@@ -10,7 +10,7 @@ describe("auth lib", () => {
   it("hashPassword produces consistent hashes", async () => {
     const hash = await hashPassword("admin123");
     expect(hash.startsWith("$2")).toBe(true);
-    expect(await hashPassword("admin123")).not.toBe(hash); // bcrypt salts differ
+    expect(await hashPassword("admin123")).not.toBe(hash);
   });
 
   it("verifyPassword validates correct and rejects wrong passwords", async () => {

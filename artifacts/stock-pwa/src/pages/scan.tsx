@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useGetProduct, useGetMe, useCreateStockMovement, useListProjects } from "@workspace/api-client-react";
+import { useGetProduct, useListProjects, useCreateStockMovement } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -30,13 +30,12 @@ function useProductIdFromUrl(): number | null {
 
 export default function ScanPage() {
   const [, setLocation] = useLocation();
-  const { token } = useAuthStore();
+  const { token, user } = useAuthStore();
   const productId = useProductIdFromUrl();
 
   const { data: product, isLoading: loadingProduct } = useGetProduct(productId ?? 0, {
     query: { enabled: !!productId && !!token } as any,
   });
-  const { data: me } = useGetMe({ query: { enabled: !!token } as any });
   const { data: projects } = useListProjects({}, { query: { enabled: !!token } as any });
   const createMovement = useCreateStockMovement();
   const queryClient = useQueryClient();
@@ -65,7 +64,7 @@ export default function ScanPage() {
   }, [token, setLocation]);
 
   const handleSubmit = () => {
-    if (!me || !product) return;
+    if (!user || !product) return;
     const qty = safeQty();
     if (!reason.trim()) return;
     if (type === "OUT" && qty > product.quantityInStock) return;
@@ -79,7 +78,6 @@ export default function ScanPage() {
         quantity: qty,
         reason: reason.trim(),
         projectId: resolvedProject,
-        createdById: me.id,
       },
     }, {
       onSuccess: () => {
@@ -104,7 +102,7 @@ export default function ScanPage() {
   };
 
   const isOutOfStock = type === "OUT" && product && safeQty() > product.quantityInStock;
-  const canSubmit = reason.trim().length > 0 && safeQty() >= 1 && !isOutOfStock && !createMovement.isPending && !!me && !!product;
+  const canSubmit = reason.trim().length > 0 && safeQty() >= 1 && !isOutOfStock && !createMovement.isPending && !!user && !!product;
 
   if (!token) return null;
 
@@ -373,9 +371,9 @@ export default function ScanPage() {
             </Button>
 
             {/* Operator */}
-            {me && (
+            {user && (
               <div className="text-center text-xs text-muted-foreground font-mono uppercase pb-2">
-                Opérateur : {me.fullName}
+                Opérateur : {user.fullName}
               </div>
             )}
           </>

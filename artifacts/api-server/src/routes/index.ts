@@ -9,6 +9,7 @@ import dashboardRouter from "./dashboard";
 import reportsRouter from "./reports";
 import companyRouter from "./company";
 import invoicesRouter from "./invoices";
+import auditRouter from "./audit";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(dashboardRouter);
 router.use(reportsRouter);
 router.use(companyRouter);
 router.use(invoicesRouter);
+router.use(auditRouter);
 
 export default router;

@@ -175,12 +175,12 @@ export const ListStockMovementsResponse = zod.array(ListStockMovementsResponseIt
 
 
 export const CreateStockMovementBody = zod.object({
-  "productId": zod.number(),
+  "productId": zod.number().int(),
   "type": zod.enum(['IN', 'OUT']),
-  "quantity": zod.number().min(1),
+  "quantity": zod.number().int().min(1),
   "reason": zod.string().min(1),
   "projectId": zod.number().nullish(),
-  "createdById": zod.number()
+  "createdById": zod.number().optional(),
 })
 
 
@@ -353,7 +353,7 @@ export const createInvoiceBodyTaxRateMin = 0;
 export const createInvoiceBodyTaxRateMax = 100;
 
 
-export const createInvoiceBodyItemsItemQuantityMin = 0;
+export const createInvoiceBodyItemsItemQuantityMin = 1;
 
 export const createInvoiceBodyItemsItemUnitPriceMin = 0;
 
@@ -370,9 +370,9 @@ export const CreateInvoiceBody = zod.object({
   "notes": zod.string().optional(),
   "taxRate": zod.number().min(createInvoiceBodyTaxRateMin).max(createInvoiceBodyTaxRateMax).optional(),
   "items": zod.array(zod.object({
-  "productId": zod.number().optional(),
+  "productId": zod.number().int().positive().optional(),
   "description": zod.string().min(1),
-  "quantity": zod.number().min(createInvoiceBodyItemsItemQuantityMin),
+  "quantity": zod.number().int().min(createInvoiceBodyItemsItemQuantityMin),
   "unitPrice": zod.number().min(createInvoiceBodyItemsItemUnitPriceMin)
 })).min(1)
 })

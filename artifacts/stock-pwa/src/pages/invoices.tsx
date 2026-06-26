@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useListInvoices } from "@/lib/invoiceApi";
+import { downloadInvoicePdf } from "@/lib/downloadInvoicePdf";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { FileText, Plus, Search, Download } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
+import { useToast } from "@/hooks/use-toast";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Brouillon", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
@@ -19,16 +21,30 @@ function fmt(n: number, currency = "EUR") {
   return `${n.toFixed(2)} ${sym}`;
 }
 
+type StatusFilter = "all" | "draft" | "unpaid" | "paid";
+
+const statusTabs: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "Toutes" },
+  { value: "draft", label: "Brouillons" },
+  { value: "unpaid", label: "Non payées" },
+  { value: "paid", label: "Payées" },
+];
+
 export default function Invoices() {
   const [, setLocation] = useLocation();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const { toast } = useToast();
   const { data: invoices, isLoading, isError } = useListInvoices();
   const company = useCompany();
 
-  const filtered = invoices?.filter(inv =>
-    inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-    inv.clientName.toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  const filtered = invoices?.filter(inv => {
+    const matchesSearch =
+      inv.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
+      inv.clientName.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "all" || inv.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  }) ?? [];
 
   const totalPaid = invoices?.filter(i => i.status === "paid").reduce((s, i) => s + i.total, 0) ?? 0;
   const totalUnpaid = invoices?.filter(i => i.status === "unpaid").reduce((s, i) => s + i.total, 0) ?? 0;
@@ -78,6 +94,20 @@ export default function Invoices() {
         />
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {statusTabs.map(tab => (
+          <Button
+            key={tab.value}
+            size="sm"
+            variant={statusFilter === tab.value ? "default" : "outline"}
+            className="uppercase text-xs font-bold"
+            onClick={() => setStatusFilter(tab.value)}
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </div>
+
       {isError ? (
         <div className="flex flex-col items-center gap-3 p-12 text-center">
           <p className="text-destructive font-mono uppercase text-sm">Impossible de charger les factures</p>
@@ -122,9 +152,13 @@ export default function Invoices() {
                           size="sm"
                           variant="outline"
                           className="h-8 w-8 p-0"
-                          onClick={e => {
+                          onClick={async e => {
                             e.stopPropagation();
-                            window.open(`/api/invoices/${invoice.id}/pdf`, "_blank");
+                            try {
+                              await downloadInvoicePdf(invoice.id, invoice.invoiceNumber);
+                            } catch {
+                              toast({ variant: "destructive", title: "Erreur lors du téléchargement du PDF" });
+                            }
                           }}
                         >
                           <Download className="h-3 w-3" />

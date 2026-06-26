@@ -106,5 +106,11 @@ self.addEventListener("message", (event) => {
   }
   if (event.data?.type === "MUTATION_QUEUED") {
     pendingQueueCount = Math.max(0, pendingQueueCount + 1);
+    self.clients.matchAll().then((clients) => {
+      clients.forEach((client) => {
+        client.postMessage({ type: "MUTATION_QUEUED" });
+        client.postMessage({ type: "QUEUE_COUNT", count: pendingQueueCount });
+      });
+    });
   }
 });

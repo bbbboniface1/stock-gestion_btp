@@ -44,6 +44,7 @@ export default function Products() {
     name: string;
     category: string;
     unit: "kg" | "m" | "litre" | "piece";
+    quantityInStock: number;
     minimumThreshold: number;
     location: "warehouse" | "site" | "project";
   } | null>(null);
@@ -104,6 +105,7 @@ export default function Products() {
     name: string;
     category: string;
     unit: "kg" | "m" | "litre" | "piece";
+    quantityInStock: number;
     minimumThreshold: number;
     location: "warehouse" | "site" | "project";
   }) => {
@@ -302,6 +304,7 @@ export default function Products() {
                                 name: product.name,
                                 category: product.category,
                                 unit: product.unit,
+                                quantityInStock: product.quantityInStock,
                                 minimumThreshold: product.minimumThreshold,
                                 location: product.location,
                               })}>
@@ -402,6 +405,47 @@ export default function Products() {
                   <FormControl><Input type="number" {...field} className="bg-background" /></FormControl>
                   <FormMessage /></FormItem>
               )} />
+              {editProduct && (
+                <div className="rounded-md border border-border bg-muted/20 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground font-bold">Stock actuel</div>
+                      <div className="text-2xl font-bold font-mono">{editProduct.quantityInStock}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="bg-green-500/10 border-green-500/30 text-green-500"
+                        onClick={() => {
+                          setMovementProduct({ id: editProduct.id, name: editProduct.name, stock: editProduct.quantityInStock });
+                          setMovementType("IN");
+                          setEditProduct(null);
+                        }}
+                      >
+                        <ArrowUp className="h-3 w-3 mr-1" /> IN
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="bg-orange-500/10 border-orange-500/30 text-orange-500"
+                        onClick={() => {
+                          setMovementProduct({ id: editProduct.id, name: editProduct.name, stock: editProduct.quantityInStock });
+                          setMovementType("OUT");
+                          setEditProduct(null);
+                        }}
+                      >
+                        <ArrowDown className="h-3 w-3 mr-1" /> OUT
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Le stock se modifie via un mouvement IN/OUT (traçabilité conservée).
+                  </p>
+                </div>
+              )}
               <Button type="submit" className="w-full uppercase font-bold" disabled={updateProduct.isPending}>
                 {updateProduct.isPending ? "Modification..." : "Enregistrer les modifications"}
               </Button>

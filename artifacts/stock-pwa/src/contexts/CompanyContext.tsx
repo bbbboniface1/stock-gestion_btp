@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { customFetch } from "@workspace/api-client-react";
+import { useAuthStore } from "@/lib/auth";
 
 export interface CompanySettings {
   id: number;
@@ -22,10 +23,12 @@ const COMPANY_QUERY_KEY = ["/api/company-settings"];
 const CompanyContext = createContext<CompanySettings | null>(null);
 
 export function CompanyProvider({ children }: { children: React.ReactNode }) {
+  const token = useAuthStore((s) => s.token);
   const { data } = useQuery<CompanySettings>({
     queryKey: COMPANY_QUERY_KEY,
     queryFn: () => customFetch<CompanySettings>("/api/company-settings"),
     staleTime: 5 * 60_000,
+    enabled: !!token,
   });
 
   return (

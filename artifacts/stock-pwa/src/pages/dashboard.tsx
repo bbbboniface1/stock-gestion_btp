@@ -9,6 +9,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie, Legend,
 } from "recharts";
+import { OnlineStatusBadge } from "@/components/OnlineStatusBadge";
 
 type DayBucket = { date: string; IN: number; OUT: number };
 
@@ -58,7 +59,7 @@ export default function Dashboard() {
   chartFrom.setUTCDate(chartFrom.getUTCDate() - 6);
   const chartFromDate = chartFrom.toISOString().slice(0, 10);
   const chartToDate = today.toISOString().slice(0, 10);
-  const { data: rawByDay, isLoading: loadingChartMovements } = useMovementsByDay(chartFromDate, chartToDate);
+  const { data: rawByDay, isLoading: loadingChartMovements, isError: errorChartMovements } = useMovementsByDay(chartFromDate, chartToDate);
 
   const mvtByDate = (rawByDay ?? []).map((d) => ({
     key: d.date,
@@ -88,7 +89,7 @@ export default function Dashboard() {
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">Aperçu en temps réel du stock</p>
         </div>
         <div className="text-xs text-muted-foreground font-mono bg-card px-3 py-1 rounded-sm border border-border">
-          STATUS: <span className="text-green-500 font-bold">ONLINE</span>
+          STATUS: <OnlineStatusBadge />
         </div>
       </div>
 
@@ -149,6 +150,11 @@ export default function Dashboard() {
           <CardContent className="pt-4">
             {loadingChartMovements ? (
               <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase animate-pulse">Chargement...</div>
+            ) : errorChartMovements ? (
+              <div className="h-48 flex flex-col items-center justify-center gap-2 text-center">
+                <p className="text-destructive text-sm uppercase font-mono">Graphique indisponible</p>
+                <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
+              </div>
             ) : mvtByDate.length === 0 ? (
               <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase">Aucun mouvement récent</div>
             ) : (

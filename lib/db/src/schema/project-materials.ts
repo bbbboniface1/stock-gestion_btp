@@ -1,4 +1,4 @@
-import { pgTable, serial, integer, index } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { productsTable } from "./products";
@@ -12,6 +12,7 @@ export const projectMaterialsTable = pgTable("project_materials", {
 }, (table) => [
   index("project_materials_project_id_idx").on(table.projectId),
   index("project_materials_product_id_idx").on(table.productId),
+  uniqueIndex("project_materials_project_product_unique").on(table.projectId, table.productId),
 ]);
 
 export const insertProjectMaterialSchema = createInsertSchema(projectMaterialsTable).omit({ id: true });
