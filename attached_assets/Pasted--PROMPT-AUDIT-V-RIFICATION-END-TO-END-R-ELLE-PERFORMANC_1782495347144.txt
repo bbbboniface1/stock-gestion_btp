@@ -1,0 +1,82 @@
+🔍 PROMPT AUDIT — VÉRIFICATION END-TO-END RÉELLE + PERFORMANCE CHARGE
+
+Tu es un Senior QA Engineer + Performance Engineer. Mission : prouver, avec des preuves concrètes (pas des suppositions), que chaque action de l'interface déclenche un vrai appel réseau vers le backend, que le backend écrit/lit réellement en base de données PostgreSQL, et que l'application reste rapide même avec un volume important de données. AUCUNE modification de code dans cette étape — uniquement audit + tests + rapport. Si tu identifies des correctifs, liste-les à la fin sans les appliquer.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTIE A — VÉRIFICATION "RÉEL VS VITRINE" (CRITIQUE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pour CHAQUE fonctionnalité ci-dessous, vérifie dans le code (pas en supposant) :
+1. Que la donnée affichée vient bien d'un appel HTTP réel vers l'API (pas un mock, pas un tableau hardcodé, pas un fallback silencieux vers des données statiques)
+2. Que l'action déclenche bien une écriture en base (INSERT/UPDATE réel, pas une mise à jour optimiste qui ne persiste jamais)
+3. Que rafraîchir la page (F5) après l'action montre bien la donnée persistée (preuve que ce n'est pas juste du state local React)
+
+Fonctionnalités à vérifier une par une :
+- Connexion/déconnexion → token réellement émis par le backend et vérifié à chaque requête
+- Création d'un produit → apparaît en base après F5
+- Mouvement IN → quantity_in_stock incrémenté EN BASE (vérifie avec une requête SQL directe, pas juste via l'UI)
+- Mouvement OUT → quantity_in_stock décrémenté EN BASE + refus si stock insuffisant (teste le cas limite réellement, ne te contente pas de lire le code)
+- Création de projet + ajout de matériaux → liens réels en base (project_materials)
+- Dashboard (KPIs, graphiques) → recalcul réel à partir des données en base, pas de valeurs figées/cache statique trop long
+- Génération de facture PDF → données réelles du produit/projet au moment de la génération, pas un template avec données factices
+
+Pour chaque point, donne le fichier exact qui prouve que c'est réel (route API + requête SQL associée), et le résultat du test manuel effectué (avant/après F5).
+
+🚩 Signale explicitement tout endroit où tu trouves :
+- Des données mockées/hardcodées encore présentes dans un composant de production
+- Un fallback qui affiche une donnée par défaut en cas d'échec réseau SANS prévenir l'utilisateur (ça simule un succès qui n'en est pas un)
+- Du cache trop agressif qui pourrait masquer le fait que l'écriture en base a échoué
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTIE B — TEST DE CHARGE / GROS VOLUME DE MOUVEMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Objectif : simuler une utilisation réelle intensive (chantier avec beaucoup de mouvements/jour) et mesurer où ça casse ou ralentit.
+
+1. Écris un script de test (séparé, ne touche pas au seed.ts existant) qui insère :
+   - 500 produits
+   - 5000 mouvements de stock (mix IN/OUT réalistes, répartis sur plusieurs mois)
+   - 50 projets avec matériaux liés
+
+2. Mesure et rapporte, AVEC CHIFFRES :
+   - Temps de chargement de la page Stock (liste de 500 produits) — premier rendu et interactif
+   - Temps de chargement de la page Mouvements avec 5000 lignes (filtré et non filtré)
+   - Temps de réponse de l'API pour créer un mouvement OUT quand il y a 5000 mouvements existants (vérifier que la requête de vérification du stock disponible reste rapide grâce aux index)
+   - Temps de calcul du Dashboard (KPIs + graphiques) avec ce volume
+   - Taille des payloads JSON renvoyés par l'API pour les listes (vérifie qu'on ne renvoie pas TOUTE la table à chaque fois)
+
+3. Identifie précisément où se trouve le goulot d'étranglement si un temps dépasse 1 seconde :
+   - Requête SQL sans index utilisé (EXPLAIN ANALYZE sur les requêtes critiques : recherche produit, liste mouvements filtrée, calcul stock total)
+   - Pagination "load-more" qui charge tout en mémoire côté front au lieu de paginer réellement côté serveur
+   - Re-render React inutiles (vérifie avec React DevTools Profiler si possible, ou au minimum identifie les composants qui re-rendent sans memo/useMemo alors qu'ils dépendent de grosses listes)
+   - Recalculs côté front de totaux/agrégations qui devraient être faits côté SQL (ex: somme du stock total recalculée en JS sur 500 produits à chaque rendu au lieu d'une requête SQL agrégée)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTIE C — RAPIDITÉ PERÇUE CÔTÉ FRONT (PAS DE "CHARGEMENT TROP LONG")
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Mesure le temps entre clic utilisateur et retour visuel pour ces actions critiques (avec Network tab + Performance tab du navigateur) :
+   - Ouverture de l'app (First Contentful Paint, Time to Interactive)
+   - Navigation entre les pages principales (Dashboard → Stock → Mouvements → Projets)
+   - Soumission du formulaire de mouvement (clic "Valider" → confirmation visuelle)
+   - Recherche instantanée dans la liste de produits (frappe clavier → résultats filtrés)
+
+2. Pour chaque mesure > 500ms, identifie la cause exacte :
+   - Attente réseau (latence API) ou calcul côté client ?
+   - Y a-t-il un loading spinner pendant l'attente, ou l'utilisateur voit un écran figé/vide (mauvaise UX même si le temps est correct) ?
+   - Le bundle JS est-il chargé en entier avant que la page soit utilisable, ou y a-t-il du code-splitting effectif ?
+
+3. Vérifie si du code est exécuté en double (ex: double fetch au montage d'un composant en React StrictMode, requêtes TanStack Query dupliquées sans cache partagé).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LIVRABLE ATTENDU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Un rapport structuré avec :
+1. Tableau "Réel vs Vitrine" — chaque fonctionnalité testée, preuve concrète (fichier + requête SQL + résultat du F5), statut ✅ réel / 🔴 problème détecté
+2. Tableau de performance avec les chiffres mesurés (pas d'estimation, des vrais chiffres issus des tests effectués sur les 5000 mouvements)
+3. Liste des goulots d'étranglement identifiés, classés par impact (🔴 critique si >2s, 🟠 si 500ms-2s, 🟡 si <500ms mais perfectible)
+4. Recommandations de correction PAR goulot d'étranglement (sans les appliquer) — ex: "ajouter un index sur stock_movements(product_id, created_at)", "paginer côté serveur avec LIMIT/OFFSET au lieu de tout charger", etc.
+5. Nettoyage : à la fin du test, propose de supprimer les 5000 mouvements/500 produits de test injectés pour ne pas polluer la base finale (ne le fais qu'après ma confirmation).
+
+⚠️ IMPORTANT : Ne déduis rien sans preuve. Si tu ne peux pas mesurer un temps réel (limite d'environnement), dis-le explicitement plutôt que d'estimer.
