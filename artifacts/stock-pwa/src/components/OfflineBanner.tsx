@@ -1,50 +1,55 @@
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { WifiOff, RefreshCw, Wifi } from "lucide-react";
+import { WifiOff, RefreshCw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export function OfflineBanner() {
   const { status, pendingCount } = useOnlineStatus();
-  const [showSync, setShowSync] = useState(false);
+  const [showBackOnline, setShowBackOnline] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const showReconnected = () => {
+    setShowBackOnline(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setShowBackOnline(false);
+      timerRef.current = null;
+    }, 4000);
+  };
+
   useEffect(() => {
-    if (status === "syncing") {
-      setShowSync(true);
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(() => {
-        setShowSync(false);
-        timerRef.current = null;
-      }, 4000);
-    }
+    if (status === "syncing") showReconnected();
+    if (status === "offline") setShowBackOnline(false);
   }, [status]);
 
   useEffect(() => {
+    const onSyncComplete = () => showReconnected();
+    window.addEventListener("sw-sync-complete", onSyncComplete);
     return () => {
+      window.removeEventListener("sw-sync-complete", onSyncComplete);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
 
-  if (status === "online" && !showSync) return null;
+  if (status === "online" && !showBackOnline) return null;
 
-  if (showSync) {
+  if (showBackOnline || status === "syncing") {
     return (
-      <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white text-xs font-mono uppercase tracking-wide shadow-lg animate-in slide-in-from-top-2 duration-300">
-        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+      <div className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white text-xs font-semibold shadow-lg">
+        <RefreshCw className="h-3.5 w-3.5 animate-spin shrink-0" />
         <span>Connexion rétablie — synchronisation en cours...</span>
       </div>
     );
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white text-xs font-mono uppercase tracking-wide shadow-lg animate-in slide-in-from-top-2 duration-300">
+    <div className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white text-xs font-semibold shadow-lg">
       <WifiOff className="h-3.5 w-3.5 shrink-0" />
       <span>
-        Mode hors-ligne
+        Hors ligne — mode consultation activé
         {pendingCount > 0
-          ? ` — ${pendingCount} action${pendingCount > 1 ? "s" : ""} en attente de synchronisation`
-          : " — vos actions seront synchronisées à la reconnexion"}
+          ? ` · ${pendingCount} action${pendingCount > 1 ? "s" : ""} en attente`
+          : ""}
       </span>
-      <Wifi className="h-3.5 w-3.5 shrink-0 opacity-50" />
     </div>
   );
 }

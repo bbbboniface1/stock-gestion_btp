@@ -41,6 +41,7 @@ const InvoiceDetailPage = lazy(() => import("@/pages/invoice-detail"));
 import { RoleGuard } from "@/components/RoleGuard";
 import { filterNavByRole } from "@/lib/permissions";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { InstallBanner } from "@/components/InstallBanner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -333,6 +334,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <OfflineBanner />
+        <InstallBanner />
         <AuthBootstrap>
           <CompanyProvider>
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>

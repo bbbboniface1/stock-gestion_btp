@@ -366,7 +366,15 @@ export async function customFetch<T = unknown>(
     notifyOfflineMutationQueued(method);
   }
 
-  const response = await fetch(input, { ...init, method, headers });
+  let response: Response;
+  try {
+    response = await fetch(input, { ...init, method, headers });
+  } catch (networkError) {
+    if (typeof navigator !== "undefined" && !navigator.onLine && method !== "GET" && method !== "HEAD") {
+      return null as T;
+    }
+    throw networkError;
+  }
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

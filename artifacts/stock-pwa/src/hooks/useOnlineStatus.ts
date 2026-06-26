@@ -30,14 +30,28 @@ export function useOnlineStatus() {
 
     const handleSWMessage = (event: MessageEvent) => {
       if (event.data?.type === "SYNC_SUCCESS") {
-        setPendingCount((c) => Math.max(0, c - 1));
+        if (typeof event.data.count === "number") {
+          setPendingCount(event.data.count);
+        } else {
+          setPendingCount((c) => Math.max(0, c - 1));
+        }
+        setStatus("syncing");
+        setTimeout(() => setStatus("online"), 1500);
+      }
+      if (event.data?.type === "SYNC_COMPLETE") {
+        setPendingCount(event.data.count ?? 0);
         setStatus("online");
+        window.dispatchEvent(new CustomEvent("sw-sync-complete"));
       }
       if (event.data?.type === "QUEUE_COUNT") {
         setPendingCount(event.data.count ?? 0);
       }
       if (event.data?.type === "MUTATION_QUEUED") {
-        setPendingCount((c) => c + 1);
+        if (typeof event.data.count === "number") {
+          setPendingCount(event.data.count);
+        } else {
+          setPendingCount((c) => c + 1);
+        }
       }
     };
 
