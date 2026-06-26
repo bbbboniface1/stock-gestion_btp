@@ -1,4 +1,5 @@
-import { pgTable, text, serial, timestamp, integer, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, pgEnum, index, check } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { productsTable } from "./products";
@@ -26,6 +27,7 @@ export const stockMovementsTable = pgTable("stock_movements", {
   index("stock_movements_invoice_id_idx").on(table.invoiceId),
   index("stock_movements_created_by_idx").on(table.createdById),
   index("stock_movements_type_created_at_idx").on(table.type, table.createdAt),
+  check("stock_movements_quantity_positive", sql`${table.quantity} > 0`),
 ]);
 
 export const insertStockMovementSchema = createInsertSchema(stockMovementsTable).omit({ id: true, createdAt: true });

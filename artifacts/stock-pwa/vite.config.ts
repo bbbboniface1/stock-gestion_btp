@@ -26,7 +26,7 @@ export default defineConfig({
         type: "module",
         navigateFallback: "index.html",
       },
-      includeAssets: ["favicon.svg", "offline.html", "icons/icon.svg", "robots.txt"],
+      includeAssets: ["favicon.svg", "offline.html", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "robots.txt"],
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         additionalManifestEntries: [{ url: "offline.html", revision: null }],
@@ -44,16 +44,22 @@ export default defineConfig({
         background_color: "#1c1917",
         icons: [
           {
-            src: `${basePath}icons/icon.svg`.replace(/\/+/g, "/"),
+            src: `${basePath}icons/icon-192.png`.replace(/\/+/g, "/"),
             sizes: "192x192",
-            type: "image/svg+xml",
+            type: "image/png",
             purpose: "any",
           },
           {
-            src: `${basePath}icons/icon.svg`.replace(/\/+/g, "/"),
+            src: `${basePath}icons/icon-512.png`.replace(/\/+/g, "/"),
             sizes: "512x512",
-            type: "image/svg+xml",
+            type: "image/png",
             purpose: "maskable any",
+          },
+          {
+            src: `${basePath}icons/icon.svg`.replace(/\/+/g, "/"),
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
           },
           {
             src: `${basePath}favicon.svg`.replace(/\/+/g, "/"),

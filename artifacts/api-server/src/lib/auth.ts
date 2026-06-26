@@ -4,8 +4,9 @@ import { db, revokedTokensTable } from "@workspace/db";
 import { eq, lt } from "drizzle-orm";
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
-if (!SESSION_SECRET) {
-  throw new Error("SESSION_SECRET env variable is required but not set");
+if (!SESSION_SECRET || SESSION_SECRET.trim() === "") {
+  console.error("[FATAL] SESSION_SECRET env variable is required but not set or empty. Refusing to start.");
+  process.exit(1);
 }
 
 export const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
@@ -82,7 +83,9 @@ export function verifyToken(token: string): { userId: number; role: string } | n
 
     const payload = `${userId}:${role}:${issuedAt}`;
     const expectedSig = crypto.createHmac("sha256", SESSION_SECRET!).update(payload).digest("hex");
-    if (signature !== expectedSig) return null;
+    const sigBuf = Buffer.from(signature, "hex");
+    const expBuf = Buffer.from(expectedSig, "hex");
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) return null;
 
     return { userId: parseInt(userId, 10), role };
   } catch {

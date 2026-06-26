@@ -1,0 +1,88 @@
+🛠️ PROMPT DE CORRECTION CIBLÉE – PRÉPARATION AU DÉPLOIEMENT
+
+Tu es un Senior Engineer chargé de corriger UNIQUEMENT les problèmes listés ci-dessous, identifiés lors d'un audit complet. 
+
+⚠️ RÈGLES ABSOLUES — À RESPECTER STRICTEMENT
+1. NE TOUCHE À AUCUN AUTRE FICHIER ou fonctionnalité que ceux explicitement mentionnés dans ce prompt.
+2. Avant toute modification, lis et comprends le code existant autour de la zone à corriger — ne réécris pas un fichier entier si une modification ciblée suffit.
+3. Après CHAQUE correction, vérifie que :
+   - L'application démarre toujours sans erreur (build + run)
+   - Les fonctionnalités existantes qui dépendent du code modifié continuent de fonctionner (teste manuellement le flux concerné)
+4. Si une correction risque d'impacter un comportement existant, ARRÊTE-TOI et explique-moi le compromis avant de continuer — ne décide pas seul.
+5. Travaille les corrections DANS L'ORDRE ci-dessous, une par une, avec un test de non-régression après chaque étape avant de passer à la suivante.
+6. Ne fais AUCUN refactoring "au passage", aucun renommage de variable, aucune réorganisation de fichiers non demandée.
+
+📋 CORRECTIONS À APPORTER (par ordre de priorité)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 1 — Sécurité auth (CRITIQUE, ne change pas le comportement utilisateur)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fichier : api-server/src/lib/auth.ts
+
+a) Remplacer la comparaison de signature `===` par `crypto.timingSafeEqual()`.
+   Attention : timingSafeEqual exige des buffers de MÊME longueur — vérifie la longueur avant comparaison, sinon retourne false immédiatement (sans comparer), pour éviter un crash si les longueurs diffèrent.
+
+b) Au démarrage du serveur, valider que process.env.JWT_SECRET existe et n'est pas une chaîne vide. Si absent → throw une erreur claire et empêcher le serveur de démarrer (process.exit(1) avec un message explicite dans les logs).
+
+✅ Test de non-régression : connexion utilisateur (login), accès à une route protégée, déconnexion. Tout doit fonctionner exactement comme avant.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 2 — Contrainte DB quantity > 0 (CRITIQUE, ne change rien côté UI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fichier : lib/db/src/schema/stock-movements.ts + migration associée
+
+Ajouter une contrainte CHECK (quantity > 0) au niveau du schéma de la table stock_movements.
+Génère une migration Drizzle/Prisma (selon l'ORM utilisé) plutôt que de modifier la table à la main.
+NE PAS modifier la validation applicative existante (frontend/backend) qui fait déjà ce contrôle — cette contrainte est une sécurité supplémentaire, pas un remplacement.
+
+✅ Test de non-régression : créer un mouvement IN et OUT valides → doit toujours fonctionner. Tenter une insertion directe avec quantity=0 ou négatif → doit être rejetée par la DB.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 3 — Icônes PWA PNG (CRITIQUE pour l'installabilité)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fichier : manifest.json / artifacts/stock-pwa/vite.config.ts + dossier icons/
+
+Générer (ou convertir si un SVG source existe) deux fichiers PNG :
+- icon-192.png (192x192)
+- icon-512.png (512x512)
+
+Mettre à jour le manifest.json pour référencer ces PNG avec "type": "image/png" au lieu des SVG actuels.
+NE PAS supprimer le SVG s'il est utilisé ailleurs (favicon, etc.) — ajoute les PNG en complément si besoin.
+
+✅ Test de non-régression : vérifier dans les DevTools (onglet Application > Manifest) que le manifest est valide et que le critère d'installabilité PWA est rempli (pas d'erreur affichée par Chrome).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 4 — Seed data complet (CRITIQUE pour validation fonctionnelle)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Fichier : lib/db/src/seed.ts
+
+Compléter le script de seed existant SANS le réécrire entièrement :
+- Ajouter les utilisateurs manquants pour atteindre 5 (garder les rôles admin/manager/worker représentés)
+- Ajouter les produits manquants pour atteindre 10 (catégories variées, certains avec quantity_in_stock < minimum_threshold pour tester les alertes)
+- Ajouter 20 mouvements de stock simulés (mix de IN/OUT, certains liés à un projet, certains non, dates étalées sur plusieurs semaines pour que les graphiques du dashboard aient des données)
+
+Garde la structure et le style de code existants du fichier seed.ts.
+
+✅ Test de non-régression : exécuter le seed sur une base vide → vérifier que le Dashboard affiche des KPIs cohérents, que les graphiques se peuplent, et qu'aucune erreur n'apparaît dans les listes (Stock, Mouvements, Projets).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ÉTAPE 5 — Documentation de la limitation offline iOS (pas de code)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ajouter un fichier KNOWN_LIMITATIONS.md à la racine documentant :
+- Le BackgroundSync n'est pas supporté sur iOS/Safari
+- Risque de perte de mutations si l'app est fermée avant reconnexion sur iPhone/iPad
+- Recommandation utilisateur : ne pas fermer l'application tant que l'indicateur de synchronisation n'affiche pas "synchronisé"
+
+Pas de modification de code à cette étape — uniquement de la documentation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📌 À LA FIN DE CHAQUE ÉTAPE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Donne-moi un résumé court : ce qui a été modifié, le fichier concerné, et le résultat du test de non-régression. Attends ma confirmation avant de passer à l'étape suivante si je te le demande, sinon continue automatiquement seulement si le test précédent est passé sans erreur.
+
+🚫 CE QUE TU NE DOIS PAS FAIRE DANS CE PROMPT
+- Ne pas migrer Express vers Supabase (écart d'architecture accepté, hors scope)
+- Ne pas ajouter de RLS PostgreSQL (nécessite une vraie réflexion d'architecture, à traiter séparément)
+- Ne pas toucher au bundle/performance (Recharts, code splitting) — hors scope ici
+- Ne pas ajouter d'ErrorBoundary global — hors scope ici
+- Ne pas remplacer doublePrecision par numeric — hors scope ici
