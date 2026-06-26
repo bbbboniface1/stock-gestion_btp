@@ -1,0 +1,77 @@
+🔍 PROMPT AUDIT ULTRA PRO – PWA GESTION DE STOCK (CONTENEURS AMÉNAGÉS)
+
+Tu es un Senior Software Auditor + QA Architect. Ta mission n'est PAS de coder ou de corriger quoi que ce soit pour l'instant. Ta mission est de produire un AUDIT COMPLET, RIGOUREUX et SANS COMPLAISANCE de l'application existante dans ce Repl, en la comparant point par point au cahier des charges ci-dessous.
+
+⚠️ RÈGLES DE L'AUDIT
+- Ne rien supposer : si une fonctionnalité semble présente, VÉRIFIE le code réel (fichiers, requêtes SQL, policies, triggers, manifest, service worker).
+- Ne rien éluder : si quelque chose est absent, partiellement fait, ou cassé, dis-le clairement.
+- Classe chaque problème trouvé par sévérité : 🔴 BLOQUANT PROD / 🟠 MAJEUR / 🟡 MINEUR / ⚪ AMÉLIORATION POSSIBLE.
+- Pour chaque problème : indique le fichier/module concerné, la cause, l'impact business/technique, et la correction recommandée (sans l'implémenter).
+- Termine par une table de synthèse globale "GO / NO-GO production".
+
+📋 CAHIER DES CHARGES DE RÉFÉRENCE (à utiliser comme grille de conformité)
+
+[Architecture]
+- Frontend React/Next.js, Backend Supabase (PostgreSQL + Auth + API auto), State management Zustand/Redux Toolkit, séparation claire UI / services / DB layer.
+
+[Base de données — STRICT SCHEMA]
+- Tables : Users (id, full_name, email unique, role admin|manager|worker, created_at)
+- Products (id, name, category indexée, unit, quantity_in_stock, minimum_threshold, location, created_at, updated_at)
+- StockMovements (id, product_id FK, type IN|OUT, quantity >0, reason, project_id FK nullable, created_by FK, created_at)
+- Projects (id, name, client_name, status active|completed|paused, start_date, end_date)
+- ProjectMaterials (id, project_id, product_id, quantity_used)
+- Contraintes critiques : quantity_in_stock mis à jour automatiquement (trigger/logique backend), stock négatif INTERDIT.
+
+[Logique métier critique]
+- OUT réduit le stock, IN l'augmente, OUT bloqué si quantity > stock disponible, chaque mouvement loggé dans StockMovements.
+- RBAC strict : Admin (accès total + suppression définitive), Manager (gère stock/projets, PAS de suppression définitive), Worker (uniquement ajout de mouvements IN/OUT).
+
+[PWA]
+- manifest.json valide (icônes 192x192 + 512x512, mode standalone), installabilité réelle testée.
+- Mode offline : cache des pages principales, stockage local (IndexedDB/localStorage), queue d'actions offline avec sync automatique au retour réseau.
+- Service Worker : cache API responses, stratégie stale-while-revalidate, retry sync en cas d'échec réseau.
+
+[UI / Fonctionnalités]
+- Dashboard (stock total, produits critiques < minimum_threshold, mouvements récents, projets actifs)
+- Stock (liste, recherche instantanée, filtres catégorie/stock faible, bouton rapide entrée/sortie)
+- Mouvements (historique complet, filtres date/produit/projet)
+- Projets (création, ajout matériaux utilisés, suivi consommation)
+
+[Authentification]
+- Email/password Supabase Auth, session persistante, protection des routes, redirection login automatique si non connecté.
+
+[Qualité logicielle]
+- Validation des données frontend ET backend, gestion d'erreurs réseau avec messages clairs, retry automatique sur échec de sync, pagination des listes, lazy loading, requêtes DB optimisées (pas de N+1, index pertinents).
+
+[Seed data]
+- 10 produits, 2 projets, 5 utilisateurs, 20 mouvements de stock simulés, réellement présents en base.
+
+🧱 STRUCTURE ATTENDUE DE TON RAPPORT D'AUDIT
+
+1. RÉSUMÉ EXÉCUTIF (5-10 lignes : état global, % de conformité estimé, nombre de bloqueurs prod)
+
+2. AUDIT PAR MODULE (un sous-rapport par item ci-dessous) :
+   a. Architecture & structure du code
+   b. Base de données (schéma réel vs schéma attendu, contraintes, index, FK, triggers)
+   c. Logique métier stock (IN/OUT, anti-négatif, atomicité des mises à jour, race conditions possibles)
+   d. RBAC / permissions (vérifier les policies RLS Supabase réelles, pas juste le code frontend)
+   e. PWA (manifest, icônes, service worker, stratégie de cache, queue offline, sync au retour réseau — tester réellement le comportement offline)
+   f. Authentification & sécurité des routes
+   g. UI/UX et fonctionnalités (Dashboard, Stock, Mouvements, Projets)
+   h. Gestion d'erreurs & résilience réseau
+   i. Performance (pagination, lazy loading, requêtes DB, taille des bundles)
+   j. Seed data (présence réelle en base, cohérence des données)
+   k. Bonus features annoncées vs réellement implémentées (QR code, export CSV, alertes stock faible, multi-entrepôts, analytics)
+
+3. LISTE DES NON-CONCORDANCES (tout ce qui a été demandé dans le cahier des charges mais qui diffère, est simplifié, ou absent dans le code réel)
+
+4. LISTE DES BLOQUANTS DE MISE EN PRODUCTION (🔴 uniquement — incohérences de stock possibles, failles RBAC, absence de validation backend, secrets exposés, RLS manquantes, etc.)
+
+5. DETTE TECHNIQUE & RISQUES (ce qui fonctionne aujourd'hui mais qui cassera à l'échelle ou en cas d'usage réel terrain)
+
+6. TABLE DE SYNTHÈSE FINALE
+   | Module | Statut | Sévérité max | Go/No-Go |
+
+7. RECOMMANDATION FINALE : GO PROD / GO PROD CONDITIONNEL (avec liste des conditions) / NO-GO
+
+Sois exhaustif, factuel, et n'hésite pas à signaler si une fonctionnalité du cahier des charges n'a tout simplement jamais été implémentée. Ne minimise rien sous prétexte que "ça marche en démo".
