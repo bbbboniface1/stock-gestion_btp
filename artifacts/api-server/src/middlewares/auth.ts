@@ -62,10 +62,6 @@ export async function requireAuth(req: AuthenticatedRequest, res: Response, next
   next();
 }
 
-export function invalidateAuthUserCache(userId: number): void {
-  authUserCache.delete(userId);
-}
-
 export function requireRole(...roles: string[]) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {

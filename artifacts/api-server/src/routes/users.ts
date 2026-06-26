@@ -2,11 +2,7 @@ import { Router, IRouter } from "express";
 import { db, usersTable, stockMovementsTable } from "@workspace/db";
 import { eq, count, and, ne } from "drizzle-orm";
 import { hashPassword } from "../lib/auth";
-<<<<<<< HEAD
 import { invalidateAuthUserCache, requireAuth, requireRole, AuthenticatedRequest } from "../middlewares/auth";
-=======
-import { requireAuth, requireRole, AuthenticatedRequest, invalidateAuthUserCache } from "../middlewares/auth";
->>>>>>> 3a3aca335d2c3956388be7e41b8c82622a782384
 import { recordAuditLog } from "../lib/audit";
 import {
   ListUsersResponse,
@@ -100,13 +96,7 @@ router.patch("/users/:id", requireAuth, requireRole("admin"), async (req: Authen
   }
 
   const [user] = await db.update(usersTable).set(parsed.data).where(eq(usersTable.id, params.data.id)).returning();
-<<<<<<< HEAD
   invalidateAuthUserCache(user.id);
-=======
-  if (parsed.data.role && parsed.data.role !== before.role) {
-    invalidateAuthUserCache(user.id);
-  }
->>>>>>> 3a3aca335d2c3956388be7e41b8c82622a782384
   void recordAuditLog({ action: "update", entityType: "user", entityId: user.id, user: req.user, oldValue: { role: before.role, fullName: before.fullName }, newValue: { role: user.role, fullName: user.fullName } });
   res.json(UpdateUserResponse.parse(serializeDates({
     id: user.id, fullName: user.fullName, email: user.email, role: user.role, createdAt: user.createdAt,
@@ -134,12 +124,6 @@ router.delete("/users/:id", requireAuth, requireRole("admin"), async (req: Authe
     return;
   }
 
-<<<<<<< HEAD
-  const [user] = await db.delete(usersTable).where(eq(usersTable.id, params.data.id)).returning();
-  if (!user) { res.status(404).json({ error: "Utilisateur introuvable" }); return; }
-  invalidateAuthUserCache(user.id);
-  void recordAuditLog({ action: "delete", entityType: "user", entityId: user.id, user: req.user, oldValue: { email: user.email, role: user.role } });
-=======
   const [target] = await db
     .select({ id: usersTable.id, role: usersTable.role, email: usersTable.email })
     .from(usersTable)
@@ -155,8 +139,8 @@ router.delete("/users/:id", requireAuth, requireRole("admin"), async (req: Authe
   }
 
   await db.delete(usersTable).where(eq(usersTable.id, params.data.id));
+  invalidateAuthUserCache(target.id);
   void recordAuditLog({ action: "delete", entityType: "user", entityId: target.id, user: req.user, oldValue: { email: target.email, role: target.role } });
->>>>>>> 3a3aca335d2c3956388be7e41b8c82622a782384
   res.sendStatus(204);
 });
 

@@ -1,0 +1,75 @@
+11:30:26 [vite] (client) hmr update /src/App.tsx, /src/index.css
+C:\Users\HP\Documents\stock-gestion_btp\artifacts\stock-pwa:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/stock-pwa@0.0.0 dev: `vite --config vite.config.ts --host 0.0.0.0`
+Exit status 1
+PS C:\Users\HP\Documents\stock-gestion_btp> pnpm install
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.overrides". See https://pnpm.io/settings for the new home of each setting.
+Scope: all 9 workspace projects
+Already up to date
+Done in 933ms using pnpm v11.9.0
+PS C:\Users\HP\Documents\stock-gestion_btp> pnpm --filter @workspace/api-server dev
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.overrides". See https://pnpm.io/settings for the new home of each setting.
+$ pnpm run build && pnpm run start
+[WARN] The "pnpm" field in package.json is no longer read by pnpm. The following keys were ignored: "pnpm.overrides". See https://pnpm.io/settings for the new home of each setting.
+$ node ./build.mjs
+✘ [ERROR] Unexpected "<<"
+
+    artifacts/api-server/src/routes/users.ts:5:0:
+      5 │ <<<<<<< HEAD
+        ╵ ~~
+
+✘ [ERROR] Unexpected "<<"
+
+    artifacts/api-server/src/routes/invoices.ts:318:0:
+      318 │ <<<<<<< HEAD
+          ╵ ~~
+
+✘ [ERROR] Multiple exports with the same name "invalidateAuthUserCache"
+
+    artifacts/api-server/src/middlewares/auth.ts:65:16:
+      65 │ export function invalidateAuthUserCache(userId: number): void {
+         ╵                 ~~~~~~~~~~~~~~~~~~~~~~~
+
+  The name "invalidateAuthUserCache" was originally exported here:
+
+    artifacts/api-server/src/middlewares/auth.ts:15:16:
+      15 │ export function invalidateAuthUserCache(userId: number): void {
+         ╵                 ~~~~~~~~~~~~~~~~~~~~~~~
+
+✘ [ERROR] The symbol "invalidateAuthUserCache" has already been declared
+
+    artifacts/api-server/src/middlewares/auth.ts:65:16:
+      65 │ export function invalidateAuthUserCache(userId: number): void {
+         ╵                 ~~~~~~~~~~~~~~~~~~~~~~~
+
+  The symbol "invalidateAuthUserCache" was originally declared here:
+
+    artifacts/api-server/src/middlewares/auth.ts:15:16:
+      15 │ export function invalidateAuthUserCache(userId: number): void {
+         ╵                 ~~~~~~~~~~~~~~~~~~~~~~~
+
+  Duplicate top-level function declarations are not allowed in an ECMAScript module. This file is
+  considered to be an ECMAScript module because of the "export" keyword here:
+
+    artifacts/api-server/src/middlewares/auth.ts:69:0:
+      69 │ export function requireRole(...roles: string[]) {
+         ╵ ~~~~~~
+
+4 errors
+Error: Build failed with 4 errors:
+artifacts/api-server/src/middlewares/auth.ts:65:16: ERROR: Multiple exports with the same name "invalidateAuthUserCache"
+artifacts/api-server/src/middlewares/auth.ts:65:16: ERROR: The symbol "invalidateAuthUserCache" has already been declared
+artifacts/api-server/src/routes/invoices.ts:318:0: ERROR: Unexpected "<<"
+artifacts/api-server/src/routes/users.ts:5:0: ERROR: Unexpected "<<"
+    at failureErrorWithLog (C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:926:25
+    at C:\Users\HP\Documents\stock-gestion_btp\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:1345:9
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+[ELIFECYCLE] Command failed with exit code 1.
+C:\Users\HP\Documents\stock-gestion_btp\artifacts\api-server:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/api-server@0.0.0 dev: `pnpm run build && pnpm run start`
+Exit status 1
+PS C:\Users\HP\Documents\stock-g

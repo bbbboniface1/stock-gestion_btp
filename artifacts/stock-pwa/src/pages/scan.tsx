@@ -78,6 +78,7 @@ export default function ScanPage() {
         quantity: qty,
         reason: reason.trim(),
         projectId: resolvedProject,
+        createdById: user.id,
       },
     }, {
       onSuccess: () => {
