@@ -78,7 +78,8 @@ router.get("/dashboard/recent-movements", requireAuth, async (req, res): Promise
 router.get("/dashboard/low-stock", requireAuth, async (_req, res): Promise<void> => {
   const products = await db.select().from(productsTable)
     .where(sql`${productsTable.quantityInStock} < ${productsTable.minimumThreshold}`)
-    .orderBy(productsTable.quantityInStock);
+    .orderBy(productsTable.quantityInStock)
+    .limit(100);
   res.json(GetLowStockProductsResponse.parse(serializeDates(products)));
 });
 

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import {
-  useListProducts, useListProductCategories, useCreateProduct, useUpdateProduct, useDeleteProduct,
+  listProducts, useListProductCategories, useCreateProduct, useUpdateProduct, useDeleteProduct,
   getListProductsQueryKey, getListProductCategoriesQueryKey,
   getListStockMovementsQueryKey, getGetDashboardSummaryQueryKey, getGetRecentMovementsQueryKey, getGetLowStockProductsQueryKey,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useAuthStore } from "@/lib/auth";
 import { canCreateProduct, canDeleteProduct } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -59,15 +60,31 @@ export default function Products() {
   const canEdit = canCreate;
   const canDelete = user ? canDeleteProduct(user.role) : false;
 
-  const [productLimit, setProductLimit] = useState(100);
-  const resetProductLimit = () => setProductLimit(100);
+  const debouncedSearch = useDebounce(search, 300);
+  const PAGE_SIZE = 50;
 
-  const params: Record<string, string | boolean | number> = { limit: productLimit };
-  if (search) params.search = search;
-  if (categoryFilter !== "all") params.category = categoryFilter;
-  if (lowStockOnly) params.low_stock = true;
+  const {
+    data: productsData,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["/api/products", { search: debouncedSearch, categoryFilter, lowStockOnly }] as const,
+    queryFn: ({ pageParam }) => {
+      const params: Record<string, string | boolean | number> = { limit: PAGE_SIZE, offset: pageParam };
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (categoryFilter !== "all") params.category = categoryFilter;
+      if (lowStockOnly) params.low_stock = true;
+      return listProducts(params);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined,
+  });
 
-  const { data: products, isLoading, isError } = useListProducts(params);
+  const products = productsData?.pages.flat();
   const { data: categories } = useListProductCategories();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
@@ -231,9 +248,9 @@ export default function Products() {
       <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input data-testid="input-search-products" placeholder="Rechercher un produit..." value={search} onChange={e => { setSearch(e.target.value); resetProductLimit(); }} className="pl-9 bg-card border-border" />
+          <Input data-testid="input-search-products" placeholder="Rechercher un produit..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-card border-border" />
         </div>
-        <Select value={categoryFilter} onValueChange={v => { setCategoryFilter(v); resetProductLimit(); }}>
+        <Select value={categoryFilter} onValueChange={v => setCategoryFilter(v)}>
           <SelectTrigger className="w-full md:w-48 bg-card border-border" data-testid="select-category-filter">
             <SelectValue placeholder="Catégorie" />
           </SelectTrigger>
@@ -242,7 +259,7 @@ export default function Products() {
             {categories?.map(c => <SelectItem key={c.category} value={c.category}>{c.category}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Button variant={lowStockOnly ? "destructive" : "outline"} onClick={() => { setLowStockOnly(!lowStockOnly); resetProductLimit(); }} className="uppercase text-xs font-bold" data-testid="button-filter-low-stock">
+        <Button variant={lowStockOnly ? "destructive" : "outline"} onClick={() => setLowStockOnly(!lowStockOnly)} className="uppercase text-xs font-bold" data-testid="button-filter-low-stock">
           <AlertTriangle className="h-4 w-4 mr-2" /> Stock Critique
         </Button>
       </div>
@@ -334,15 +351,16 @@ export default function Products() {
         </Card>
       )}
 
-      {products && products.length === productLimit && (
+      {hasNextPage && (
         <div className="flex justify-center">
           <Button
             variant="outline"
             className="uppercase font-bold tracking-wide border-border gap-2"
-            onClick={() => setProductLimit(l => l + 100)}
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
           >
             <ChevronDown className="h-4 w-4" />
-            Charger 100 suivants
+            {isFetchingNextPage ? "Chargement..." : `Charger ${PAGE_SIZE} suivants`}
           </Button>
         </div>
       )}

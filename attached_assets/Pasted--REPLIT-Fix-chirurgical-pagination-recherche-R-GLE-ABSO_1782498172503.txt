@@ -1,0 +1,102 @@
+# REPLIT — Fix chirurgical : pagination + recherche
+
+## ⛔ RÈGLE ABSOLUE — À lire avant tout
+
+**Ne touche qu'aux fichiers et lignes listés ci-dessous. Rien d'autre.**
+
+- Pas de refactoring
+- Pas de renommage de variables ou de fonctions
+- Pas de "nettoyage" d'imports
+- Pas de reformatage de code existant
+- Pas d'ajout de commentaires sur du code que tu ne modifies pas
+- Pas d'optimisation "opportuniste" sur d'autres fichiers que tu vois en passant
+
+L'application tourne, les builds passent, le TypeScript est strict ✅.  
+Le moindre changement hors périmètre risque de tout casser. **Diff minimal uniquement.**
+
+---
+
+## Périmètre exact des modifications
+
+### FICHIER 1 — `movements.tsx`, ligne 24
+**Seul changement autorisé :** remplacer la variable `limit` croissante par `useInfiniteQuery` avec `offset: pageParam` fixe à 50 lignes max par page.  
+Ne touche à rien d'autre dans ce fichier.
+
+### FICHIER 2 — `products.tsx`, lignes 62 et 65–70
+**Seul changement autorisé :**  
+- Ligne 62 : même remplacement `useInfiniteQuery` + offset fixe à 50  
+- Lignes 65–70 : ajouter un hook `useDebounce(searchInput, 300)` — la query ne se déclenche qu'après 300 ms de silence
+
+Ne touche à rien d'autre dans ce fichier.
+
+### FICHIER 3 — `routes/movements.ts` (backend)
+**Seul changement autorisé :** accepter `?limit=50&offset=0` en query params et ajouter `LIMIT $limit OFFSET $offset` dans la requête SQL existante.  
+Ne change pas la structure de la réponse si elle est déjà consommée ailleurs — ajoute seulement `nextOffset` et `total` sans supprimer les champs existants.
+
+### FICHIER 4 — `routes/products.ts`, ligne 44 (backend)
+**Seul changement autorisé :** accepter `?limit=50&offset=0` et s'assurer que `LIMIT 50` est présent sur la requête ILIKE existante.  
+Ne change pas la logique de recherche, juste ajouter le LIMIT + OFFSET.
+
+### FICHIER 5 — Nouvelle migration Drizzle (fichier à créer uniquement)
+**Seul changement autorisé :** créer une migration contenant exactement :
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON products USING GIN (name gin_trgm_ops);
+```
+Ne modifie aucun fichier de schéma Drizzle existant.
+
+### FICHIER 6 — `routes/dashboard.ts`, ligne 79
+**Seul changement autorisé :** ajouter `LIMIT 100` à la fin de la requête low-stock.  
+Une ligne. Rien d'autre dans ce fichier.
+
+### FICHIER 7 — Nouveau fichier `lib/hooks/useDebounce.ts` (à créer)
+Hook minimaliste uniquement :
+```typescript
+import { useState, useEffect } from 'react';
+
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+```
+
+---
+
+## Ce que tu ne touches PAS (liste non exhaustive)
+
+- `lib/auth.ts`, `middlewares/auth.ts` → cache utilisateur, ne pas toucher
+- `routes/projects.ts`, `routes/project-materials.ts` → fonctionnel, ne pas toucher
+- `routes/invoices.ts` → génération PDF, ne pas toucher
+- `routes/auth.ts` → authentification, ne pas toucher
+- Tous les fichiers de seed / load-test → ne pas toucher
+- Le schéma Drizzle principal → ne pas modifier, uniquement nouvelle migration
+- Les composants UI existants (boutons, modals, layouts) → ne pas toucher
+- La configuration Vite, tsconfig, package.json → ne pas toucher
+
+---
+
+## Ordre d'exécution
+
+1. Créer `lib/hooks/useDebounce.ts`
+2. Créer la migration pg_trgm
+3. Modifier `routes/movements.ts` (LIMIT + OFFSET)
+4. Modifier `routes/products.ts` (LIMIT + OFFSET)
+5. Modifier `movements.tsx` L24 (`useInfiniteQuery`)
+6. Modifier `products.tsx` L62 + L65–70 (`useInfiniteQuery` + debounce)
+7. Modifier `routes/dashboard.ts` L79 (LIMIT 100)
+
+Après chaque fichier : vérifier que le build TypeScript passe avant de passer au suivant.
+
+---
+
+## Validation finale
+
+- `pnpm build` doit passer sans erreur
+- `pnpm typecheck` doit passer sans erreur  
+- L'API `/movements` et `/products` doivent accepter `?limit=50&offset=0`
+- La recherche produits ne doit déclencher une requête qu'après 300 ms sans frappe
+- Le script `load-test-insert.ts --cleanup` doit toujours fonctionner
