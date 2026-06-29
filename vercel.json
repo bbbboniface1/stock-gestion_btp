@@ -1,20 +1,18 @@
 {
-  "buildCommand": "pnpm -C artifacts/stock-pwa build",
+  "buildCommand": "pnpm run build",
   "outputDirectory": "artifacts/stock-pwa/dist/public",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": null,
-
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://stockbtp-api.onrender.com/api/$1"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ],
-
   "headers": [
     {
       "source": "/sw.js",
