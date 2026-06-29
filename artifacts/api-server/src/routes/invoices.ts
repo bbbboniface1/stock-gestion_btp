@@ -363,10 +363,13 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
     doc.fillColor(DARK).fontSize(9).font("Helvetica-Bold").text("DATE", 65, y);
     doc.font("Helvetica").fillColor(GRAY).text(new Date(data.date + "T00:00:00Z").toLocaleDateString("fr-FR"), 65, y + 12);
 
-    doc.fillColor(DARK).font("Helvetica-Bold").text("STATUT", 200, y);
+    doc.fillColor(DARK).font("Helvetica-Bold").text("ÉMIS LE", 200, y);
+    doc.font("Helvetica").fillColor(GRAY).text(new Date(data.createdAt).toLocaleDateString("fr-FR"), 200, y + 12);
+
+    doc.fillColor(DARK).font("Helvetica-Bold").text("STATUT", 335, y);
     const sLabel = statusLabel[data.status] ?? data.status;
     const sColor = data.status === "paid" ? "#16a34a" : data.status === "unpaid" ? "#dc2626" : GRAY;
-    doc.font("Helvetica").fillColor(sColor).text(sLabel, 200, y + 12);
+    doc.font("Helvetica").fillColor(sColor).text(sLabel, 335, y + 12);
 
     y = checkPageSpace(y + 10, 100);
     doc.rect(50, y, W, 80).fill(LIGHT_BG);

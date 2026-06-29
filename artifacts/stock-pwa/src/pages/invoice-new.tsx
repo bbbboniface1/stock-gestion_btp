@@ -76,7 +76,7 @@ export default function InvoiceNew() {
     setItems(prev => [...prev, {
       _key: nextKey(),
       description: "",
-      quantity: 1,
+      quantity: 0,
       unitPrice: 0,
     }]);
   };
@@ -296,10 +296,10 @@ export default function InvoiceNew() {
                       </div>
                       <Input
                         type="number"
-                        min={1}
+                        min={0}
                         step={1}
                         value={item.quantity}
-                        onChange={e => updateItem(item._key, { quantity: Math.max(1, Math.floor(Number(e.target.value) || 1)) })}
+                        onChange={e => updateItem(item._key, { quantity: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
                         className="bg-background text-sm h-8"
                       />
                       <Input
