@@ -22,6 +22,7 @@ function resolveMigrationUrl(url: string): string {
       const direct = new URL(url);
       direct.hostname = `db.${ref}.supabase.co`;
       direct.port = "5432";
+      direct.username = "postgres";
       direct.searchParams.delete("pgbouncer");
       console.log(`Using direct Supabase connection: db.${ref}.supabase.co:5432`);
       return direct.toString();

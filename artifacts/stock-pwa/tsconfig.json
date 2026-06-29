@@ -12,8 +12,12 @@
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "types": ["node", "vite/client", "vite-plugin-pwa/client"],
+
+    "baseUrl": ".",
+
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@workspace/*": ["../../lib/*"]
     }
   },
   "references": [
