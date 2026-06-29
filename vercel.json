@@ -10,7 +10,7 @@
     },
     {
       "source": "/((?!api).*)",
-      "destination": "/index.html"
+      "destination": "dist/public"
     }
   ],
   "headers": [
