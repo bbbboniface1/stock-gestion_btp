@@ -371,7 +371,7 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
     const sColor = data.status === "paid" ? "#16a34a" : data.status === "unpaid" ? "#dc2626" : GRAY;
     doc.font("Helvetica").fillColor(sColor).text(sLabel, 335, y + 12);
 
-    y = checkPageSpace(y + 10, 100);
+    y = checkPageSpace(y + 32, 100);
     doc.rect(50, y, W, 80).fill(LIGHT_BG);
     doc.fillColor(DARK).font("Helvetica-Bold").fontSize(9).text("FACTURER À", 65, y + 8);
     doc.font("Helvetica-Bold").fontSize(11).fillColor(DARK).text(data.clientName, 65, y + 21);
