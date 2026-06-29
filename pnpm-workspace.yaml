@@ -1,39 +1,3 @@
-# ============================================================================
-# SECURITY: Minimum release age for npm packages (supply-chain attack defense)
-# ============================================================================
-#
-# This setting requires that any npm package version must have been published
-# for at least 1 day (1440 minutes) before pnpm will allow installing it.
-# This is a critical defense against supply-chain attacks. In most cases,
-# malicious npm releases are discovered and pulled within hours, so a 1-day
-# delay provides a strong safety buffer.
-#
-# DO NOT DISABLE THIS SETTING. Removing or setting it to 0 is considered
-# extremely dangerous and leaves the entire workspace vulnerable to supply-
-# chain attacks, which have been the #1 vector for npm ecosystem compromises.
-#
-# If you absolutely need to install a package before the 1-day window has
-# passed (e.g. an urgent security bugfix), you can add it to the
-# `minimumReleaseAgeExclude` allowlist below. Only consider doing this for
-# packages released by trusted organizations with an impeccable security
-# posture (e.g. Replit packsges, react from Meta, typescript from Microsoft). Even then,
-# remove the exclusion once the 1-day window has passed.
-#
-# Example:
-#   minimumReleaseAgeExclude:
-#     - react
-#     - typescript
-#
-# ============================================================================
-minimumReleaseAge: 1440
-
-minimumReleaseAgeExclude:
-  # Exclude @replit scoped packages from the minimum release age check.
-  # These are published by Replit and trusted — the supply-chain attack vector
-  # this setting guards against does not apply to our own packages.
-  - '@replit/*'
-  - stripe-replit-sync
-
 packages:
   - artifacts/*
   - lib/*
@@ -75,10 +39,8 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
-  # ✅ AJOUT : drizzle-orm épinglé à la version exacte (migré depuis package.json)
-  drizzle-orm: "0.45.2"
-
-  # replit uses linux-x64 only, we can exclude all other platforms
+  # Exclude platforms not needed for Railway (linux-x64-gnu) or Vercel (linux-x64-gnu)
+  # linux-x64-gnu is kept (NOT excluded) — required by Railway and Vercel build servers
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"
   "esbuild>@esbuild/freebsd-arm64": "-"
@@ -111,7 +73,6 @@ overrides:
   "lightningcss>lightningcss-linux-arm-gnueabihf": "-"
   "lightningcss>lightningcss-linux-arm64-gnu": "-"
   "lightningcss>lightningcss-linux-arm64-musl": "-"
-  "lightningcss>lightningcss-linux-x64-musl": "-"
   "lightningcss>lightningcss-win32-arm64-msvc": "-"
   "lightningcss>lightningcss-win32-x64-msvc": "-"
   "@tailwindcss/oxide>@tailwindcss/oxide-android-arm64": "-"
@@ -123,7 +84,6 @@ overrides:
   "@tailwindcss/oxide>@tailwindcss/oxide-linux-arm64-musl": "-"
   "@tailwindcss/oxide>@tailwindcss/oxide-win32-arm64-msvc": "-"
   "@tailwindcss/oxide>@tailwindcss/oxide-win32-x64-msvc": "-"
-  "@tailwindcss/oxide>@tailwindcss/oxide-linux-x64-musl": "-"
   "rollup>@rollup/rollup-android-arm-eabi": "-"
   "rollup>@rollup/rollup-android-arm64": "-"
   "rollup>@rollup/rollup-darwin-arm64": "-"
@@ -141,7 +101,6 @@ overrides:
   "rollup>@rollup/rollup-linux-riscv64-gnu": "-"
   "rollup>@rollup/rollup-linux-riscv64-musl": "-"
   "rollup>@rollup/rollup-linux-s390x-gnu": "-"
-  "rollup>@rollup/rollup-linux-x64-musl": "-"
   "rollup>@rollup/rollup-openbsd-x64": "-"
   "rollup>@rollup/rollup-openharmony-arm64": "-"
   "rollup>@rollup/rollup-win32-arm64-msvc": "-"

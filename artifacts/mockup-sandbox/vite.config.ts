@@ -5,17 +5,21 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { mockupPreviewPlugin } from "./mockupPreviewPlugin";
 
-const port = Number(process.env.PORT) || 5173;
+// Valeurs par défaut — plus de throw bloquant sur Vercel/Railway
+const port = Number(process.env.PORT) || 3001;
 const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({
   base: basePath,
-
   plugins: [
     mockupPreviewPlugin(),
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
+    // runtimeErrorOverlay uniquement hors production
+    ...(process.env.NODE_ENV !== "production"
+      ? [runtimeErrorOverlay()]
+      : []),
+    // Plugins Replit uniquement en dev sur Replit
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -27,20 +31,16 @@ export default defineConfig({
         ]
       : []),
   ],
-
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
     },
   },
-
   root: path.resolve(import.meta.dirname),
-
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist"),
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
   },
-
   server: {
     port,
     host: "0.0.0.0",
@@ -49,7 +49,6 @@ export default defineConfig({
       strict: true,
     },
   },
-
   preview: {
     port,
     host: "0.0.0.0",

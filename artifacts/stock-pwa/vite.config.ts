@@ -5,8 +5,8 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 import { VitePWA } from "vite-plugin-pwa";
 
-const rawPort = process.env.PORT ?? "5173";
-const port = Number(rawPort);
+// Valeurs par défaut — compatibles Vercel et local
+const port = Number(process.env.PORT ?? "5173");
 const basePath = process.env.BASE_PATH ?? "/";
 
 export default defineConfig({
@@ -14,7 +14,10 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
+    // runtimeErrorOverlay uniquement hors production
+    ...(process.env.NODE_ENV !== "production"
+      ? [runtimeErrorOverlay()]
+      : []),
     VitePWA({
       strategies: "injectManifest",
       srcDir: "src",
@@ -26,7 +29,14 @@ export default defineConfig({
         type: "module",
         navigateFallback: "index.html",
       },
-      includeAssets: ["favicon.svg", "offline.html", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png", "robots.txt"],
+      includeAssets: [
+        "favicon.svg",
+        "offline.html",
+        "icons/icon.svg",
+        "icons/icon-192.png",
+        "icons/icon-512.png",
+        "robots.txt",
+      ],
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         additionalManifestEntries: [{ url: "offline.html", revision: null }],
@@ -72,7 +82,12 @@ export default defineConfig({
           {
             name: "Tableau de bord",
             url: `${basePath}`.replace(/\/+/g, "/") || "/",
-            icons: [{ src: `${basePath}icons/icon.svg`.replace(/\/+/g, "/"), sizes: "192x192" }],
+            icons: [
+              {
+                src: `${basePath}icons/icon.svg`.replace(/\/+/g, "/"),
+                sizes: "192x192",
+              },
+            ],
           },
           {
             name: "Scan rapide",
@@ -81,6 +96,7 @@ export default defineConfig({
         ],
       },
     }),
+    // Plugins Replit uniquement en dev sur Replit
     ...(process.env.NODE_ENV !== "production" &&
     process.env.REPL_ID !== undefined
       ? [
@@ -98,7 +114,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
-      "@assets": path.resolve(import.meta.dirname, "..", "..", "attached_assets"),
+      "@assets": path.resolve(
+        import.meta.dirname,
+        "..",
+        "..",
+        "attached_assets",
+      ),
     },
     dedupe: ["react", "react-dom"],
   },
