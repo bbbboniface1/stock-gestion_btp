@@ -181,3 +181,13 @@
     padding-top: env(safe-area-inset-top, 0px);
   }
 }
+
+/* Corrections safe-area uniquement en mode PWA standalone */
+@media (display-mode: standalone) {
+  .pwa-header {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  .pwa-content {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+  }
+}
