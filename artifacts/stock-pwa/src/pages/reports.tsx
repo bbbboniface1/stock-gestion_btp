@@ -22,21 +22,21 @@ const reports: Array<{
     title: "Rapport Journalier",
     description: "Mouvements et stock pour une journee",
     icon: CalendarDays,
-    bullets: ["Mouvements du jour", "Entrees et sorties", "Operateurs concernes", "Alertes stock bas"],
+    bullets: ["Stock actuel par categorie", "Mouvements du jour avec raison", "Operateur par mouvement", "Alertes stock bas"],
   },
   {
     period: "week",
     title: "Rapport Hebdomadaire",
     description: "Synthese de la semaine selectionnee",
     icon: CalendarRange,
-    bullets: ["Mouvements de la semaine", "Consommation par projet", "Totaux par periode", "Alertes stock bas"],
+    bullets: ["Mouvements de la semaine avec raison", "Consommation par projet", "Activite facturation", "Alertes stock bas"],
   },
   {
     period: "month",
     title: "Rapport Mensuel",
     description: "Synthese du mois selectionne",
     icon: FileText,
-    bullets: ["Stock actuel par categorie", "Mouvements du mois", "Consommation par projet", "Produits sous seuil"],
+    bullets: ["Stock actuel par categorie", "Mouvements du mois avec raison", "Consommation par projet", "Activite facturation", "Produits sous seuil"],
   },
 ];
 
