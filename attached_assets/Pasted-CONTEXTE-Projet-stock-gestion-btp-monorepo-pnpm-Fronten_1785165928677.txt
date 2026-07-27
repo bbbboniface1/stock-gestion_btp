@@ -1,0 +1,93 @@
+CONTEXTE
+Projet : stock-gestion_btp (monorepo pnpm). Frontend PWA dans
+artifacts/stock-pwa/src, backend API dans artifacts/api-server/src.
+Le module "facture" (invoice) a besoin de corrections ciblées. Ne touche
+à aucun autre module (stock, projets, mouvements) sauf si strictement
+nécessaire pour la cohérence des types partagés.
+
+OBJECTIF GÉNÉRAL
+Corriger 4 problèmes du module facture, listés par ordre de priorité.
+Pour chaque point : localise le code exact, corrige, puis vérifie que
+la build TypeScript passe (pnpm build ou équivalent) sans casser les
+autres pages qui utilisent le statut "draft".
+
+1) SAISIE DE LA QUANTITÉ
+Fichier : artifacts/stock-pwa/src/pages/invoice-new.tsx
+- La quantité d'une ligne de facture est forcée à un minimum de 1 via
+  `Math.max(1, Math.floor(Number(e.target.value) || 1))` (~ligne 302)
+  et la validation ligne ~99 rejette tout `quantity < 1`.
+- Corrige pour que l'utilisateur puisse taper directement un chiffre au
+  clavier (ex: effacer le champ et taper "12") sans que la valeur soit
+  reset à 1 pendant la saisie, et sans être obligé de passer par les
+  flèches d'incrémentation du input number.
+- Autorise 0 comme valeur transitoire pendant la saisie, mais bloque la
+  soumission du formulaire si une ligne a quantity <= 0 (validation à
+  la soumission, pas à chaque frappe).
+- Vérifie aussi le composant Input utilisé (probablement un simple
+  <Input type="number">) : gère le cas où le champ est vidé (chaîne
+  vide) sans forcer immédiatement une valeur.
+
+2) PDF FACTURE : DÉBORDEMENT SUR DESCRIPTION LONGUE
+Fichier : artifacts/api-server/src/routes/invoices.ts (route GET
+/invoices/:id/pdf, généré avec pdfkit)
+- Actuellement chaque ligne a une hauteur fixe (rowH = 22) et la
+  description est dessinée avec { width: 255, ellipsis: true }, ce qui
+  tronque le texte au lieu de le faire passer à la ligne, et décale/
+  chevauche les colonnes QTÉ / PRIX UNIT. / TOTAL quand le texte est
+  long.
+- Corrige en :
+  a. Calculant dynamiquement la hauteur nécessaire pour la description
+     AVANT de dessiner la ligne (pdfkit expose doc.heightOfString(text,
+     { width }) pour ça), avec retour à la ligne (pas d'ellipsis, ou
+     ellipsis seulement au-delà d'un nombre max de lignes, ex: 3).
+  b. Utilisant cette hauteur calculée comme rowH pour cette ligne
+     spécifique (au lieu du 22 fixe), pour positionner correctement
+     la quantité, le prix unitaire et le total sur la même ligne,
+     verticalement centrés ou alignés en haut.
+  c. Vérifiant que checkPageSpace / addNewPage prennent bien en compte
+     cette hauteur variable pour ne pas couper une ligne entre deux
+     pages.
+
+3) VUE FACTURE (AVANT IMPRESSION) : LIGNE DISPROPORTIONNÉE
+Fichier : artifacts/stock-pwa/src/pages/invoice-detail.tsx (~ligne
+193-210), grille CSS grid-cols-[1fr_80px_100px_100px] pour chaque
+ligne d'article.
+- Pour une description longue, la ligne devient disproportionnée /
+  peu ergonomique.
+- Corrige le CSS pour que la colonne description fasse un vrai retour
+  à la ligne propre (word-break / line-clamp raisonnable, ex: max 3-4
+  lignes avec troncature "..." + tooltip/title complet au survol si
+  besoin), et que la ligne grid s'aligne proprement (items-start plutôt
+  que items-center) plutôt que d'exploser en hauteur ou d'écraser le
+  visuel.
+
+4) STATUT "BROUILLON" → "PROFORMA"
+- Renomme uniquement le LIBELLÉ AFFICHÉ "Brouillon" en "Proforma"
+  (et "Brouillons" en "Proformas" dans les filtres), sans renommer la
+  valeur technique de l'enum "draft" côté base de données (lib/db/src/
+  schema/invoices.ts) pour éviter une migration.
+- Fichiers à mettre à jour :
+  - artifacts/stock-pwa/src/pages/invoice-detail.tsx (statusConfig,
+    bouton "Brouillon")
+  - artifacts/stock-pwa/src/pages/invoice-edit.tsx (textes utilisateur
+    mentionnant "brouillon")
+  - artifacts/stock-pwa/src/pages/invoice-new.tsx (SelectItem
+    value="draft")
+  - artifacts/stock-pwa/src/pages/invoices.tsx (statusConfig, filtre
+    STATUS_OPTIONS)
+  - artifacts/api-server/src/routes/invoices.ts (statusLabel utilisé
+    dans le PDF)
+- Fais une recherche globale (grep) de "Brouillon"/"brouillon" dans
+  artifacts/stock-pwa/src et artifacts/api-server/src pour ne rien
+  oublier, y compris les toasts/messages d'erreur.
+
+CONTRAINTES
+- Ne modifie pas l'enum invoice_status en DB (draft/unpaid/paid reste
+  identique techniquement).
+- Ne casse pas les types partagés générés dans lib/api-zod et
+  lib/api-client-react (ne pas les éditer à la main, ce sont des
+  fichiers générés).
+- Après chaque correction, relance la build/typecheck du monorepo pour
+  vérifier qu'il n'y a pas de régression.
+
+le plus important : aucune autre logique de l'app ne doit etre toucher negativement par le fait de casser l'app ou quoi que ce soit

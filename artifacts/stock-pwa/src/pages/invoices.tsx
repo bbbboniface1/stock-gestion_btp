@@ -11,7 +11,7 @@ import { useCompany } from "@/contexts/CompanyContext";
 import { useToast } from "@/hooks/use-toast";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  draft: { label: "Brouillon", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
+  draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
   unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
   paid: { label: "Payée", className: "bg-green-500/20 text-green-500 border-green-500/30" },
 };
@@ -25,7 +25,7 @@ type StatusFilter = "all" | "draft" | "unpaid" | "paid";
 
 const statusTabs: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "Toutes" },
-  { value: "draft", label: "Brouillons" },
+  { value: "draft", label: "Proformas" },
   { value: "unpaid", label: "Non payées" },
   { value: "paid", label: "Payées" },
 ];

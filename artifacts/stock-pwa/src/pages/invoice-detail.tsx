@@ -11,7 +11,7 @@ import { useAuthStore } from "@/lib/auth";
 import { downloadInvoicePdf } from "@/lib/downloadInvoicePdf";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  draft: { label: "Brouillon", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
+  draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
   unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
   paid: { label: "Payée", className: "bg-green-500/20 text-green-500 border-green-500/30" },
 };
@@ -198,10 +198,10 @@ export default function InvoiceDetail() {
           </div>
           <div className="divide-y divide-border">
             {invoice.items.map(item => (
-              <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_80px_100px_100px] gap-2 px-4 py-3 items-center">
-                <div className="flex items-center gap-2">
-                  {item.productId && <Package className="h-3 w-3 text-primary shrink-0" />}
-                  <span className="text-sm font-medium">{item.description}</span>
+              <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_80px_100px_100px] gap-2 px-4 py-3 items-start">
+                <div className="flex items-start gap-2">
+                  {item.productId && <Package className="h-3 w-3 text-primary shrink-0 mt-0.5" />}
+                  <span className="text-sm font-medium line-clamp-4 break-words" title={item.description}>{item.description}</span>
                 </div>
                 <span className="font-mono text-sm text-muted-foreground">{item.quantity}</span>
                 <span className="font-mono text-sm text-muted-foreground">{fmt(item.unitPrice, currency)}</span>
@@ -275,7 +275,7 @@ export default function InvoiceDetail() {
               onClick={() => handleStatusChange("draft")}
               disabled={invoice.status === "draft" || updateStatus.isPending}
             >
-              <FileText className="h-3 w-3 mr-2" /> Brouillon
+              <FileText className="h-3 w-3 mr-2" /> Proforma
             </Button>
             <Button
               variant={invoice.status === "unpaid" ? "default" : "outline"}

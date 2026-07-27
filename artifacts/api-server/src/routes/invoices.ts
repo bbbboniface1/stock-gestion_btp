@@ -185,7 +185,7 @@ router.patch("/invoices/:id", requireAuth, requireRole("admin", "manager"), asyn
     const [invoice] = await tx.select().from(invoicesTable).where(eq(invoicesTable.id, id));
     if (!invoice) return { error: "Facture introuvable" };
     if (invoice.status !== "draft") {
-      return { error: "Seules les factures brouillon peuvent être modifiées" };
+      return { error: "Seules les factures proforma peuvent être modifiées" };
     }
 
     const productError = await validateInvoiceStockItems(tx, items);
@@ -231,7 +231,7 @@ router.delete("/invoices/:id", requireAuth, requireRole("admin", "manager"), asy
   const [invoice] = await db.select().from(invoicesTable).where(eq(invoicesTable.id, id));
   if (!invoice) { res.status(404).json({ error: "Facture introuvable" }); return; }
   if (invoice.status !== "draft") {
-    res.status(400).json({ error: "Seules les factures brouillon peuvent être supprimées" });
+    res.status(400).json({ error: "Seules les factures proforma peuvent être supprimées" });
     return;
   }
 
@@ -306,7 +306,7 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
   const currencySymbol = company.currency === "EUR" ? "€" : company.currency === "USD" ? "$" : company.currency;
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
-  const statusLabel: Record<string, string> = { draft: "Brouillon", unpaid: "Non payée", paid: "Payée" };
+  const statusLabel: Record<string, string> = { draft: "Proforma", unpaid: "Non payée", paid: "Payée" };
 
   try {
     const logo = await resolveCompanyLogo(company.logoUrl);
@@ -383,7 +383,6 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
 
     y = checkPageSpace(cY + 15, 50);
     const colDesc = 65, colQty = 330, colPrix = 390, colTotal = 460;
-    const MAX_ITEMS_PER_PAGE = 20;
 
     doc.rect(50, y, W, 22).fill(DARK);
     doc.fillColor("white").font("Helvetica-Bold").fontSize(8.5)
@@ -394,10 +393,15 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
 
     y += 22;
     let rowAlt = false;
-    let itemsOnPage = 0;
 
     for (const item of data.items) {
-      if (itemsOnPage >= MAX_ITEMS_PER_PAGE) {
+      // Compute dynamic row height based on actual description length
+      doc.font("Helvetica").fontSize(8.5);
+      const descH = doc.heightOfString(item.description || " ", { width: 255 });
+      const rowH = Math.max(22, descH + 10); // 5 px padding top + bottom
+
+      // Page break with header redraw if row doesn't fit
+      if (y + rowH > PAGE_BOTTOM) {
         y = addNewPage();
         doc.rect(50, y, W, 22).fill(DARK);
         doc.fillColor("white").font("Helvetica-Bold").fontSize(8.5)
@@ -406,20 +410,19 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
           .text("PRIX UNIT.", colPrix, y + 7)
           .text("TOTAL", colTotal, y + 7);
         y += 22;
-        itemsOnPage = 0;
         rowAlt = false;
       }
 
-      const rowH = 22;
       if (rowAlt) doc.rect(50, y, W, rowH).fill("#fafaf9");
       rowAlt = !rowAlt;
+
+      // Description wraps naturally; numeric columns aligned to top of row
       doc.fillColor(DARK).font("Helvetica").fontSize(8.5)
-        .text(item.description, colDesc, y + 7, { width: 255, ellipsis: true })
-        .text(String(item.quantity), colQty, y + 7, { width: 50, align: "right" })
-        .text(fmt(item.unitPrice), colPrix, y + 7, { width: 60, align: "right" })
-        .text(fmt(item.totalPrice), colTotal, y + 7, { width: 70, align: "right" });
+        .text(item.description, colDesc, y + 5, { width: 255 });
+      doc.text(String(item.quantity), colQty, y + 5, { width: 50, align: "right" });
+      doc.text(fmt(item.unitPrice), colPrix, y + 5, { width: 60, align: "right" });
+      doc.text(fmt(item.totalPrice), colTotal, y + 5, { width: 70, align: "right" });
       y += rowH;
-      itemsOnPage++;
     }
 
     doc.rect(50, y + 4, W, 0.5).fill("#e7e5e4");

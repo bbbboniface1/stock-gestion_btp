@@ -13,6 +13,7 @@ import { ArrowLeft, Plus, Trash2, Search, Package, FileText } from "lucide-react
 interface LineItem extends CreateInvoiceItemInput {
   _key: number;
   _fromStock?: boolean;
+  _qtyRaw?: string; // raw string during editing to allow free typing
 }
 
 let keyCounter = 0;
@@ -48,7 +49,7 @@ export default function InvoiceEdit() {
   useEffect(() => {
     if (!invoice || initialized) return;
     if (invoice.status !== "draft") {
-      toast({ variant: "destructive", title: "Seules les factures brouillon peuvent être modifiées" });
+      toast({ variant: "destructive", title: "Seules les factures proforma peuvent être modifiées" });
       setLocation(`/invoices/${id}`);
       return;
     }
@@ -106,6 +107,7 @@ export default function InvoiceEdit() {
       description: "",
       quantity: 0,
       unitPrice: 0,
+      _qtyRaw: "",
     }]);
   };
 
@@ -124,9 +126,9 @@ export default function InvoiceEdit() {
     const badItems = items.filter(i => !i.description.trim());
     if (badItems.length > 0) { toast({ variant: "destructive", title: "Tous les articles doivent avoir une description" }); return; }
 
-    const invalidQty = items.filter(i => !Number.isInteger(i.quantity) || i.quantity < 1);
+    const invalidQty = items.filter(i => !Number.isInteger(i.quantity) || i.quantity <= 0);
     if (invalidQty.length > 0) {
-      toast({ variant: "destructive", title: "Les quantités doivent être des entiers positifs" });
+      toast({ variant: "destructive", title: "Les quantités doivent être des entiers supérieurs à 0" });
       return;
     }
 
@@ -175,7 +177,7 @@ export default function InvoiceEdit() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold uppercase tracking-tight">Modifier {invoice.invoiceNumber}</h1>
-          <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">Brouillon — édition autorisée</p>
+          <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">Proforma — édition autorisée</p>
         </div>
       </div>
 
@@ -303,8 +305,16 @@ export default function InvoiceEdit() {
                         type="number"
                         min={0}
                         step={1}
-                        value={item.quantity}
-                        onChange={e => updateItem(item._key, { quantity: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                        value={item._qtyRaw ?? String(item.quantity)}
+                        onChange={e => {
+                          const raw = e.target.value;
+                          const parsed = Math.floor(Number(raw));
+                          updateItem(item._key, {
+                            _qtyRaw: raw,
+                            quantity: raw === "" || isNaN(parsed) ? 0 : Math.max(0, parsed),
+                          });
+                        }}
+                        onBlur={() => updateItem(item._key, { _qtyRaw: String(item.quantity) })}
                         className="bg-background text-sm h-8"
                       />
                       <Input
