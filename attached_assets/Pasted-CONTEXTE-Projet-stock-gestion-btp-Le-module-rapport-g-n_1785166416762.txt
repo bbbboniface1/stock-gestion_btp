@@ -1,0 +1,74 @@
+CONTEXTE
+Projet stock-gestion_btp. Le module "rapport" génère des PDF de gestion
+de stock depuis :
+- Frontend : artifacts/stock-pwa/src/pages/reports.tsx (annonce le
+  contenu attendu de chaque rapport via des "bullets" par période)
+- Backend : artifacts/api-server/src/routes/reports.ts (génère le PDF)
+Les actions réelles de l'app sont enregistrées dans plusieurs tables :
+stockMovementsTable (mouvements), invoicesTable (factures, via
+artifacts/api-server/src/lib/invoice-stock.ts), projectsTable, et
+auditLogsTable (journal d'audit, artifacts/api-server/src/lib/audit.ts
+et route artifacts/api-server/src/routes/audit.ts).
+
+OBJECTIF
+NE PAS corriger de code pour l'instant. Auditer et rapporter, point par
+point, si le contenu de chaque rapport (jour/semaine/mois) est
+concordant avec les actions réellement effectuées dans l'app sur la
+période concernée. Produis un rapport écrit des écarts trouvés, avec
+fichier + ligne exacte, avant toute modification.
+
+POINTS À VÉRIFIER
+
+1) COHÉRENCE ANNONCE (frontend) vs CONTENU RÉEL (backend)
+   Compare les "bullets" de chaque carte de reports.tsx (rapport
+   journalier, hebdomadaire, mensuel) avec les sections réellement
+   générées dans reports.ts pour cette période. Le contenu du PDF
+   change-t-il selon le period (day/week/month), ou est-il identique
+   à la plage de dates près ? Si les bullets promettent un contenu
+   spécifique par période qui n'est pas réellement différencié dans le
+   PDF, liste précisément lesquels.
+
+2) TRAÇABILITÉ DES MOUVEMENTS DE STOCK LIÉS AUX FACTURES
+   Vérifie si les mouvements de stock créés lors de la facturation
+   (artifacts/api-server/src/lib/invoice-stock.ts, fonction qui insère
+   dans stockMovementsTable avec reason: `Facture ${invoiceNumber}`)
+   renseignent bien un projectId quand la facture/le produit est
+   rattaché à un projet. Si projectId n'est jamais renseigné pour ces
+   mouvements, confirme que cela signifie que la section "3.
+   Consommation par projet" du rapport (reports.ts) sous-estime
+   systématiquement la consommation réelle des projets qui ont été
+   livrés via facture plutôt que via la sortie stock manuelle
+   (projects.ts) ou l'endpoint stock-movements.ts.
+
+3) FACTURES ABSENTES DU RAPPORT
+   Vérifie si reports.ts interroge invoicesTable d'une façon ou d'une
+   autre. Si non, confirme cet écart : le rapport de gestion des stocks
+   ne reflète aucune action de facturation (nombre de factures émises,
+   statut payé/impayé/proforma, montant total facturé sur la période),
+   alors que la facturation fait sortir du stock. Indique si c'est un
+   manque fonctionnel à combler ou un choix de périmètre volontaire
+   (à confirmer avec moi avant toute correction).
+
+4) COHÉRENCE AVEC LE JOURNAL D'AUDIT
+   Compare, pour une période test (ex: le mois en cours), le nombre
+   d'actions enregistrées dans auditLogsTable (actions du type
+   update_status, export_pdf, create sur invoice/product/project) avec
+   les totaux affichés dans les cartes du rapport (Entrees periode,
+   Sorties periode, Alertes stock bas). Signale toute action tracée
+   dans l'audit log qui ne se retrouve dans aucun total ou tableau du
+   rapport.
+
+5) LISIBILITÉ DE LA TRAÇABILITÉ DES "REASON"
+   Liste tous les labels de "reason" utilisés lors de l'insertion dans
+   stockMovementsTable à travers le code (products.ts: "Stock initial",
+   projects.ts: "Consommation projet: X", invoice-stock.ts: "Facture X",
+   stock-movements.ts: saisie manuelle). Vérifie que le tableau
+   "Mouvements" du rapport (reports.ts) affiche bien cette raison de
+   façon à ce qu'on puisse remonter à l'action d'origine juste en
+   lisant le PDF.
+
+LIVRABLE ATTENDU
+Un rapport Markdown listant, pour chaque point 1 à 5 : le constat exact
+(avec fichier + ligne), s'il y a discordance ou non, et une
+recommandation de correction si besoin — sans encore modifier le code.
+Je validerai ensuite quelles corrections lancer.
