@@ -1,7 +1,7 @@
 import { Router, IRouter } from "express";
 import { db, stockMovementsTable, productsTable, usersTable, projectsTable } from "@workspace/db";
 import { eq, and, gte, lt, lte, sql, type SQL } from "drizzle-orm";
-import { requireAuth, type AuthenticatedRequest } from "../middlewares/auth";
+import { requireAuth, requireRole, type AuthenticatedRequest } from "../middlewares/auth";
 import {
   ListStockMovementsQueryParams,
   ListStockMovementsResponse,
@@ -79,7 +79,7 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
   res.json(ListStockMovementsResponse.parse(serializeDates(rows)));
 });
 
-router.post("/stock-movements", requireAuth, async (req: AuthenticatedRequest, res): Promise<void> => {
+router.post("/stock-movements", requireAuth, requireRole("admin", "manager"), async (req: AuthenticatedRequest, res): Promise<void> => {
   const parsed = CreateStockMovementBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 

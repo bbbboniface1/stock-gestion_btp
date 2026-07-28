@@ -96,14 +96,21 @@ export default function ScanPage() {
         setScreen("success");
       },
       onError: (err: any) => {
-        setErrorMsg(err?.data?.error ?? "Erreur lors de l'enregistrement");
+        const status = err?.status ?? err?.response?.status;
+        const apiMsg = err?.data?.error ?? err?.response?.data?.error;
+        if (status === 403) {
+          setErrorMsg("Action réservée aux rôles admin et manager. Contactez votre responsable.");
+        } else {
+          setErrorMsg(apiMsg ?? "Erreur lors de l'enregistrement");
+        }
         setScreen("error");
       },
     });
   };
 
   const isOutOfStock = type === "OUT" && product && safeQty() > product.quantityInStock;
-  const canSubmit = reason.trim().length > 0 && safeQty() >= 1 && !isOutOfStock && !createMovement.isPending && !!user && !!product;
+  const parsedQty = parseInt(quantity);
+  const canSubmit = reason.trim().length > 0 && Number.isInteger(parsedQty) && parsedQty >= 1 && !isOutOfStock && !createMovement.isPending && !!user && !!product;
 
   if (!token) return null;
 
@@ -303,7 +310,7 @@ export default function ScanPage() {
                   min={1}
                   inputMode="numeric"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value === "" ? "1" : e.target.value)}
+                  onChange={(e) => setQuantity(e.target.value)}
                   className="flex-1 h-14 text-center text-2xl font-bold font-mono bg-card border-border"
                 />
                 <button

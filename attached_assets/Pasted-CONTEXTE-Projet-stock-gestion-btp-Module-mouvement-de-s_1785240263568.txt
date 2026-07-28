@@ -1,0 +1,51 @@
+CONTEXTE
+Projet stock-gestion_btp. Module "mouvement de stock" = backend
+artifacts/api-server/src/routes/stock-movements.ts (endpoint POST
+/stock-movements) + interface de saisie mobile artifacts/stock-pwa/src/
+pages/scan.tsx (scan QR code produit → enregistrement d'un mouvement
+IN/OUT). Ne touche à aucun autre module.
+
+OBJECTIF
+Corriger 2 points bloquants identifiés dans ce module, par ordre de
+priorité. Travaille sur une branche dédiée fix/module-mouvement-stock,
+un commit par point, ne touche pas aux fichiers générés (lib/api-zod,
+lib/api-client-react) ni à l'enum DB.
+
+1) FAILLE DE CONTRÔLE D'ACCÈS
+Fichier : artifacts/api-server/src/routes/stock-movements.ts, ligne 82
+La route POST /stock-movements n'utilise que "requireAuth", sans
+"requireRole(...)", contrairement à toutes les autres routes de
+modification de stock (products.ts, projects.ts) qui exigent
+admin/manager. N'importe quel utilisateur connecté peut donc créer un
+mouvement de stock manuel.
+Corrige en ajoutant "requireRole("admin", "manager")" sur cette route,
+à l'identique du pattern utilisé dans products.ts et projects.ts.
+Vérifie ensuite que ça ne casse pas le flux de scan.tsx : le rôle de
+l'utilisateur qui scanne doit être admin ou manager, sinon adapte le
+message d'erreur affiché côté scan.tsx pour expliquer clairement que
+l'action nécessite ce rôle (plutôt qu'un crash ou une erreur 403 brute
+et silencieuse).
+
+2) SAISIE DE LA QUANTITÉ FIGÉE À 1 (même bug que le module facture)
+Fichier : artifacts/stock-pwa/src/pages/scan.tsx, ligne ~306
+onChange={(e) => setQuantity(e.target.value === "" ? "1" : e.target.value)}
+Quand l'utilisateur vide le champ pour taper un nouveau chiffre, la
+valeur revient immédiatement à "1", empêchant la saisie directe au
+clavier (comportement identique au bug déjà corrigé dans
+invoice-new.tsx). Corrige avec la même approche que pour la facture :
+état transitoire "" ou "0" pendant la saisie, validation du minimum (1)
+uniquement à la confirmation du mouvement (fonction handleSubmit /
+canSubmit), pas à chaque frappe.
+
+VÉRIFICATIONS
+- Teste le scan d'un produit en tant qu'utilisateur "manager" : saisie
+  libre de la quantité au clavier, sans passer par les boutons +/-.
+- Teste avec un compte qui n'a pas le rôle admin/manager (si un tel
+  rôle existe dans l'app) : le POST doit être refusé proprement avec
+  un message clair côté interface, pas un écran blanc ou une erreur
+  générique.
+- Confirme que products.ts et projects.ts n'ont pas été touchés.
+
+LIVRABLE
+Résumé fichier par fichier des changements, avec avant/après pour les
+2 points ci-dessus.
