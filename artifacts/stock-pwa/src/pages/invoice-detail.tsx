@@ -9,17 +9,13 @@ import { ArrowLeft, Download, Package, CheckCircle, Clock, FileText, Pencil, Tra
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { downloadInvoicePdf } from "@/lib/downloadInvoicePdf";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
   unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
   paid: { label: "Payée", className: "bg-green-500/20 text-green-500 border-green-500/30" },
 };
-
-function fmt(n: number, currency = "EUR") {
-  const sym = currency === "EUR" ? "€" : currency === "USD" ? "$" : currency;
-  return `${n.toFixed(2)} ${sym}`;
-}
 
 export default function InvoiceDetail() {
   const params = useParams<{ id: string }>();
@@ -204,25 +200,25 @@ export default function InvoiceDetail() {
                   <span className="text-sm font-medium line-clamp-4 break-words" title={item.description}>{item.description}</span>
                 </div>
                 <span className="font-mono text-sm text-muted-foreground">{item.quantity}</span>
-                <span className="font-mono text-sm text-muted-foreground">{fmt(item.unitPrice, currency)}</span>
-                <span className="font-mono font-bold text-sm text-right">{fmt(item.totalPrice, currency)}</span>
+                <span className="font-mono text-sm text-muted-foreground">{formatCurrency(item.unitPrice, currency)}</span>
+                <span className="font-mono font-bold text-sm text-right">{formatCurrency(item.totalPrice, currency)}</span>
               </div>
             ))}
           </div>
           <div className="border-t border-border p-4 flex flex-col items-end gap-1 text-sm">
             <div className="flex justify-between w-full max-w-xs">
               <span className="text-muted-foreground uppercase">Sous-total</span>
-              <span className="font-mono font-bold">{fmt(invoice.subtotal, currency)}</span>
+              <span className="font-mono font-bold">{formatCurrency(invoice.subtotal, currency)}</span>
             </div>
             {invoice.taxRate > 0 && (
               <div className="flex justify-between w-full max-w-xs">
                 <span className="text-muted-foreground uppercase">TVA ({invoice.taxRate}%)</span>
-                <span className="font-mono">{fmt(invoice.taxAmount, currency)}</span>
+                <span className="font-mono">{formatCurrency(invoice.taxAmount, currency)}</span>
               </div>
             )}
             <div className="flex justify-between w-full max-w-xs pt-2 border-t border-border">
               <span className="font-bold uppercase text-primary">Total</span>
-              <span className="font-mono font-bold text-xl text-primary">{fmt(invoice.total, currency)}</span>
+              <span className="font-mono font-bold text-xl text-primary">{formatCurrency(invoice.total, currency)}</span>
             </div>
           </div>
         </CardContent>

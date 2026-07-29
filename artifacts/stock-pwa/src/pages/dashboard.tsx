@@ -1,6 +1,7 @@
 import { useGetDashboardSummary, useGetLowStockProducts, useGetRecentMovements, useGetStockByCategory, customFetch } from "@workspace/api-client-react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Package, AlertTriangle, ArrowRightLeft, Activity, TrendingUp, PieChart as PieIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -77,10 +78,6 @@ export default function Dashboard() {
     );
   }
 
-  if (loadingSummary) {
-    return <div className="p-8 text-muted-foreground animate-pulse font-mono uppercase">Chargement des données...</div>;
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -101,7 +98,7 @@ export default function Dashboard() {
             <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{summary?.totalProducts || 0}</div>
+            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold">{summary?.totalProducts || 0}</div>}
           </CardContent>
         </Card>
         <Card className="bg-card border-destructive">
@@ -110,7 +107,7 @@ export default function Dashboard() {
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-destructive">{summary?.lowStockCount || 0}</div>
+            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold text-destructive">{summary?.lowStockCount || 0}</div>}
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
@@ -119,11 +116,13 @@ export default function Dashboard() {
             <ArrowRightLeft className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">
-              <span className="text-green-500">+{summary?.todayMovementsIn || 0}</span>
-              <span className="text-muted-foreground mx-2">/</span>
-              <span className="text-orange-500">-{summary?.todayMovementsOut || 0}</span>
-            </div>
+            {loadingSummary ? <Skeleton className="h-9 w-28" /> : (
+              <div className="text-3xl font-bold text-foreground">
+                <span className="text-green-500">+{summary?.todayMovementsIn || 0}</span>
+                <span className="text-muted-foreground mx-2">/</span>
+                <span className="text-orange-500">-{summary?.todayMovementsOut || 0}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
@@ -132,7 +131,7 @@ export default function Dashboard() {
             <Activity className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{summary?.activeProjects || 0}</div>
+            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold text-foreground">{summary?.activeProjects || 0}</div>}
           </CardContent>
         </Card>
       </div>
@@ -149,7 +148,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pt-4">
             {loadingChartMovements ? (
-              <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase animate-pulse">Chargement...</div>
+              <div className="h-48 flex flex-col justify-end gap-1 px-2 pb-2">
+                {[60, 85, 40, 95, 55, 70, 45].map((h, i) => (
+                  <Skeleton key={i} className="w-full rounded-sm" style={{ height: `${h}%` }} />
+                ))}
+              </div>
             ) : errorChartMovements ? (
               <div className="h-48 flex flex-col items-center justify-center gap-2 text-center">
                 <p className="text-destructive text-sm uppercase font-mono">Graphique indisponible</p>
@@ -189,7 +192,9 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pt-4">
             {loadingCategory ? (
-              <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase animate-pulse">Chargement...</div>
+              <div className="h-48 flex items-center justify-center">
+                <Skeleton className="h-36 w-36 rounded-full" />
+              </div>
             ) : !byCategory?.length ? (
               <div className="h-48 flex items-center justify-center text-muted-foreground text-sm uppercase">Aucune donnée</div>
             ) : (
@@ -229,7 +234,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             {loadingLowStock ? (
-              <div className="p-4 text-sm text-muted-foreground uppercase">Analyse en cours...</div>
+              <div className="space-y-2 p-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full rounded-md" />
+                ))}
+              </div>
             ) : lowStock && lowStock.length > 0 ? (
               <div className="divide-y divide-border">
                 {lowStock.map(p => (
@@ -260,7 +269,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-0 flex-1">
             {loadingRecent ? (
-              <div className="p-4 text-sm text-muted-foreground uppercase">Chargement de l'historique...</div>
+              <div className="space-y-2 p-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full rounded-md" />
+                ))}
+              </div>
             ) : recent && recent.length > 0 ? (
               <div className="divide-y divide-border">
                 {recent.slice(0, 8).map(m => (

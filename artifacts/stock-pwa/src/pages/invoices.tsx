@@ -9,17 +9,14 @@ import { Input } from "@/components/ui/input";
 import { FileText, Plus, Search, Download } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
   unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
   paid: { label: "Payée", className: "bg-green-500/20 text-green-500 border-green-500/30" },
 };
-
-function fmt(n: number, currency = "EUR") {
-  const sym = currency === "EUR" ? "€" : currency === "USD" ? "$" : currency;
-  return `${n.toFixed(2)} ${sym}`;
-}
 
 type StatusFilter = "all" | "draft" | "unpaid" | "paid";
 
@@ -67,19 +64,19 @@ export default function Invoices() {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wider">Total facturé</div>
-            <div className="text-2xl font-bold font-mono mt-1">{fmt(totalPaid + totalUnpaid, company?.currency)}</div>
+            <div className="text-2xl font-bold font-mono mt-1">{formatCurrency(totalPaid + totalUnpaid, company?.currency ?? "EUR")}</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wider">Payé</div>
-            <div className="text-2xl font-bold font-mono text-green-500 mt-1">{fmt(totalPaid, company?.currency)}</div>
+            <div className="text-2xl font-bold font-mono text-green-500 mt-1">{formatCurrency(totalPaid, company?.currency ?? "EUR")}</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wider">En attente</div>
-            <div className="text-2xl font-bold font-mono text-destructive mt-1">{fmt(totalUnpaid, company?.currency)}</div>
+            <div className="text-2xl font-bold font-mono text-destructive mt-1">{formatCurrency(totalUnpaid, company?.currency ?? "EUR")}</div>
           </CardContent>
         </Card>
       </div>
@@ -114,7 +111,11 @@ export default function Invoices() {
           <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
         </div>
       ) : isLoading ? (
-        <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement...</div>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-[72px] w-full rounded-md" />
+          ))}
+        </div>
       ) : (
         <Card className="bg-card border-border">
           <CardContent className="p-0">
@@ -142,7 +143,7 @@ export default function Invoices() {
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right">
-                          <div className="font-bold font-mono">{fmt(invoice.total, company?.currency)}</div>
+                          <div className="font-bold font-mono">{formatCurrency(invoice.total, company?.currency ?? "EUR")}</div>
                           {invoice.taxRate > 0 && (
                             <div className="text-xs text-muted-foreground">TVA {invoice.taxRate}%</div>
                           )}

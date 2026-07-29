@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Plus, ArrowRightLeft, ArrowUp, ArrowDown, ChevronDown } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import MovementDialog from "@/components/MovementDialog";
 import type { ListStockMovementsParams } from "@workspace/api-zod";
 
@@ -110,7 +111,11 @@ export default function Movements() {
           <button onClick={() => window.location.reload()} className="text-xs text-primary hover:underline font-mono uppercase">Réessayer</button>
         </div>
       ) : isLoading ? (
-        <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement de l'historique...</div>
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-[72px] w-full rounded-md" />
+          ))}
+        </div>
       ) : (
         <Card className="bg-card border-border">
           <CardContent className="p-0">

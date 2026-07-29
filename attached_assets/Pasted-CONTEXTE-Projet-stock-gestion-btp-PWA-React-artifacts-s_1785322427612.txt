@@ -1,0 +1,105 @@
+CONTEXTE
+Projet stock-gestion_btp, PWA React (artifacts/stock-pwa/src). 3 points
+distincts et indépendants, chacun sur un commit séparé, branche dédiée
+fix/loading-touch-format. Ne touche à aucune logique métier, aucun
+appel API, aucun fichier backend.
+
+POINT 3 — ÉTATS DE CHARGEMENT (utiliser le composant Skeleton existant)
+
+Constat : components/ui/skeleton.tsx existe déjà et n'est utilisé nulle
+part. Chaque page affiche à la place un texte "Chargement..." avec
+animate-pulse (ex: products.tsx ligne ~273, invoices.tsx ligne ~116,
+movements.tsx ligne ~106, dashboard.tsx ligne ~80).
+
+Étapes précises, PAGE PAR PAGE (ne fais qu'une page à la fois, teste,
+puis passe à la suivante) :
+- products.tsx, invoices.tsx, movements.tsx : remplace uniquement le
+  bloc `isLoading ? <div className="animate-pulse...">Chargement...
+  </div>` par 3 à 5 instances de <Skeleton> empilées, dimensionnées
+  pour ressembler approximativement à une ligne de la vraie liste
+  (même hauteur, même espacement vertical que les vraies cartes/lignes
+  affichées juste après dans le code). Exemple de structure à adapter :
+  <div className="space-y-2">
+    {Array.from({ length: 5 }).map((_, i) => (
+      <Skeleton key={i} className="h-16 w-full rounded-md" />
+    ))}
+  </div>
+- dashboard.tsx : fait la même chose pour CHAQUE bloc isLoading
+  individuel (loadingSummary, loadingLowStock, loadingRecent,
+  loadingCategory, loadingChartMovements) séparément — ne remplace pas
+  le early return global de la ligne 80 par un skeleton de page entière,
+  reste sur des skeletons localisés à chaque carte/graphique.
+- NE TOUCHE PAS aux blocs isError (garde le message d'erreur + bouton
+  "Réessayer" tels quels).
+
+TEST : recharge chaque page avec le réseau throttled en "Slow 3G"
+(DevTools) pour bien voir le skeleton avant le contenu réel, vérifie
+qu'il n'y a pas de saut de mise en page (layout shift) au moment où le
+skeleton est remplacé par le vrai contenu.
+
+POINT 4 — TAILLE MINIMALE DES BOUTONS TACTILES
+
+Constat : components/ui/button.tsx ligne 32, la taille "sm" utilise
+min-h-8 (32px), en dessous du minimum recommandé pour un usage tactile
+fiable (44px iOS / 48px Material), particulièrement critique pour un
+usage avec des gants de travail.
+
+Étape technique précise (UN SEUL fichier à modifier, source unique de
+vérité pour tous les boutons "sm" de l'app) :
+- Dans components/ui/button.tsx, change uniquement :
+  sm: "min-h-8 rounded-md px-3 text-xs"
+  en :
+  sm: "min-h-10 rounded-md px-3 text-xs"
+  (min-h-10 = 40px, un bon compromis entre lisibilité tactile et
+  densité d'affichage sur les tableaux qui utilisent beaucoup de
+  boutons "sm" côte à côte)
+- NE TOUCHE PAS à "default", "lg", "icon", ni à la largeur (px-3 reste
+  identique) — seule la hauteur change.
+
+TEST : après ce changement, vérifie visuellement les zones à forte
+densité de boutons "sm" (actions par ligne dans products.tsx, users.tsx,
+project-detail.tsx) pour confirmer qu'aucune ligne ne devient trop
+haute ou que les boutons ne se chevauchent pas sur mobile étroit (375px).
+
+POINT 5 — FORMATAGE DES NOMBRES/DEVISE CENTRALISÉ
+
+Constat : la fonction de formatage `n.toFixed(2)` est dupliquée à
+l'identique dans invoice-detail.tsx (ligne 21), invoices.tsx (ligne 21)
+et invoice-new.tsx (ligne 22), sans passer par Intl.NumberFormat, donc
+pas de séparateur de milliers et pas de gestion correcte des devises
+sans décimales (comme XOF/CFA).
+
+Étapes précises :
+a) Crée un nouveau fichier src/lib/formatCurrency.ts (ne touche à rien
+   d'existant) avec une fonction unique :
+   export function formatCurrency(amount: number, currencyCode: string): string {
+     const isZeroDecimal = currencyCode === "XOF" || currencyCode === "XAF";
+     return new Intl.NumberFormat("fr-FR", {
+       minimumFractionDigits: isZeroDecimal ? 0 : 2,
+       maximumFractionDigits: isZeroDecimal ? 0 : 2,
+     }).format(amount) + " " + (currencyCode === "EUR" ? "€" : currencyCode === "USD" ? "$" : currencyCode === "XOF" ? "FCFA" : currencyCode);
+   }
+b) Remplace les 3 fonctions `fmt`/formatages dupliqués dans
+   invoice-detail.tsx, invoices.tsx et invoice-new.tsx par un import de
+   cette fonction unique : import { formatCurrency } from "@/lib/formatCurrency";
+   et appelle-la avec le currencyCode de l'entreprise (déjà disponible
+   via useCompany() dans ces pages, vérifie le nom exact du champ dans
+   CompanyContext).
+c) NE TOUCHE PAS au backend (artifacts/api-server), uniquement au
+   frontend pour ce point — le formatage du PDF sera traité séparément.
+
+TEST : vérifie l'affichage d'un montant comme 1234567 avec currencyCode
+"EUR" (doit donner "1 234 567,00 €" avec séparateur d'espace typique
+fr-FR) et avec "XOF" (doit donner "1 234 567 FCFA" sans décimales).
+
+NOTE POUR TOI (ne fais rien dessus, information seulement) : le format
+d'affichage des <input type="date"> (calendrier natif du téléphone)
+dépend de la langue configurée sur l'appareil de l'utilisateur, pas du
+code de l'app — ce n'est pas modifiable de façon fiable en JS/CSS,
+donc rien à corriger ici malgré ce qui avait été évoqué. Ignore ce
+sous-point.
+
+LIVRABLE
+Pour chaque point : liste des fichiers modifiés, et pour le point 5 en
+particulier, les résultats de test des deux formats de devise (EUR et
+XOF) avec un montant à 6 chiffres.
