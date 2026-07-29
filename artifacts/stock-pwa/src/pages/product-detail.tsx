@@ -5,6 +5,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StampBadge } from "@/components/ui/stamp-badge";
 import { ArrowLeft, ArrowUp, ArrowDown, Package, QrCode, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
@@ -57,7 +58,7 @@ export default function ProductDetail() {
         <div>
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-3xl font-bold uppercase tracking-tight">{product.name}</h1>
-            {isLow && <Badge variant="destructive" className="uppercase text-xs">Stock Critique</Badge>}
+            {isLow && <StampBadge variant="danger">Stock Critique</StampBadge>}
           </div>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">
             {product.category} · {locationLabels[product.location]}

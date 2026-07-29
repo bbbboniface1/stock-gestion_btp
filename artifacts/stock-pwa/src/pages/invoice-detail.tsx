@@ -5,16 +5,17 @@ import { CompanyBranding } from "@/components/CompanyBranding";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StampBadge } from "@/components/ui/stamp-badge";
 import { ArrowLeft, Download, Package, CheckCircle, Clock, FileText, Pencil, Trash2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "@/lib/auth";
 import { downloadInvoicePdf } from "@/lib/downloadInvoicePdf";
 import { formatCurrency } from "@/lib/formatCurrency";
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
-  unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
-  paid: { label: "Payée", className: "bg-green-500/20 text-green-500 border-green-500/30" },
+const statusConfig: Record<string, { label: string; className: string; variant: "info" | "danger" | "success" }> = {
+  draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30", variant: "info" },
+  unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30", variant: "danger" },
+  paid: { label: "Payée", className: "bg-status-success/20 text-status-success border-status-success/30", variant: "success" },
 };
 
 export default function InvoiceDetail() {
@@ -105,7 +106,7 @@ export default function InvoiceDetail() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold uppercase tracking-tight font-mono">{invoice.invoiceNumber}</h1>
-            <Badge className={`uppercase text-xs ${st.className}`}>{st.label}</Badge>
+            <StampBadge variant={st.variant}>{st.label}</StampBadge>
           </div>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{invoice.clientName}</p>
         </div>

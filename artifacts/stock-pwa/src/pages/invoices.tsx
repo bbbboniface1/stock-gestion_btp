@@ -5,6 +5,7 @@ import { downloadInvoicePdf } from "@/lib/downloadInvoicePdf";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StampBadge } from "@/components/ui/stamp-badge";
 import { Input } from "@/components/ui/input";
 import { FileText, Plus, Search, Download } from "lucide-react";
 import { useCompany } from "@/contexts/CompanyContext";
@@ -12,10 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/formatCurrency";
 
-const statusConfig: Record<string, { label: string; className: string }> = {
-  draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
-  unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
-  paid: { label: "Payée", className: "bg-status-success/20 text-status-success border-status-success/30" },
+const statusConfig: Record<string, { label: string; className: string; variant: "info" | "danger" | "success" }> = {
+  draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30", variant: "info" },
+  unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30", variant: "danger" },
+  paid: { label: "Payée", className: "bg-status-success/20 text-status-success border-status-success/30", variant: "success" },
 };
 
 type StatusFilter = "all" | "draft" | "unpaid" | "paid";
@@ -148,7 +149,7 @@ export default function Invoices() {
                             <div className="text-xs text-muted-foreground">TVA {invoice.taxRate}%</div>
                           )}
                         </div>
-                        <Badge className={`uppercase text-xs ${st.className}`}>{st.label}</Badge>
+                        <StampBadge variant={st.variant}>{st.label}</StampBadge>
                         <Button
                           size="sm"
                           variant="outline"
