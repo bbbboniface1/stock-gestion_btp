@@ -1,0 +1,147 @@
+CONTEXTE
+Projet stock-gestion_btp, PWA React (artifacts/stock-pwa/src), Tailwind
+v4, système de variables CSS déjà en place dans src/index.css. Refonte
+visuelle ciblée sur les tokens de design (couleurs, typographie) et 2
+composants partagés — PAS de changement de structure de page, PAS de
+changement de logique métier. Branche dédiée fix/identite-visuelle,
+un commit par étape numérotée ci-dessous. Fais chaque étape, teste
+visuellement, avant de passer à la suivante.
+
+DIRECTION CRÉATIVE (à respecter strictement, ne pas réinterpréter)
+Univers de référence : bordereaux de livraison BTP, caisses marquées au
+pochoir, tampons encreurs, terre de latérite, bâches de chantier. On
+évite explicitement : fond crème + serif + accent terracotta ; fond
+quasi-noir + accent vif unique ; style journal à filets fins sans
+arrondi. La police actuelle (JetBrains Mono en police par défaut de
+toute l'app) doit être remplacée — c'est la police la plus associée aux
+dashboards générés par IA actuellement, elle doit disparaître comme
+police globale (elle peut rester en usage ponctuel si un composant
+existant s'appuie dessus, mais IBM Plex Mono prend le rôle "données
+techniques").
+
+ÉTAPE 1 — NOUVELLES POLICES
+a) Dans index.html, remplace le lien Google Fonts actuel (Inter seul)
+   par :
+   <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+b) Dans src/index.css, dans le bloc @theme inline, remplace :
+   --font-sans: 'Inter', sans-serif;
+   --font-mono: 'JetBrains Mono', monospace;
+   par :
+   --font-sans: 'Inter', sans-serif;
+   --font-mono: 'IBM Plex Mono', monospace;
+   --font-display: 'Big Shoulders Display', sans-serif;
+c) Dans src/App.tsx ligne ~287 (déjà identifié précédemment), assure-toi
+   que "font-mono" est bien retiré du conteneur racine (si ce correctif
+   n'a pas encore été appliqué, applique-le maintenant : la classe
+   passe de "min-h-screen flex w-full bg-background font-mono" à
+   "min-h-screen flex w-full bg-background").
+d) Applique font-display (nouvelle classe Tailwind générée par le token
+   --font-display) UNIQUEMENT sur : les titres de page (pageTitleFromPath
+   dans MobileHeader, App.tsx), les CardTitle des pages principales
+   (dashboard.tsx, products.tsx, invoices.tsx, movements.tsx, projects.tsx),
+   et les gros chiffres statistiques du dashboard (dashboard.tsx, les
+   valeurs des cartes résumé). N'applique PAS font-display sur les
+   boutons, labels de formulaire, ou texte de contenu — garde ces
+   endroits en font-mono (uppercase, tracking-wide, comme actuellement)
+   ou font-sans selon ce qui existe déjà.
+
+ÉTAPE 2 — NOUVELLE PALETTE DE COULEURS
+Dans src/index.css, à l'intérieur du bloc :root (mode clair), remplace
+les valeurs actuelles par (garde les MÊMES noms de variables, change
+uniquement les valeurs HSL) :
+  --background: 37 43% 90%;
+  --foreground: 30 12% 14%;
+  --card: 39 57% 96%;
+  --card-foreground: 30 12% 14%;
+  --card-border: 37 20% 80%;
+  --primary: 18 56% 42%;
+  --primary-foreground: 39 57% 96%;
+  --primary-border: hsl(18 56% 34%);
+  (garde --secondary/--muted/--accent en tons neutres dérivés de la
+  même famille chaude, ajuste légèrement leur luminosité pour rester
+  cohérent avec le nouveau fond)
+
+Dans le bloc .dark, remplace par :
+  --background: 30 12% 10%;
+  --foreground: 39 20% 92%;
+  --card: 33 13% 13%;
+  --card-foreground: 39 20% 92%;
+  --card-border: 30 10% 20%;
+  --primary: 18 56% 48%;
+  --primary-foreground: 30 12% 10%;
+  --primary-border: hsl(18 56% 40%);
+
+Ajoute dans les DEUX blocs (:root et .dark), ces nouvelles variables de
+statut (valeurs différentes clair/sombre comme indiqué) :
+  :root : --status-success: 150 32% 32%; --status-warning: 39 67% 45%;
+          --status-danger: 0 51% 42%; --status-info: 203 39% 36%;
+  .dark : --status-success: 150 32% 45%; --status-warning: 39 67% 58%;
+          --status-danger: 0 51% 55%; --status-info: 203 39% 55%;
+Ajoute-les aussi dans @theme inline (même pattern que les couleurs
+existantes : --color-status-success: hsl(var(--status-success)); etc.)
+pour générer les classes text-status-success, bg-status-success, etc.
+
+ÉTAPE 3 — MIGRATION DES COULEURS DE STATUT CODÉES EN DUR
+(Ceci correspond au point déjà identifié séparément — fais-le ici si
+pas déjà fait : remplace text-green-500/bg-orange-500 etc. par les
+nouvelles classes text-status-success/bg-status-warning etc. dans
+products.tsx, invoices.tsx, movements.tsx, dashboard.tsx,
+project-detail.tsx.)
+
+ÉTAPE 4 — COMPOSANT SIGNATURE : BADGE "TAMPON ENCREUR"
+Crée un nouveau composant src/components/ui/stamp-badge.tsx (ne touche
+à aucun composant existant) :
+
+import { cn } from "@/lib/utils";
+
+const STAMP_ROTATIONS: Record<string, string> = {
+  success: "-rotate-3", warning: "-rotate-2", danger: "rotate-2", info: "-rotate-1",
+};
+
+export function StampBadge({
+  children, variant = "info", className,
+}: { children: React.ReactNode; variant?: "success" | "warning" | "danger" | "info"; className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center px-3 py-1 font-display font-bold uppercase text-xs tracking-wider",
+        "border-2 rounded-sm select-none",
+        STAMP_ROTATIONS[variant],
+        variant === "success" && "border-status-success text-status-success",
+        variant === "warning" && "border-status-warning text-status-warning",
+        variant === "danger" && "border-status-danger text-status-danger",
+        variant === "info" && "border-status-info text-status-info",
+        className
+      )}
+      style={{
+        boxShadow: "inset 0 0 0 1px currentColor",
+        opacity: 0.9,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+Remplace les badges de statut actuels UNIQUEMENT dans invoice-detail.tsx,
+invoices.tsx (badge de statut facture) et product-detail.tsx (badge
+stock bas/ok) par ce nouveau <StampBadge variant="...">. NE TOUCHE PAS
+aux autres badges/indicateurs de l'app (garde le reste identique pour
+ne pas surcharger visuellement — l'élément signature doit rester
+localisé aux statuts les plus importants, pas partout).
+
+CONTRAINTES DE SÉCURITÉ
+- Ne modifie aucun fichier backend, aucune logique métier, aucun appel
+  API.
+- Ne renomme aucune variable CSS existante (garde --background,
+  --foreground, etc. — change uniquement leurs valeurs), pour ne pas
+  casser les composants shadcn/ui qui les référencent déjà partout.
+- Ne touche pas au composant Sidebar/navigation, uniquement aux
+  couleurs qu'il hérite automatiquement des variables globales.
+- Après chaque étape, vérifie visuellement le contraste texte/fond sur
+  au moins 3 pages (dashboard, products, invoices), en mode clair ET
+  sombre.
+
+LIVRABLE
+Pour chaque étape : fichiers modifiés + capture ou description du rendu
+avant/après. Un résumé final de la palette et typographie appliquées.

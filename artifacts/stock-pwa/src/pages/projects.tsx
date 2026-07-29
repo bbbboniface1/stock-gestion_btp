@@ -73,7 +73,7 @@ export default function Projects() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold uppercase tracking-tight">Projets</h1>
+          <h1 className="text-3xl font-bold font-display uppercase tracking-tight">Projets</h1>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{projects?.length ?? 0} projets</p>
         </div>
         {canCreate && (

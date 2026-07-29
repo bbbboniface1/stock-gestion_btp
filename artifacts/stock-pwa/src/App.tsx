@@ -174,7 +174,7 @@ function MobileHeader() {
       <SidebarTrigger className="h-9 w-9 shrink-0" />
       <div className="flex items-center gap-2 flex-1 min-w-0">
         <HardHat className="h-4 w-4 text-primary shrink-0" />
-        <span className="font-bold font-mono uppercase text-primary text-sm tracking-wider truncate">
+        <span className="font-bold font-display uppercase text-primary text-sm tracking-wider truncate">
           {title}
         </span>
       </div>

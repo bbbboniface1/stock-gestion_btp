@@ -54,7 +54,8 @@
   --color-sidebar-ring: hsl(var(--sidebar-ring));
 
   --font-sans: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-display: 'Big Shoulders Display', sans-serif;
 
   --radius-sm: 2px;
   --radius-md: 4px;

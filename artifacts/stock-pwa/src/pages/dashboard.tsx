@@ -82,7 +82,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-bold uppercase tracking-tight text-foreground">Tableau de Bord</h1>
+          <h1 className="text-3xl font-bold font-display uppercase tracking-tight text-foreground">Tableau de Bord</h1>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">Aperçu en temps réel du stock</p>
         </div>
         <div className="text-xs text-muted-foreground font-mono bg-card px-3 py-1 rounded-sm border border-border">
@@ -94,30 +94,30 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Total Produits</CardTitle>
+            <CardTitle className="text-xs font-bold font-display uppercase text-muted-foreground">Total Produits</CardTitle>
             <Package className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold">{summary?.totalProducts || 0}</div>}
+            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold font-display">{summary?.totalProducts || 0}</div>}
           </CardContent>
         </Card>
         <Card className="bg-card border-destructive">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase text-destructive">Stock Critique</CardTitle>
+            <CardTitle className="text-xs font-bold font-display uppercase text-destructive">Stock Critique</CardTitle>
             <AlertTriangle className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold text-destructive">{summary?.lowStockCount || 0}</div>}
+            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold font-display text-destructive">{summary?.lowStockCount || 0}</div>}
           </CardContent>
         </Card>
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Quantites Aujourd'hui</CardTitle>
+            <CardTitle className="text-xs font-bold font-display uppercase text-muted-foreground">Quantites Aujourd'hui</CardTitle>
             <ArrowRightLeft className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
             {loadingSummary ? <Skeleton className="h-9 w-28" /> : (
-              <div className="text-3xl font-bold text-foreground">
+              <div className="text-3xl font-bold font-display text-foreground">
                 <span className="text-green-500">+{summary?.todayMovementsIn || 0}</span>
                 <span className="text-muted-foreground mx-2">/</span>
                 <span className="text-orange-500">-{summary?.todayMovementsOut || 0}</span>
@@ -127,11 +127,11 @@ export default function Dashboard() {
         </Card>
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase text-muted-foreground">Projets Actifs</CardTitle>
+            <CardTitle className="text-xs font-bold font-display uppercase text-muted-foreground">Projets Actifs</CardTitle>
             <Activity className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold text-foreground">{summary?.activeProjects || 0}</div>}
+            {loadingSummary ? <Skeleton className="h-9 w-16" /> : <div className="text-3xl font-bold font-display text-foreground">{summary?.activeProjects || 0}</div>}
           </CardContent>
         </Card>
       </div>
