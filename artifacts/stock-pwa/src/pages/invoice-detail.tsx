@@ -187,7 +187,7 @@ export default function InvoiceDetail() {
           <CardTitle className="text-xs font-bold uppercase tracking-wider">Articles</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="hidden md:grid grid-cols-[1fr_80px_100px_100px] gap-2 px-4 py-2 bg-muted/30 text-xs font-bold uppercase text-muted-foreground border-b border-border">
+          <div className="hidden md:grid grid-cols-[1fr_56px_minmax(130px,auto)_minmax(130px,auto)] gap-2 px-4 py-2 bg-muted/30 text-xs font-bold uppercase text-muted-foreground border-b border-border">
             <span>Description</span>
             <span>Qté</span>
             <span>Prix unit.</span>
@@ -195,31 +195,36 @@ export default function InvoiceDetail() {
           </div>
           <div className="divide-y divide-border">
             {invoice.items.map(item => (
-              <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_80px_100px_100px] gap-2 px-4 py-3 items-start">
-                <div className="flex items-start gap-2">
+              <div key={item.id} className="px-4 py-3 md:grid md:grid-cols-[1fr_56px_minmax(130px,auto)_minmax(130px,auto)] md:gap-2 md:items-start">
+                <div className="flex items-start gap-2 mb-1 md:mb-0">
                   {item.productId && <Package className="h-3 w-3 text-primary shrink-0 mt-0.5" />}
-                  <span className="text-sm font-medium line-clamp-4 break-words" title={item.description}>{item.description}</span>
+                  <span className="text-sm font-medium break-words" title={item.description}>{item.description}</span>
                 </div>
-                <span className="font-mono text-sm text-muted-foreground">{item.quantity}</span>
-                <span className="font-mono text-sm text-muted-foreground">{formatCurrency(item.unitPrice, currency)}</span>
-                <span className="font-mono font-bold text-sm text-right">{formatCurrency(item.totalPrice, currency)}</span>
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-muted-foreground md:contents">
+                  <span className="md:hidden text-xs uppercase font-bold">Qté&nbsp;</span>
+                  <span className="font-mono whitespace-nowrap">{item.quantity}</span>
+                  <span className="md:hidden text-xs uppercase font-bold ml-2">P.U.&nbsp;</span>
+                  <span className="font-mono whitespace-nowrap">{formatCurrency(item.unitPrice, currency)}</span>
+                  <span className="md:hidden text-xs uppercase font-bold ml-2">Total&nbsp;</span>
+                  <span className="font-mono font-bold whitespace-nowrap md:text-right">{formatCurrency(item.totalPrice, currency)}</span>
+                </div>
               </div>
             ))}
           </div>
           <div className="border-t border-border p-4 flex flex-col items-end gap-1 text-sm">
-            <div className="flex justify-between w-full max-w-xs">
-              <span className="text-muted-foreground uppercase">Sous-total</span>
-              <span className="font-mono font-bold">{formatCurrency(invoice.subtotal, currency)}</span>
+            <div className="flex justify-between w-full max-w-sm gap-4">
+              <span className="text-muted-foreground uppercase shrink-0">Sous-total</span>
+              <span className="font-mono font-bold whitespace-nowrap">{formatCurrency(invoice.subtotal, currency)}</span>
             </div>
             {invoice.taxRate > 0 && (
-              <div className="flex justify-between w-full max-w-xs">
-                <span className="text-muted-foreground uppercase">TVA ({invoice.taxRate}%)</span>
-                <span className="font-mono">{formatCurrency(invoice.taxAmount, currency)}</span>
+              <div className="flex justify-between w-full max-w-sm gap-4">
+                <span className="text-muted-foreground uppercase shrink-0">TVA ({invoice.taxRate}%)</span>
+                <span className="font-mono whitespace-nowrap">{formatCurrency(invoice.taxAmount, currency)}</span>
               </div>
             )}
-            <div className="flex justify-between w-full max-w-xs pt-2 border-t border-border">
-              <span className="font-bold uppercase text-primary">Total</span>
-              <span className="font-mono font-bold text-xl text-primary">{formatCurrency(invoice.total, currency)}</span>
+            <div className="flex justify-between w-full max-w-sm gap-4 pt-2 border-t border-border">
+              <span className="font-bold uppercase text-primary shrink-0">Total</span>
+              <span className="font-mono font-bold text-xl text-primary whitespace-nowrap">{formatCurrency(invoice.total, currency)}</span>
             </div>
           </div>
         </CardContent>
