@@ -105,7 +105,7 @@ export default function InvoiceDetail() {
         </Button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold uppercase tracking-tight font-mono">{invoice.invoiceNumber}</h1>
+            <h1 className="text-2xl font-bold uppercase tracking-tight font-display">{invoice.invoiceNumber}</h1>
             <StampBadge variant={st.variant}>{st.label}</StampBadge>
           </div>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{invoice.clientName}</p>

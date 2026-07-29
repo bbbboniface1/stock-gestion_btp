@@ -118,7 +118,7 @@ export default function ProjectDetail() {
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-3xl font-bold uppercase tracking-tight">{project.name}</h1>
+            <h1 className="text-3xl font-bold font-display uppercase tracking-tight">{project.name}</h1>
             <Badge className={`uppercase text-xs ${cfg.className}`}>{cfg.label}</Badge>
           </div>
           {project.clientName && <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">{project.clientName}</p>}

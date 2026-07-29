@@ -57,7 +57,7 @@ export default function ProductDetail() {
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-3xl font-bold uppercase tracking-tight">{product.name}</h1>
+            <h1 className="text-3xl font-bold font-display uppercase tracking-tight">{product.name}</h1>
             {isLow && <StampBadge variant="danger">Stock Critique</StampBadge>}
           </div>
           <p className="text-muted-foreground text-sm uppercase tracking-wider mt-1">
@@ -65,12 +65,12 @@ export default function ProductDetail() {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button className="bg-green-500/15 border border-green-500/30 text-green-500 hover:bg-green-500/25 uppercase font-bold text-xs"
+          <Button className="bg-status-success/15 border border-status-success/30 text-status-success hover:bg-status-success/25 uppercase font-bold text-xs"
             onClick={() => { setMovementType("IN"); setMovementOpen(true); }}
             data-testid="button-product-in">
             <ArrowUp className="h-4 w-4 mr-2" /> Entrée IN
           </Button>
-          <Button className="bg-orange-500/15 border border-orange-500/30 text-orange-500 hover:bg-orange-500/25 uppercase font-bold text-xs"
+          <Button className="bg-status-warning/15 border border-status-warning/30 text-status-warning hover:bg-status-warning/25 uppercase font-bold text-xs"
             onClick={() => { setMovementType("OUT"); setMovementOpen(true); }}
             data-testid="button-product-out">
             <ArrowDown className="h-4 w-4 mr-2" /> Sortie OUT
@@ -126,8 +126,8 @@ export default function ProductDetail() {
               {movements.map(m => (
                 <div key={m.id} className="p-4 flex items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-sm shrink-0 ${m.type === "IN" ? "bg-green-500/15" : "bg-orange-500/15"}`}>
-                      {m.type === "IN" ? <ArrowUp className="h-4 w-4 text-green-500" /> : <ArrowDown className="h-4 w-4 text-orange-500" />}
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-sm shrink-0 ${m.type === "IN" ? "bg-status-success/15" : "bg-status-warning/15"}`}>
+                      {m.type === "IN" ? <ArrowUp className="h-4 w-4 text-status-success" /> : <ArrowDown className="h-4 w-4 text-status-warning" />}
                     </div>
                     <div>
                       <div className="text-sm font-bold">{m.reason}</div>
@@ -137,7 +137,7 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   </div>
-                  <div className={`font-bold font-mono text-lg ${m.type === "IN" ? "text-green-500" : "text-orange-500"}`}>
+                  <div className={`font-bold font-mono text-lg ${m.type === "IN" ? "text-status-success" : "text-status-warning"}`}>
                     {m.type === "IN" ? "+" : "-"}{m.quantity}
                   </div>
                 </div>
