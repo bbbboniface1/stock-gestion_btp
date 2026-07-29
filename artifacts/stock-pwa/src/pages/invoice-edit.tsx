@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, Trash2, Search, Package, FileText } from "lucide-react";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 interface LineItem extends CreateInvoiceItemInput {
   _key: number;
@@ -18,8 +19,6 @@ interface LineItem extends CreateInvoiceItemInput {
 
 let keyCounter = 0;
 function nextKey() { return ++keyCounter; }
-
-function fmt(n: number) { return n.toFixed(2); }
 
 export default function InvoiceEdit() {
   const params = useParams<{ id: string }>();
@@ -153,7 +152,6 @@ export default function InvoiceEdit() {
   };
 
   const currency = company?.currency ?? "EUR";
-  const currSym = currency === "EUR" ? "€" : currency === "USD" ? "$" : currency;
 
   if (isLoading || (!initialized && invoice)) {
     return <div className="text-muted-foreground uppercase text-sm animate-pulse p-8">Chargement...</div>;
@@ -286,7 +284,7 @@ export default function InvoiceEdit() {
                 <div className="hidden md:grid grid-cols-[1fr_80px_100px_100px_40px] gap-2 px-4 py-2 bg-muted/30 text-xs font-bold uppercase text-muted-foreground border-b border-border">
                   <span>Description</span>
                   <span>Qté</span>
-                  <span>Prix unit. ({currSym})</span>
+                  <span>Prix unit. ({currency})</span>
                   <span className="text-right">Total</span>
                   <span></span>
                 </div>
@@ -326,7 +324,7 @@ export default function InvoiceEdit() {
                         className="bg-background text-sm h-8"
                       />
                       <div className="text-right font-mono font-bold text-sm pr-1">
-                        {fmt(item.quantity * item.unitPrice)} {currSym}
+                        {formatCurrency(item.quantity * item.unitPrice, currency)}
                       </div>
                       <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10" onClick={() => removeItem(item._key)}>
                         <Trash2 className="h-3 w-3" />
@@ -349,17 +347,17 @@ export default function InvoiceEdit() {
               <div className="flex flex-col items-end gap-1 text-sm">
                 <div className="flex justify-between w-full max-w-xs">
                   <span className="text-muted-foreground uppercase">Sous-total</span>
-                  <span className="font-mono font-bold">{fmt(subtotal)} {currSym}</span>
+                  <span className="font-mono font-bold">{formatCurrency(subtotal, currency)}</span>
                 </div>
                 {taxRate > 0 && (
                   <div className="flex justify-between w-full max-w-xs">
                     <span className="text-muted-foreground uppercase">TVA ({taxRate}%)</span>
-                    <span className="font-mono">{fmt(taxAmount)} {currSym}</span>
+                    <span className="font-mono">{formatCurrency(taxAmount, currency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between w-full max-w-xs pt-2 border-t border-border">
                   <span className="font-bold uppercase text-primary">Total</span>
-                  <span className="font-mono font-bold text-xl text-primary">{fmt(total)} {currSym}</span>
+                  <span className="font-mono font-bold text-xl text-primary">{formatCurrency(total, currency)}</span>
                 </div>
               </div>
             </CardContent>
