@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, User, Shield, Wrench, HardHat, Building2, Save, Upload, X } from "lucide-react";
+import { LogOut, User, Shield, Wrench, HardHat, Building2, Save, Upload, X, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { OnlineStatusBadge } from "@/components/OnlineStatusBadge";
 
 const roleConfig: Record<string, { label: string; icon: any }> = {
@@ -18,6 +19,7 @@ const roleConfig: Record<string, { label: string; icon: any }> = {
 
 export default function Settings() {
   const { logout, user } = useAuthStore();
+  const { theme, toggleTheme } = useTheme();
   const { data: me } = useGetMe();
   const company = useCompany();
   const updateCompany = useUpdateCompany();
@@ -235,6 +237,34 @@ export default function Settings() {
               {updateCompany.isPending ? "Sauvegarde..." : "Sauvegarder les paramètres entreprise"}
             </Button>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card border-border">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="text-sm font-bold uppercase tracking-wider">Apparence</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-bold uppercase">Thème</div>
+              <div className="text-xs text-muted-foreground mt-0.5 uppercase">
+                {theme === "dark" ? "Sombre (industriel)" : "Clair (béton clair)"}
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTheme}
+              className="uppercase font-bold gap-2"
+            >
+              {theme === "dark" ? (
+                <><Sun className="h-4 w-4" /> Mode clair</>
+              ) : (
+                <><Moon className="h-4 w-4" /> Mode sombre</>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 

@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense, useEffect } from "react";
+import { useTheme } from "@/hooks/useTheme";
 
 import Login from "@/pages/login";
 import { AuthBootstrap } from "@/components/AuthBootstrap";
@@ -284,7 +285,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background font-mono">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <MobileHeader />
@@ -330,6 +331,17 @@ function Router() {
 }
 
 function App() {
+  const { theme } = useTheme();
+
+  // Synchronise la classe .dark sur <html> au montage et à chaque bascule
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

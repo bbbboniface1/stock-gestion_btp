@@ -63,61 +63,62 @@
 }
 
 :root {
-  --background: 24 10% 10%; /* Very dark concrete */
-  --foreground: 0 0% 95%; /* Almost white */
-  
-  --card: 24 10% 14%; /* Slightly lighter concrete */
-  --card-foreground: 0 0% 95%;
-  --card-border: 24 10% 20%;
-  
-  --popover: 24 10% 14%;
-  --popover-foreground: 0 0% 95%;
-  --popover-border: 24 10% 20%;
-  
-  /* Construction Orange */
-  --primary: 24.6 95% 53.1%;
-  --primary-foreground: 0 0% 10%;
-  --primary-border: hsl(24.6 95% 45%);
-  
-  --secondary: 24 10% 20%;
-  --secondary-foreground: 0 0% 95%;
-  --secondary-border: 24 10% 26%;
-  
-  --muted: 24 10% 20%;
-  --muted-foreground: 0 0% 65%;
-  --muted-border: 24 10% 26%;
-  
-  --accent: 24 10% 24%;
-  --accent-foreground: 0 0% 98%;
-  --accent-border: 24 10% 30%;
-  
-  --destructive: 0 84.2% 60.2%;
+  /* Mode CLAIR — fond gris-beige "béton clair", texte quasi-noir */
+  --background: 30 15% 96%;
+  --foreground: 24 10% 12%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 24 10% 12%;
+  --card-border: 24 10% 82%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 24 10% 12%;
+  --popover-border: 24 10% 82%;
+
+  /* Construction Orange — assombri pour contraste ≥ 4.5:1 sur fond clair */
+  --primary: 24.6 88% 40%;
+  --primary-foreground: 0 0% 98%;
+  --primary-border: hsl(24.6 88% 33%);
+
+  --secondary: 24 10% 90%;
+  --secondary-foreground: 24 10% 20%;
+  --secondary-border: 24 10% 80%;
+
+  --muted: 24 10% 92%;
+  --muted-foreground: 24 10% 40%;
+  --muted-border: 24 10% 82%;
+
+  --accent: 24 10% 88%;
+  --accent-foreground: 24 10% 12%;
+  --accent-border: 24 10% 78%;
+
+  --destructive: 0 84.2% 50%;
   --destructive-foreground: 0 0% 98%;
-  --destructive-border: 0 84.2% 50%;
-  
-  --warning: 45 93% 47%;
+  --destructive-border: 0 84.2% 42%;
+
+  --warning: 45 93% 38%;
   --warning-foreground: 0 0% 10%;
 
-  --border: 24 10% 20%;
-  --input: 24 10% 20%;
-  --ring: 24.6 95% 53.1%;
-  
-  --sidebar: 24 10% 12%;
-  --sidebar-foreground: 0 0% 95%;
-  --sidebar-border: 24 10% 18%;
-  --sidebar-primary: 24.6 95% 53.1%;
-  --sidebar-primary-foreground: 0 0% 10%;
-  --sidebar-primary-border: hsl(24.6 95% 45%);
-  --sidebar-accent: 24 10% 20%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-accent-border: 24 10% 26%;
-  --sidebar-ring: 24.6 95% 53.1%;
+  --border: 24 10% 82%;
+  --input: 24 10% 88%;
+  --ring: 24.6 88% 40%;
+
+  --sidebar: 30 12% 93%;
+  --sidebar-foreground: 24 10% 12%;
+  --sidebar-border: 24 10% 80%;
+  --sidebar-primary: 24.6 88% 40%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-primary-border: hsl(24.6 88% 33%);
+  --sidebar-accent: 24 10% 88%;
+  --sidebar-accent-foreground: 24 10% 12%;
+  --sidebar-accent-border: 24 10% 78%;
+  --sidebar-ring: 24.6 88% 40%;
 
   --radius: 4px;
 }
 
 .dark {
-  /* Same as root since we default to dark industrial theme */
+  /* Mode SOMBRE — thème industriel d'origine, inchangé */
   --background: 24 10% 10%;
   --foreground: 0 0% 95%;
   --card: 24 10% 14%;

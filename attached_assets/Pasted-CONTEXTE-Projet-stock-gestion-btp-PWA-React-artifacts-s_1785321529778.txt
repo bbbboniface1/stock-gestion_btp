@@ -1,0 +1,101 @@
+CONTEXTE
+Projet stock-gestion_btp, PWA React (artifacts/stock-pwa/src). Système
+de thème basé sur des variables CSS HSL dans src/index.css, géré par
+Tailwind v4 avec @custom-variant dark (&:is(.dark *)). Ne touche à
+aucun autre module que le thème/typographie. Branche dédiée
+fix/theme-clair-typo, un commit par point, ne casse aucun style
+existant qui n'est pas explicitement visé ci-dessous.
+
+POINT 1 — AJOUTER UN VRAI MODE CLAIR (actuellement inexistant)
+
+Constat exact : dans src/index.css, le bloc .dark (ligne ~119) contient
+EXACTEMENT les mêmes valeurs que :root (ligne ~65) — il n'y a donc
+aucune vraie alternative claire, juste une duplication du thème sombre.
+
+Étapes techniques précises, dans cet ordre :
+
+a) Renomme le contenu actuel de :root en le gardant identique (NE
+   CHANGE RIEN aux valeurs) — c'est le thème par défaut actuel, il ne
+   doit pas changer visuellement tant que personne n'active le mode
+   clair. Zéro risque de régression sur ce point.
+
+b) Remplace le contenu du bloc .dark (actuellement dupliqué) par un
+   VRAI jeu de valeurs clin, cohérent avec l'identité "chantier/BTP"
+   existante (fond clair, accent orange conservé --primary: 24.6 95%
+   53.1% ou une version légèrement assombrie pour rester lisible sur
+   fond clair, texte sombre à fort contraste). Exemple de structure à
+   utiliser (garde le même nombre de variables que le bloc actuel,
+   n'en oublie aucune) :
+   --background: 30 15% 96%;   (gris-beige très clair, pas blanc pur,
+                                 pour rester cohérent avec l'esthétique
+                                 "béton/chantier" existante)
+   --foreground: 24 10% 12%;   (texte quasi-noir)
+   --card: 0 0% 100%;
+   --card-foreground: 24 10% 12%;
+   ... (garde --primary orange, adapte --border/--muted/--sidebar en
+   tons clairs, en t'assurant d'un contraste texte/fond >= 4.5:1)
+   Attention : .dark doit maintenant représenter le thème SOMBRE
+   habituel (donc en fait tu inverses : renomme le contenu ACTUEL de
+   :root pour qu'il devienne le contenu de .dark si tu préfères garder
+   .dark = sombre par convention Tailwind classique — choisis cette
+   convention : .dark = sombre (valeurs actuelles inchangées), :root
+   SANS classe = clair (nouvelles valeurs). C'est l'inverse de la
+   structure actuelle mais c'est la convention standard Tailwind, donc
+   plus sûre pour la maintenance future.
+
+c) Crée un petit hook src/hooks/useTheme.ts (nouveau fichier, ne touche
+   à rien d'existant) qui :
+   - lit la préférence sauvegardée dans localStorage (clé "theme",
+     valeurs "light" | "dark"), avec "dark" comme valeur par défaut si
+     rien n'est sauvegardé (IMPORTANT : ça garantit que l'app garde son
+     apparence actuelle par défaut pour tous les utilisateurs
+     existants, zéro changement visuel non désiré) ;
+   - applique/retire la classe "dark" sur document.documentElement en
+     fonction de cette préférence, au chargement de l'app (dans
+     App.tsx, useEffect au niveau du composant App) ;
+   - expose une fonction toggleTheme() qui bascule et sauvegarde dans
+     localStorage.
+
+d) Ajoute un bouton toggle (icône soleil/lune, lucide-react a déjà Sun
+   et Moon disponibles) dans artifacts/stock-pwa/src/pages/settings.tsx,
+   dans une nouvelle section "Apparence", qui appelle toggleTheme().
+
+e) NE TOUCHE À AUCUN AUTRE FICHIER. Ne modifie aucune classe Tailwind
+   dans les pages existantes — tout le système actuel utilise déjà les
+   variables (bg-background, text-foreground, etc.), donc le mode clair
+   doit s'appliquer automatiquement partout sans autre modification.
+
+TEST OBLIGATOIRE : bascule le toggle sur 5 pages différentes (dashboard,
+produits, scan, factures, paramètres) et vérifie qu'aucun texte ne
+devient illisible (texte clair sur fond clair, ou l'inverse) — c'est le
+risque principal de cette fonctionnalité.
+
+POINT 2 — RETIRER LE FONT-MONO PAR DÉFAUT SUR TOUTE L'APP
+
+Constat exact : artifacts/stock-pwa/src/App.tsx, ligne 287 :
+<div className="min-h-screen flex w-full bg-background font-mono">
+Ce "font-mono" sur le conteneur racine écrase le "font-sans" déjà
+défini par défaut dans index.css (body { @apply font-sans ... }).
+
+Étape technique précise (UN SEUL changement, très faible risque) :
+- Supprime uniquement la classe "font-mono" de cette ligne 287. Elle
+  devient : className="min-h-screen flex w-full bg-background"
+- NE TOUCHE À RIEN D'AUTRE. Tous les composants qui utilisent déjà
+  explicitement "font-mono" sur eux-mêmes (labels, titres, boutons de
+  navigation — il y en a dans presque toutes les pages) continueront à
+  s'afficher en monospace exactement comme avant, car une classe
+  Tailwind posée directement sur un élément n'est jamais affectée par
+  le retrait d'une classe sur un ancêtre. Seul le texte qui n'avait
+  PAS de classe de police explicite (paragraphes, descriptions longues
+  de produits/factures/projets) basculera en police standard (Inter),
+  plus lisible et plus compacte à l'affichage.
+
+TEST OBLIGATOIRE : vérifie sur products.tsx, invoice-detail.tsx et
+project-detail.tsx que les titres/labels/boutons gardent bien leur
+apparence monospace actuelle (aspect "industriel"), et que seuls les
+textes de description longue changent de police.
+
+LIVRABLE
+Diff des fichiers modifiés pour chaque point, plus une capture d'écran
+ou description de : (1) une page en mode clair vs sombre côte à côte,
+(2) une fiche produit/facture avant/après pour le changement de police.
