@@ -1,0 +1,68 @@
+CONTEXTE
+Projet stock-gestion_btp, PWA React (artifacts/stock-pwa/src). L'app est
+utilisée en mode installé (PWA standalone) sur mobile/tablette, et en
+navigateur classique sur PC. viewport-fit=cover est déjà activé dans
+index.html.
+
+OBJECTIF
+Corriger uniquement 3 points d'ergonomie/responsive essentiels, sans
+toucher au reste de l'app ni à la logique métier. Branche dédiée
+fix/ergonomie-responsive, un commit par point.
+
+1) ZONES SYSTÈME (SAFE AREA) NON GÉRÉES EN HAUT D'ÉCRAN
+Une classe .safe-area-pt existe déjà dans src/index.css (padding-top:
+env(safe-area-inset-top)) mais n'est utilisée nulle part, alors que
+.safe-area-pb est bien appliquée sur MobileBottomNav (App.tsx).
+- Applique .safe-area-pt sur le header mobile global (composant
+  MobileHeader dans App.tsx, l'élément <header> sticky top-0).
+- Applique-la aussi sur le header custom de artifacts/stock-pwa/src/
+  pages/scan.tsx (le <div> contenant le logo et le bouton "Dashboard",
+  ligne ~113).
+- Vérifie s'il existe d'autres headers/barres fixes ou sticky dans
+  l'app (grep "sticky top-0" et "fixed top-0" dans tout src/) et
+  applique la même correction partout où c'est pertinent.
+- Teste que sur un appareil avec encoche/barre de statut (simulateur
+  iPhone dans les DevTools, mode responsive avec "notch"), tous les
+  boutons du header restent entièrement cliquables, pas seulement
+  visibles.
+
+2) CHAMPS DATE SANS LABEL VISIBLE
+Fichiers concernés : artifacts/stock-pwa/src/pages/movements.tsx
+(lignes 97-98) et artifacts/stock-pwa/src/pages/audit.tsx (lignes
+260-269). Les inputs type="date" n'affichent pas leur placeholder
+(limitation native des navigateurs) et movements.tsx n'en a même pas.
+- Ajoute un <label> visible au-dessus de chaque champ date, sur le
+  même modèle que celui déjà utilisé dans invoice-new.tsx ("Date *"),
+  par exemple "Du" / "Au" pour ces filtres de période.
+- Vérifie qu'aucun autre input type="date" dans l'app (grep
+  'type="date"' dans tout src/pages) ne repose uniquement sur un
+  placeholder sans label réel, et corrige les cas trouvés de la même
+  façon.
+
+3) VALIDATION RESPONSIVE GLOBALE (PC / TABLETTE / MOBILE)
+Une fois les points 1 et 2 corrigés, fais une passe de vérification
+visuelle sur les 3 largeurs suivantes pour CHAQUE page de l'app
+(dashboard, produits, mouvements, projets, factures, rapports, audit,
+utilisateurs, paramètres, scan) :
+- Mobile : 375px de large
+- Tablette : 768px de large
+- PC : 1280px de large
+Pour chaque page, vérifie spécifiquement : aucun élément ne déborde
+horizontalement de l'écran (pas de scroll horizontal involontaire),
+tous les boutons d'action restent atteignables au clic/tap sans être
+masqués par le menu du bas (MobileBottomNav) ou le bouton flottant de
+scan (ScanFAB), et le contenu reste lisible sans chevauchement de
+texte. Liste uniquement les pages où un vrai problème est trouvé, avec
+capture ou description précise, avant de corriger quoi que ce soit
+d'autre que les points 1 et 2 déjà validés.
+
+CONTRAINTES
+- Ne touche à aucune logique métier, aucun appel API, aucun fichier
+  backend.
+- Ne modifie pas la structure de navigation (mainNav / moreNav dans
+  App.tsx), uniquement le CSS/positionnement.
+
+LIVRABLE
+Résumé des fichiers modifiés pour les points 1 et 2, plus la liste des
+pages testées au point 3 avec, pour chacune, "OK" ou une description
+du problème restant.

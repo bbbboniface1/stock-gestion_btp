@@ -257,20 +257,24 @@ export default function Audit() {
               </SelectContent>
             </Select>
 
-            <Input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="bg-background border-border text-sm"
-              placeholder="Depuis"
-            />
-            <Input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="bg-background border-border text-sm"
-              placeholder="Jusqu'au"
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase text-muted-foreground font-bold">Du</label>
+              <Input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-background border-border text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs uppercase text-muted-foreground font-bold">Au</label>
+              <Input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-background border-border text-sm"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -94,8 +94,14 @@ export default function Movements() {
             {projects?.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-from-date" />
-        <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-to-date" />
+        <div className="flex flex-col gap-1">
+          <label className="text-xs uppercase text-muted-foreground font-bold">Du</label>
+          <Input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-from-date" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs uppercase text-muted-foreground font-bold">Au</label>
+          <Input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className="bg-card border-border text-sm" data-testid="input-to-date" />
+        </div>
       </div>
 
       {isError ? (

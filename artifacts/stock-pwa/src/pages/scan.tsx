@@ -117,7 +117,7 @@ export default function ScanPage() {
   return (
     <div className="min-h-screen bg-background font-mono flex flex-col">
       {/* Header */}
-      <div className="bg-card border-b border-border px-4 py-3 flex items-center gap-3">
+      <div className="bg-card border-b border-border px-4 py-3 flex items-center gap-3 safe-area-pt">
         <div className="h-8 w-8 rounded-sm bg-primary/15 flex items-center justify-center">
           <HardHat className="h-5 w-5 text-primary" />
         </div>

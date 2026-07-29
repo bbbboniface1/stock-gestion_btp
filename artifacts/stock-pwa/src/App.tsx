@@ -169,7 +169,7 @@ function MobileHeader() {
   const title = pageTitleFromPath(location);
 
   return (
-    <header className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border bg-card sticky top-0 z-40 pwa-header">
+    <header className="md:hidden flex items-center gap-3 px-4 py-3 border-b border-border bg-card sticky top-0 z-40 pwa-header safe-area-pt">
       <SidebarTrigger className="h-9 w-9 shrink-0" />
       <div className="flex items-center gap-2 flex-1 min-w-0">
         <HardHat className="h-4 w-4 text-primary shrink-0" />
