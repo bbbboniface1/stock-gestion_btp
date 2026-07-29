@@ -124,8 +124,8 @@ export default function Movements() {
                 {movements.map(m => (
                   <div key={m.id} data-testid={`row-movement-${m.id}`} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-sm shrink-0 ${m.type === "IN" ? "bg-green-500/15" : "bg-orange-500/15"}`}>
-                        {m.type === "IN" ? <ArrowUp className="h-5 w-5 text-green-500" /> : <ArrowDown className="h-5 w-5 text-orange-500" />}
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-sm shrink-0 ${m.type === "IN" ? "bg-status-success/15" : "bg-status-warning/15"}`}>
+                        {m.type === "IN" ? <ArrowUp className="h-5 w-5 text-status-success" /> : <ArrowDown className="h-5 w-5 text-status-warning" />}
                       </div>
                       <div>
                         <div className="font-bold text-foreground">{m.productName}</div>
@@ -135,7 +135,7 @@ export default function Movements() {
                     </div>
                     <div className="flex items-center gap-6 md:ml-auto">
                       <div className="text-right">
-                        <div className={`font-bold font-mono text-xl ${m.type === "IN" ? "text-green-500" : "text-orange-500"}`}>
+                        <div className={`font-bold font-mono text-xl ${m.type === "IN" ? "text-status-success" : "text-status-warning"}`}>
                           {m.type === "IN" ? "+" : "-"}{m.quantity}
                         </div>
                       </div>

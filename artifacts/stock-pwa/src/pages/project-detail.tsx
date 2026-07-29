@@ -29,9 +29,9 @@ const materialSchema = z.object({
 });
 
 const statusConfig: Record<string, { label: string; className: string }> = {
-  active: { label: "Actif", className: "bg-green-500/20 text-green-500 border-green-500/30" },
-  completed: { label: "Terminé", className: "bg-blue-500/20 text-blue-500 border-blue-500/30" },
-  paused: { label: "Suspendu", className: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30" },
+  active: { label: "Actif", className: "bg-status-success/20 text-status-success border-status-success/30" },
+  completed: { label: "Terminé", className: "bg-status-info/20 text-status-info border-status-info/30" },
+  paused: { label: "Suspendu", className: "bg-status-warning/20 text-status-warning border-status-warning/30" },
 };
 
 export default function ProjectDetail() {

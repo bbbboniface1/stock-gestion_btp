@@ -15,7 +15,7 @@ import { formatCurrency } from "@/lib/formatCurrency";
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Proforma", className: "bg-muted text-muted-foreground border-muted-foreground/30" },
   unpaid: { label: "Non payée", className: "bg-destructive/20 text-destructive border-destructive/30" },
-  paid: { label: "Payée", className: "bg-green-500/20 text-green-500 border-green-500/30" },
+  paid: { label: "Payée", className: "bg-status-success/20 text-status-success border-status-success/30" },
 };
 
 type StatusFilter = "all" | "draft" | "unpaid" | "paid";
@@ -70,7 +70,7 @@ export default function Invoices() {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground uppercase tracking-wider">Payé</div>
-            <div className="text-2xl font-bold font-mono text-green-500 mt-1">{formatCurrency(totalPaid, company?.currency ?? "EUR")}</div>
+            <div className="text-2xl font-bold font-mono text-status-success mt-1">{formatCurrency(totalPaid, company?.currency ?? "EUR")}</div>
           </CardContent>
         </Card>
         <Card className="bg-card border-border">

@@ -118,9 +118,9 @@ export default function Dashboard() {
           <CardContent>
             {loadingSummary ? <Skeleton className="h-9 w-28" /> : (
               <div className="text-3xl font-bold font-display text-foreground">
-                <span className="text-green-500">+{summary?.todayMovementsIn || 0}</span>
+                <span className="text-status-success">+{summary?.todayMovementsIn || 0}</span>
                 <span className="text-muted-foreground mx-2">/</span>
-                <span className="text-orange-500">-{summary?.todayMovementsOut || 0}</span>
+                <span className="text-status-warning">-{summary?.todayMovementsOut || 0}</span>
               </div>
             )}
           </CardContent>
@@ -173,10 +173,10 @@ export default function Dashboard() {
             )}
             <div className="flex gap-4 justify-center mt-2">
               <span className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                <span className="w-3 h-3 rounded-sm bg-green-500" /> Entrées
+                <span className="w-3 h-3 rounded-sm bg-status-success" /> Entrées
               </span>
               <span className="flex items-center gap-1.5 text-xs font-mono text-muted-foreground">
-                <span className="w-3 h-3 rounded-sm bg-orange-500" /> Sorties
+                <span className="w-3 h-3 rounded-sm bg-status-warning" /> Sorties
               </span>
             </div>
           </CardContent>
@@ -279,7 +279,7 @@ export default function Dashboard() {
                 {recent.slice(0, 8).map(m => (
                   <div key={m.id} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <Badge variant={m.type === "IN" ? "default" : "secondary"} className={`font-mono font-bold ${m.type === 'IN' ? 'bg-green-500/20 text-green-500 border-green-500/50' : 'bg-orange-500/20 text-orange-500 border-orange-500/50'}`}>
+                      <Badge variant={m.type === "IN" ? "default" : "secondary"} className={`font-mono font-bold ${m.type === 'IN' ? 'bg-status-success/20 text-status-success border-status-success/50' : 'bg-status-warning/20 text-status-warning border-status-warning/50'}`}>
                         {m.type === "IN" ? "+ IN" : "- OUT"}
                       </Badge>
                       <div>

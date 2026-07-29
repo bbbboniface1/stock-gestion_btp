@@ -305,12 +305,12 @@ export default function Products() {
                           <div className="text-xs text-muted-foreground">min: {product.minimumThreshold}</div>
                         </div>
                         <div className="flex gap-1">
-                          <Button size="sm" variant="outline" className="bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20 h-8 w-8 p-0 md:w-auto md:px-2" data-testid={`button-in-${product.id}`}
+                          <Button size="sm" variant="outline" className="bg-status-success/10 border-status-success/30 text-status-success hover:bg-status-success/20 h-8 w-8 p-0 md:w-auto md:px-2" data-testid={`button-in-${product.id}`}
                             onClick={() => { setMovementProduct({ id: product.id, name: product.name, stock: product.quantityInStock }); setMovementType("IN"); }}>
                             <ArrowUp className="h-3 w-3 md:mr-1" />
                             <span className="hidden md:inline">IN</span>
                           </Button>
-                          <Button size="sm" variant="outline" className="bg-orange-500/10 border-orange-500/30 text-orange-500 hover:bg-orange-500/20 h-8 w-8 p-0 md:w-auto md:px-2" data-testid={`button-out-${product.id}`}
+                          <Button size="sm" variant="outline" className="bg-status-warning/10 border-status-warning/30 text-status-warning hover:bg-status-warning/20 h-8 w-8 p-0 md:w-auto md:px-2" data-testid={`button-out-${product.id}`}
                             onClick={() => { setMovementProduct({ id: product.id, name: product.name, stock: product.quantityInStock }); setMovementType("OUT"); }}>
                             <ArrowDown className="h-3 w-3 md:mr-1" />
                             <span className="hidden md:inline">OUT</span>
@@ -440,7 +440,7 @@ export default function Products() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="bg-green-500/10 border-green-500/30 text-green-500"
+                        className="bg-status-success/10 border-status-success/30 text-status-success"
                         onClick={() => {
                           setMovementProduct({ id: editProduct.id, name: editProduct.name, stock: editProduct.quantityInStock });
                           setMovementType("IN");
@@ -453,7 +453,7 @@ export default function Products() {
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="bg-orange-500/10 border-orange-500/30 text-orange-500"
+                        className="bg-status-warning/10 border-status-warning/30 text-status-warning"
                         onClick={() => {
                           setMovementProduct({ id: editProduct.id, name: editProduct.name, stock: editProduct.quantityInStock });
                           setMovementType("OUT");
