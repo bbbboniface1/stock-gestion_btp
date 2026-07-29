@@ -303,8 +303,58 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
   let [company] = await db.select().from(companySettingsTable).limit(1);
   if (!company) company = { id: 0, name: "Mon Entreprise", currency: "EUR", logoUrl: null, address: null, phone: null, email: null, taxNumber: null, signatureText: null, updatedAt: new Date() };
 
-  const currencySymbol = company.currency === "EUR" ? "€" : company.currency === "USD" ? "$" : company.currency;
-  const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
+  // Formatage FCFA : séparateur de milliers espace, sans décimales
+  const fmtNum = (n: number) =>
+    Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u00a0");
+  const fmt = (n: number) => `${fmtNum(n)} FCFA`;
+
+  // Conversion d'un entier en toutes lettres (français)
+  function numberToFrenchWords(n: number): string {
+    n = Math.floor(Math.abs(n));
+    if (n === 0) return "zéro";
+    const ones = [
+      "", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf",
+      "dix", "onze", "douze", "treize", "quatorze", "quinze", "seize",
+      "dix-sept", "dix-huit", "dix-neuf",
+    ];
+    function belowHundred(x: number): string {
+      if (x < 20) return ones[x];
+      const t = Math.floor(x / 10), u = x % 10;
+      switch (t) {
+        case 2: return u === 0 ? "vingt" : `vingt-${ones[u]}`;
+        case 3: return u === 0 ? "trente" : u === 1 ? "trente et un" : `trente-${ones[u]}`;
+        case 4: return u === 0 ? "quarante" : u === 1 ? "quarante et un" : `quarante-${ones[u]}`;
+        case 5: return u === 0 ? "cinquante" : u === 1 ? "cinquante et un" : `cinquante-${ones[u]}`;
+        case 6: return u === 0 ? "soixante" : u === 1 ? "soixante et un" : `soixante-${ones[u]}`;
+        case 7: return u === 0 ? "soixante-dix" : u === 1 ? "soixante et onze" : `soixante-${ones[10 + u]}`;
+        case 8: return u === 0 ? "quatre-vingts" : `quatre-vingt-${ones[u]}`;
+        case 9: return `quatre-vingt-${ones[10 + u]}`;
+        default: return "";
+      }
+    }
+    function belowThousand(x: number): string {
+      if (x < 100) return belowHundred(x);
+      const h = Math.floor(x / 100), r = x % 100;
+      const hWord = h === 1 ? "cent" : `${ones[h]} cent${r === 0 ? "s" : ""}`;
+      return r === 0 ? hWord : `${hWord} ${belowHundred(r)}`;
+    }
+    const parts: string[] = [];
+    let rem = n;
+    if (rem >= 1_000_000_000) {
+      const g = Math.floor(rem / 1_000_000_000); rem %= 1_000_000_000;
+      parts.push(`${belowThousand(g)} ${g > 1 ? "milliards" : "milliard"}`);
+    }
+    if (rem >= 1_000_000) {
+      const g = Math.floor(rem / 1_000_000); rem %= 1_000_000;
+      parts.push(`${belowThousand(g)} ${g > 1 ? "millions" : "million"}`);
+    }
+    if (rem >= 1_000) {
+      const g = Math.floor(rem / 1_000); rem %= 1_000;
+      parts.push(g === 1 ? "mille" : `${belowThousand(g)} mille`);
+    }
+    if (rem > 0) parts.push(belowThousand(rem));
+    return parts.join(" ");
+  }
 
   const statusLabel: Record<string, string> = { draft: "Proforma", unpaid: "Non payée", paid: "Payée" };
 
@@ -447,6 +497,15 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
       .text("TOTAL", totX, y + 4, { width: 95 })
       .text(fmt(data.total), totX + 95, y + 4, { width: 80, align: "right" });
     y += 30;
+
+    // Arrêté en toutes lettres
+    y = checkPageSpace(y, 30);
+    const totalEnLettres = numberToFrenchWords(data.total);
+    const arreteLine = `Arrêtée la présente facture à la somme de : ${totalEnLettres} (${fmtNum(data.total)}) francs CFA`;
+    doc.rect(50, y, W, 20).fill("#f5f5f4");
+    doc.fillColor(DARK).font("Helvetica-BoldOblique").fontSize(8)
+      .text(arreteLine, 58, y + 6, { width: W - 16 });
+    y += 26;
 
     if (data.notes) {
       y = checkPageSpace(y, 50);
