@@ -195,10 +195,10 @@ export default function InvoiceDetail() {
           </div>
           <div className="divide-y divide-border">
             {invoice.items.map(item => (
-              <div key={item.id} className="px-4 py-3 md:grid md:grid-cols-[1fr_56px_minmax(130px,auto)_minmax(130px,auto)] md:gap-2 md:items-start">
+              <div key={item.id} className="px-4 py-3 md:grid md:grid-cols-[1fr_56px_minmax(130px,auto)_minmax(130px,auto)] md:gap-2 md:items-start min-w-0">
                 <div className="flex items-start gap-2 mb-1 md:mb-0">
                   {item.productId && <Package className="h-3 w-3 text-primary shrink-0 mt-0.5" />}
-                  <span className="text-sm font-medium break-words" title={item.description}>{item.description}</span>
+                  <span className="text-sm font-medium break-words line-clamp-3 [overflow-wrap:anywhere] min-w-0" title={item.description}>{item.description}</span>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-muted-foreground md:contents">
                   <span className="md:hidden text-xs uppercase font-bold">Qté&nbsp;</span>
