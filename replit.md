@@ -1,38 +1,48 @@
-# StockBTP
+# StockBTP — Construction Inventory Management PWA
 
-PWA de gestion de stock pour chantiers BTP — monorepo pnpm.
+## Project overview
 
-## Stack
+pnpm monorepo with two apps:
 
-- **Frontend** : React + Vite + Tailwind CSS (`artifacts/stock-pwa`)
-- **Backend** : Express.js + Drizzle ORM (`artifacts/api-server`)
-- **Base de données** : Supabase PostgreSQL
-- **Libs partagées** : `lib/db`, `lib/api-zod`, `lib/api-spec`, `lib/api-client-react`
+- **`artifacts/stock-pwa`** — React + Vite PWA (frontend)
+- **`artifacts/api-server`** — Express + Node.js API (backend)
 
-## Déploiement cible
+Database: Supabase (Drizzle ORM). Auth: session-based (SESSION_SECRET).
 
-- API → Railway (`railway.toml`)
-- Frontend → Vercel (`vercel.json`)
+## Deployment stack (do not modify)
 
-## Variables d'environnement requises
+- API → **Render** (was Railway, user may have switched)
+- Frontend → **Vercel**
+- Config files: `vercel.json`, `railway.toml` / `render.yaml`
 
-| Variable | Description |
-|---|---|
-| `SUPABASE_DATABASE_URL` | URL pooler Supabase (port 6543) |
-| `SESSION_SECRET` | Secret de signature des tokens |
-| `CORS_ORIGIN` | URL du frontend en production |
-| `PORT` | Port de l'API (défaut : 8080) |
+**Do not migrate to Replit hosting. Do not alter deployment config.**
 
-## Commandes utiles
+## Environment variables
+
+- `SUPABASE_DATABASE_URL` — Supabase connection pooler URL (port 6543)
+- `SESSION_SECRET` — already set as a Replit secret
+- `CORS_ORIGIN` — production frontend URL
+- `PORT` — defaults to 8080 for API, 5173 for frontend
+
+## Running locally (dev only)
 
 ```bash
-pnpm db:push      # Appliquer le schéma Drizzle sur Supabase
-pnpm db:migrate   # Appliquer la migration SQL production
-pnpm db:seed      # Créer comptes de test et données démo
-pnpm test         # Lancer tous les tests
+bash start.sh
+# API on :8080, frontend on :5000
+```
+
+Requires `SUPABASE_DATABASE_URL` to be set for the API to function.
+
+## Useful commands
+
+```bash
+pnpm db:push      # apply Drizzle schema to Supabase
+pnpm db:migrate   # apply production SQL migration
+pnpm db:seed      # seed test accounts and demo data
+pnpm test         # run all tests
 ```
 
 ## User preferences
 
-- Aucune importation Replit dans le code source
-- Aucune modification de logique pouvant nuire au déploiement sur Render ou Vercel
+- Keep Vercel + Render deployment stack intact — no Replit migration, no changes that break the current stack.
+- Changes are code-only; deployment config files are off-limits.
