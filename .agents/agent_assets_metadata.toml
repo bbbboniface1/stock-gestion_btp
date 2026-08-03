@@ -28,3 +28,38 @@ uri = "file://attached_assets/image_search/btp_4.jpg"
 type = "image"
 title = "④ Gratte-ciel en construction"
 description = "Structure béton en hauteur, perspective forte."
+
+[[outputs]]
+id = "NQt7soxLTTKFpyO7yxTgE"
+uri = "file://attached_assets/design_refs/design_1.jpg"
+type = "image"
+title = "① Inventory App — UI épuré (Dribbble/Pinterest)"
+description = "Layout carte avec sidebar, liste de produits et indicateurs KPI clairs."
+
+[[outputs]]
+id = "u-K_y7pVkE1Se-ZR9nN2-"
+uri = "file://attached_assets/design_refs/design_2.jpg"
+type = "image"
+title = "② SalesPro — POS & Inventory UI Kit"
+description = "Kit complet : tableau de bord, caisse, stock, commandes — tons neutres professionnels."
+
+[[outputs]]
+id = "4fYmxD6lxT1uy4WMLZ5cD"
+uri = "file://attached_assets/design_refs/design_3.jpg"
+type = "image"
+title = "③ Dashboard Stock & CRM — Pro"
+description = "Dashboard dense avec graphes, cartes métriques, tableau produits et segmentation."
+
+[[outputs]]
+id = "yUD66utf6zb2NCBBM_Da4"
+uri = "file://attached_assets/design_refs/design_4.jpg"
+type = "image"
+title = "④ Inventory Dashboard — Dribbble"
+description = "Design épuré thème clair : donut chart, tableau de stock, barre de navigation latérale."
+
+[[outputs]]
+id = "IyTgA2Q7oKOGZSd5jReYd"
+uri = "file://attached_assets/design_refs/design_5.jpg"
+type = "image"
+title = "⑤ Dashboard KPI & Analytics"
+description = "Vue analytique avancée avec charts, KPI cards, et graphes de performance."
