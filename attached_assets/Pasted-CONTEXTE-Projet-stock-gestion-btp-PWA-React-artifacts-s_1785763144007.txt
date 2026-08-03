@@ -1,0 +1,103 @@
+CONTEXTE
+Projet stock-gestion_btp, PWA React (artifacts/stock-pwa/src/pages/
+login.tsx). Refonte de la page de connexion en écran scindé (photo +
+formulaire), inspirée d'un layout existant mais SANS aucune reprise de
+logo/marque d'un tiers — uniquement la structure. Branche
+fix/design-login, un commit. Ne touche à aucune logique
+d'authentification (useLogin, useAuthStore, safeReturnPath restent
+identiques).
+
+FICHIER IMAGE
+Une image sera fournie séparément à l'emplacement
+artifacts/stock-pwa/public/login-chantier.jpg (photo de chantier BTP).
+Si le fichier n'existe pas encore au moment de coder, utilise un
+placeholder temporaire (simple div avec bg-muted) à la même place, et
+laisse un commentaire "// TODO: remplacer par la vraie photo dans
+public/login-chantier.jpg" — NE BLOQUE PAS le reste du travail sur ce
+point.
+
+ÉTAPES
+
+1) STRUCTURE GÉNÉRALE
+Remplace le retour de login.tsx par une disposition en 2 colonnes :
+<div className="min-h-screen flex">
+  <!-- Colonne gauche : photo, cachée sur mobile -->
+  <div className="hidden lg:flex lg:w-[55%] relative">
+    <img src="/login-chantier.jpg" alt="Chantier BTP"
+      className="absolute inset-0 w-full h-full object-cover" />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+    <!-- overlay logo + texte, voir étape 2 -->
+  </div>
+  <!-- Colonne droite : formulaire -->
+  <div className="w-full lg:w-[45%] flex items-center justify-center p-6 lg:p-12 bg-background">
+    <!-- carte formulaire, voir étape 3 -->
+  </div>
+</div>
+
+2) OVERLAY SUR LA PHOTO (colonne gauche)
+En bas de la colonne photo, superposé sur le gradient sombre :
+<div className="absolute bottom-0 left-0 right-0 p-10 lg:p-14">
+  <p className="text-white/90 font-mono uppercase text-xs tracking-widest mb-3">
+    [Nom de ton entreprise — variable, PAS "PRTD-Mali"]
+  </p>
+  <h2 className="text-white font-display text-3xl lg:text-4xl font-bold leading-tight">
+    Gestion de stock et suivi de chantier
+  </h2>
+</div>
+(adapte le texte exact avec le vrai nom/activité de l'entreprise — pose-
+moi la question si tu ne l'as pas en dur quelque part dans le code déjà,
+ex: company.name via une requête publique légère, sinon texte statique
+pour l'instant)
+
+3) FORMULAIRE (colonne droite)
+Structure, sans Card englobante cette fois (fond uni, pas de bordure de
+carte, pour coller au style épuré de la référence) :
+<div className="w-full max-w-sm space-y-8">
+  <div className="flex items-center gap-3">
+    <div className="bg-primary/10 w-12 h-12 flex items-center justify-center rounded-md">
+      <HardHat className="w-6 h-6 text-primary" />
+    </div>
+    <div>
+      <p className="font-display text-xl font-bold text-foreground">Stock BTP</p>
+      <p className="text-xs text-muted-foreground">Gestion de stock & chantiers</p>
+    </div>
+  </div>
+  <!-- form existant conservé tel quel (react-hook-form + zod), mais : -->
+  <!-- retire l'englobant Card/CardHeader/CardContent -->
+  <!-- garde les mêmes FormField email/password -->
+  <!-- ajoute une checkbox "Rester connecté" avant le bouton submit -->
+</div>
+
+4) CASE "RESTER CONNECTÉ"
+Ajoute un champ booléen rememberMe au loginSchema (optionnel, defaultValue
+false). Utilise le composant Checkbox déjà disponible dans components/ui/
+(vérifie s'il existe, sinon signale-le avant d'en créer un nouveau).
+Positionne-le entre les 2 champs et le bouton, avec un label "Rester
+connecté" à côté.
+Comportement : si coché, utilise localStorage pour stocker le token
+(persistant) ; si décoché, utilise sessionStorage (effacé à la fermeture
+du navigateur). Vérifie comment useAuthStore gère actuellement le
+stockage du token (fichier src/lib/auth.ts) et adapte cette logique
+précisément à ce mécanisme existant plutôt que d'en inventer un nouveau
+en parallèle.
+
+5) RESPONSIVE
+Vérifie sur 375px (mobile) : la colonne photo est bien masquée (hidden
+lg:flex), seul le formulaire occupe tout l'écran, centré verticalement,
+avec un padding confortable (p-6). Sur tablette (768px), même
+comportement mobile jusqu'au breakpoint lg (1024px).
+
+CONTRAINTES
+- Ne touche à aucun logo/marque d'un projet tiers réel.
+- Ne modifie pas la logique de useLogin, useAuthStore (sauf le point 4,
+  scope précis, à vérifier avant de toucher).
+- Garde le message d'erreur toast existant tel quel.
+
+TEST
+Vérifie le rendu sur 375px, 768px, 1280px. Teste la connexion complète
+(avec de vrais identifiants de test, pas en prod) avec et sans "Rester
+connecté" coché, vérifie que le comportement de persistance correspond
+bien à la case cochée/décochée.
+
+LIVRABLE
+Diff du fichier + capture desktop et mobile.

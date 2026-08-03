@@ -7,8 +7,15 @@ import { useAuthStore } from "@/lib/auth";
 import { useLogin } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { HardHat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { safeReturnPath } from "@/lib/paths";
@@ -16,6 +23,7 @@ import { safeReturnPath } from "@/lib/paths";
 const loginSchema = z.object({
   email: z.string().email("Email invalide"),
   password: z.string().min(6, "Mot de passe requis (min 6 caractères)"),
+  rememberMe: z.boolean().optional().default(false),
 });
 
 export default function Login() {
@@ -40,6 +48,7 @@ export default function Login() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -47,10 +56,14 @@ export default function Login() {
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
     loginMutation.mutate(
-      { data: values },
+      { data: { email: values.email, password: values.password } },
       {
         onSuccess: (data) => {
-          setAuth(data.token, data.user as Parameters<typeof setAuth>[1]);
+          setAuth(
+            data.token,
+            data.user as Parameters<typeof setAuth>[1],
+            values.rememberMe ?? false,
+          );
           setLocation(returnTo);
         },
         onError: () => {
@@ -60,58 +73,128 @@ export default function Login() {
             description: "Email ou mot de passe incorrect.",
           });
         },
-      }
+      },
     );
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background font-mono p-4">
-      <Card className="w-full max-w-md border-border bg-card">
-        <CardHeader className="space-y-2 text-center pb-6">
-          <div className="mx-auto bg-primary/10 w-16 h-16 flex items-center justify-center rounded-full mb-4">
-            <HardHat className="w-8 h-8 text-primary" />
+    <div className="min-h-screen flex">
+      {/* Colonne gauche : photo, cachée sur mobile et tablette */}
+      <div className="hidden lg:flex lg:w-[55%] relative">
+        {/* TODO: remplacer par la vraie photo dans public/login-chantier.jpg */}
+        <div className="absolute inset-0 bg-muted" />
+        {/* Décommente la ligne ci-dessous quand login-chantier.jpg est disponible dans public/ */}
+        {/* <img
+          src="/login-chantier.jpg"
+          alt="Chantier BTP"
+          className="absolute inset-0 w-full h-full object-cover"
+        /> */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-10 lg:p-14">
+          <p className="text-white/90 font-mono uppercase text-xs tracking-widest mb-3">
+            Stock BTP
+          </p>
+          <h2 className="text-white font-display text-3xl lg:text-4xl font-bold leading-tight">
+            Gestion de stock et suivi de chantier
+          </h2>
+        </div>
+      </div>
+
+      {/* Colonne droite : formulaire */}
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 lg:p-12 bg-background">
+        <div className="w-full max-w-sm space-y-8">
+          {/* En-tête */}
+          <div className="flex items-center gap-3">
+            <div className="bg-primary/10 w-12 h-12 flex items-center justify-center rounded-md shrink-0">
+              <HardHat className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="font-display text-xl font-bold text-foreground">
+                Stock BTP
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Gestion de stock &amp; chantiers
+              </p>
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold uppercase tracking-wider text-primary">Stock BTP</CardTitle>
-          <CardDescription className="text-muted-foreground uppercase text-xs">
-            Authentification Requise
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+
+          {/* Formulaire */}
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+            >
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="uppercase text-xs font-bold text-muted-foreground">Identifiant (Email)</FormLabel>
+                    <FormLabel className="uppercase text-xs font-bold text-muted-foreground">
+                      Identifiant (Email)
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="ouvrier@chantier.com" {...field} className="font-mono bg-background border-border focus-visible:ring-primary" />
+                      <Input
+                        placeholder="ouvrier@chantier.com"
+                        {...field}
+                        className="font-mono bg-background border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="uppercase text-xs font-bold text-muted-foreground">Code d'accès</FormLabel>
+                    <FormLabel className="uppercase text-xs font-bold text-muted-foreground">
+                      Code d'accès
+                    </FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} className="font-mono bg-background border-border focus-visible:ring-primary" />
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                        className="font-mono bg-background border-border focus-visible:ring-primary"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full font-bold uppercase tracking-wide bg-primary text-primary-foreground hover:bg-primary/90" disabled={loginMutation.isPending}>
+
+              {/* Case "Rester connecté" */}
+              <FormField
+                control={form.control}
+                name="rememberMe"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="text-sm font-normal text-muted-foreground cursor-pointer">
+                      Rester connecté
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <Button
+                type="submit"
+                className="w-full font-bold uppercase tracking-wide bg-primary text-primary-foreground hover:bg-primary/90"
+                disabled={loginMutation.isPending}
+              >
                 {loginMutation.isPending ? "Connexion..." : "Accéder au terminal"}
               </Button>
             </form>
           </Form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
