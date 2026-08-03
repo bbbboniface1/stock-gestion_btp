@@ -81,14 +81,13 @@ export default function Login() {
     <div className="min-h-screen flex">
       {/* Colonne gauche : photo, cachée sur mobile et tablette */}
       <div className="hidden lg:flex lg:w-[55%] relative">
-        {/* TODO: remplacer par la vraie photo dans public/login-chantier.jpg */}
-        <div className="absolute inset-0 bg-muted" />
-        {/* Décommente la ligne ci-dessous quand login-chantier.jpg est disponible dans public/ */}
-        {/* <img
+        <img
           src="/login-chantier.jpg"
           alt="Chantier BTP"
-          className="absolute inset-0 w-full h-full object-cover"
-        /> */}
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          loading="eager"
+          decoding="async"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-10 lg:p-14">
           <p className="text-white/90 font-mono uppercase text-xs tracking-widest mb-3">
