@@ -1,5 +1,7 @@
 import { Switch, Route, Router as WouterRouter, Redirect, useLocation } from "wouter";
-import { QueryClient, QueryClientProvider, QueryCache, keepPreviousData } from "@tanstack/react-query";
+import { QueryClient, QueryCache, keepPreviousData } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuthStore } from "@/lib/auth";
@@ -35,6 +37,7 @@ const SettingsPage = lazy(() => import("@/pages/settings"));
 const ReportsPage = lazy(() => import("@/pages/reports"));
 const AuditPage = lazy(() => import("@/pages/audit"));
 const ScanPage = lazy(() => import("@/pages/scan"));
+const PendingMovementsPage = lazy(() => import("@/pages/pending-movements"));
 const InvoicesPage = lazy(() => import("@/pages/invoices"));
 const InvoiceNewPage = lazy(() => import("@/pages/invoice-new"));
 const InvoiceEditPage = lazy(() => import("@/pages/invoice-edit"));
@@ -43,12 +46,23 @@ import { RoleGuard } from "@/components/RoleGuard";
 import { filterNavByRole } from "@/lib/permissions";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { InstallBanner } from "@/components/InstallBanner";
+import { useSyncQueue } from "@/hooks/useSyncQueue";
+
+const QUERY_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
+
+function getLocalStorage() {
+  try {
+    return typeof window !== "undefined" ? window.localStorage : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 20_000,
-      gcTime: 10 * 60_000,
+      gcTime: QUERY_CACHE_MAX_AGE,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
       retry: 1,
@@ -63,6 +77,19 @@ const queryClient = new QueryClient({
     },
   }),
 });
+
+const queryPersister = createSyncStoragePersister({
+  storage: getLocalStorage(),
+  key: "stock-btp-query-cache",
+});
+
+const queryPersistOptions = {
+  persister: queryPersister,
+  maxAge: QUERY_CACHE_MAX_AGE,
+  dehydrateOptions: {
+    shouldDehydrateMutation: () => false,
+  },
+};
 
 const mainNav = [
   { name: "Dashboard", href: "/", icon: LayoutGrid },
@@ -90,8 +117,45 @@ function pageTitleFromPath(path: string): string {
   if (path.startsWith("/audit")) return "Traçabilité";
   if (path.startsWith("/reports")) return "Rapports";
   if (path.startsWith("/users")) return "Utilisateurs";
+  if (path.startsWith("/pending-movements")) return "Mouvements en attente";
   if (path.startsWith("/settings")) return "Paramètres";
   return "Stock BTP";
+}
+
+function NetworkStatusBadge() {
+  const [, setLocation] = useLocation();
+  const { failedCount, isOnline, isSyncing, pendingCount } = useSyncQueue();
+  const queueCount = failedCount + pendingCount;
+  const label = isSyncing ? "Synchronisation..." : isOnline ? "En ligne" : "Hors ligne — données non à jour";
+
+  return (
+    <button
+      type="button"
+      onClick={() => setLocation("/pending-movements")}
+      className={`inline-flex min-h-6 max-w-[10rem] shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-left text-[9px] font-mono font-bold uppercase leading-tight ${
+        isOnline
+          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+          : "border-amber-500/40 bg-amber-500/10 text-amber-600"
+      }`}
+      aria-live="polite"
+      title="Voir les mouvements en attente"
+    >
+      <span
+        className={`h-1.5 w-1.5 shrink-0 rounded-full ${isOnline ? "bg-emerald-500" : "bg-amber-500"}`}
+      />
+      <span className="truncate">{label}</span>
+      {queueCount > 0 && (
+        <span className="ml-0.5 rounded-full bg-current px-1.5 py-0.5 text-[8px] leading-none text-background">
+          {queueCount}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function SyncQueueBootstrap() {
+  useSyncQueue();
+  return null;
 }
 
 function AppSidebar() {
@@ -178,6 +242,7 @@ function MobileHeader() {
           {title}
         </span>
       </div>
+      <NetworkStatusBadge />
     </header>
   );
 }
@@ -323,6 +388,7 @@ function Router() {
         <Route path="/reports" component={() => <ProtectedLayout><RoleGuard path="/reports"><ReportsPage /></RoleGuard></ProtectedLayout>} />
         <Route path="/users" component={() => <ProtectedLayout><RoleGuard path="/users"><UsersPage /></RoleGuard></ProtectedLayout>} />
         <Route path="/settings" component={() => <ProtectedLayout><SettingsPage /></ProtectedLayout>} />
+        <Route path="/pending-movements" component={() => <ProtectedLayout><PendingMovementsPage /></ProtectedLayout>} />
         <Route path="/scan" component={() => <ScanPage />} />
         <Route component={NotFound} />
       </Switch>
@@ -343,8 +409,12 @@ function App() {
   }, [theme]);
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={queryPersistOptions}
+    >
       <TooltipProvider>
+        <SyncQueueBootstrap />
         <OfflineBanner />
         <InstallBanner />
         <AuthBootstrap>
@@ -356,7 +426,7 @@ function App() {
         </AuthBootstrap>
         <Toaster />
       </TooltipProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 

@@ -1,0 +1,338 @@
+[2m10:17:39[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:18:10[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:18:12[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:18:37[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+[2m10:18:37[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:18:38[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+[2m10:18:55[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:18:55[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:19:14[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:19:17[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:19:32[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:19:35[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:19:51[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:19:52[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:21:04[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:21:07[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:21:23[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+[2m10:21:27[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "@/pages/pending-movements" from "src/App.tsx". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/App.tsx[39m:40:47
+[33m  76 |  const ScanPage = lazy(_c21 = () => import("@/pages/scan"));
+  77 |  _c22 = ScanPage;
+  78 |  const PendingMovementsPage = lazy(_c23 = () => import("@/pages/pending-movements"));
+     |                                                        ^
+  79 |  _c24 = PendingMovementsPage;
+  80 |  const InvoicesPage = lazy(_c25 = () => import("@/pages/invoices"));[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 29)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:22:09[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+[2m10:22:11[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 0)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:22:59[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 0)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:26:53[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m Pre-transform error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+[2m10:26:55[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 0)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)
+[2m10:53:07[22m [31m[1m[vite][22m[39m [31mInternal server error: Failed to resolve import "idb" from "src/lib/pendingMovements.ts". Does the file exist?[39m
+  Plugin: [35mvite:import-analysis[39m
+  File: [36mC:/Users/HP/Documents/stock-gestion_btp/artifacts/stock-pwa/src/lib/pendingMovements.ts[39m:1:57
+[33m  1  |  "use strict";
+  2  |  import { openDB } from "idb";
+     |                          ^
+  3  |  export const PENDING_MOVEMENTS_CHANGED_EVENT = "pending-movements-changed";
+  4  |  const DB_NAME = "stock-btp-sync-queue";[39m
+      at TransformPluginContext._formatLog (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29079:43)
+      at TransformPluginContext.error (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:29076:14)
+      at normalizeUrl (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27199:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27257:32
+      at async Promise.all (index 0)
+      at async TransformPluginContext.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:27225:4)
+      at async EnvironmentPluginContainer.transform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:28877:14)
+      at async loadAndTransform (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:22746:26)
+      at async viteTransformMiddleware (file:///C:/Users/HP/Documents/stock-gestion_btp/node_modules/.pnpm/vite@7.3.6_@types+node@25.9_24d5bf9bff191b20f146d1fc780fa292/node_modules/vite/dist/node/chunks/config.js:24622:20)

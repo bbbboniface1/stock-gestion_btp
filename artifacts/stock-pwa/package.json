@@ -90,6 +90,9 @@
     "zustand": "^5.0.3"
   },
   "dependencies": {
+    "@tanstack/query-sync-storage-persister": "^5.101.2",
+    "@tanstack/react-query-persist-client": "^5.101.2",
+    "idb": "^7.1.1",
     "qrcode.react": "^4.2.0",
     "workbox-window": "^7.4.1"
   }

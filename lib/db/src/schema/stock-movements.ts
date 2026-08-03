@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, pgEnum, index, check } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, pgEnum, index, uniqueIndex, check } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -18,6 +18,7 @@ export const stockMovementsTable = pgTable("stock_movements", {
   projectId: integer("project_id").references(() => projectsTable.id),
   invoiceId: integer("invoice_id").references(() => invoicesTable.id),
   reversedByMovementId: integer("reversed_by_movement_id"),
+  idempotencyKey: text("idempotency_key"),
   createdById: integer("created_by").notNull().references(() => usersTable.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
@@ -27,6 +28,9 @@ export const stockMovementsTable = pgTable("stock_movements", {
   index("stock_movements_invoice_id_idx").on(table.invoiceId),
   index("stock_movements_created_by_idx").on(table.createdById),
   index("stock_movements_type_created_at_idx").on(table.type, table.createdAt),
+  uniqueIndex("stock_movements_idempotency_key_idx")
+    .on(table.idempotencyKey)
+    .where(sql`idempotency_key IS NOT NULL`),
   check("stock_movements_quantity_positive", sql`${table.quantity} > 0`),
 ]);
 

@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
-import { useGetProduct, useListProjects, useCreateStockMovement } from "@workspace/api-client-react";
+import { useGetProduct, useListProjects, useCreateStockMovement, type Product } from "@workspace/api-client-react";
 import { useAuthStore } from "@/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
+import { addPendingMovement } from "@/lib/pendingMovements";
 import {
   getListProductsQueryKey,
   getListStockMovementsQueryKey,
@@ -16,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-type ScreenState = "form" | "success" | "error";
+type ScreenState = "form" | "success" | "local-success" | "error";
 
 const NONE_PROJECT = "__none__";
 
@@ -28,17 +29,48 @@ function useProductIdFromUrl(): number | null {
   return isNaN(n) ? null : n;
 }
 
+function createLocalId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const value = typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function"
+      ? crypto.getRandomValues(new Uint8Array(1))[0] & 15
+      : Math.floor(Math.random() * 16);
+    const nibble = char === "x" ? value : (value & 0x3) | 0x8;
+    return nibble.toString(16);
+  });
+}
+
 export default function ScanPage() {
   const [, setLocation] = useLocation();
   const { token, user } = useAuthStore();
   const productId = useProductIdFromUrl();
 
-  const { data: product, isLoading: loadingProduct } = useGetProduct(productId ?? 0, {
+  const { data: fetchedProduct, isLoading: loadingProduct } = useGetProduct(productId ?? 0, {
     query: { enabled: !!productId && !!token } as any,
   });
   const { data: projects } = useListProjects({}, { query: { enabled: !!token } as any });
   const createMovement = useCreateStockMovement();
   const queryClient = useQueryClient();
+  const cachedProduct = useMemo(() => {
+    if (!productId) return null;
+
+    const directProduct = queryClient.getQueryData<Product>(getGetProductQueryKey(productId));
+    if (directProduct) return directProduct;
+
+    const productQueries = queryClient.getQueryCache().findAll({ queryKey: getListProductsQueryKey() });
+    for (const query of productQueries) {
+      const data = query.state.data as Product[] | { pages?: Product[][] } | undefined;
+      const pages = Array.isArray(data) ? [data] : data?.pages ?? [];
+      const cached = pages.flat().find((item) => item.id === productId);
+      if (cached) return cached;
+    }
+
+    return null;
+  }, [productId, queryClient]);
+  const product = fetchedProduct ?? cachedProduct;
 
   const [type, setType] = useState<"IN" | "OUT">("OUT");
   const [quantity, setQuantity] = useState("1");
@@ -48,6 +80,7 @@ export default function ScanPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [confirmedQty, setConfirmedQty] = useState(0);
   const [confirmedType, setConfirmedType] = useState<"IN" | "OUT">("OUT");
+  const [confirmedLocalId, setConfirmedLocalId] = useState("");
   const [stockAfter, setStockAfter] = useState<number | null>(null);
 
   const safeQty = (): number => {
@@ -63,13 +96,42 @@ export default function ScanPage() {
     }
   }, [token, setLocation]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!user || !product) return;
     const qty = safeQty();
     if (!reason.trim()) return;
     if (type === "OUT" && qty > product.quantityInStock) return;
 
     const resolvedProject = projectId !== NONE_PROJECT ? parseInt(projectId) : null;
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const localId = createLocalId();
+
+      try {
+        await addPendingMovement({
+          localId,
+          productId: product.id,
+          type,
+          quantity: qty,
+          reason: reason.trim(),
+          projectId: resolvedProject,
+          createdAt: new Date().toISOString(),
+          status: "pending",
+          errorMessage: null,
+        });
+
+        setConfirmedQty(qty);
+        setConfirmedType(type);
+        setConfirmedLocalId(localId);
+        setStockAfter(null);
+        setScreen("local-success");
+      } catch {
+        setErrorMsg("Impossible d'enregistrer localement. Réessayez avant de fermer l'application.");
+        setScreen("error");
+      }
+
+      return;
+    }
 
     createMovement.mutate({
       data: {
@@ -84,6 +146,7 @@ export default function ScanPage() {
       onSuccess: () => {
         setConfirmedQty(qty);
         setConfirmedType(type);
+        setConfirmedLocalId("");
         setStockAfter(type === "IN" ? product.quantityInStock + qty : product.quantityInStock - qty);
         queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
         queryClient.invalidateQueries({ queryKey: getListStockMovementsQueryKey() });
@@ -140,7 +203,7 @@ export default function ScanPage() {
       <div className="flex-1 flex flex-col px-4 py-6 gap-5 max-w-md mx-auto w-full">
 
         {/* Loading */}
-        {loadingProduct && (
+        {loadingProduct && !product && (
           <div className="flex-1 flex flex-col items-center justify-center gap-4">
             <Loader2 className="h-10 w-10 text-primary animate-spin" />
             <div className="text-muted-foreground uppercase text-sm">Chargement du produit...</div>
@@ -162,6 +225,58 @@ export default function ScanPage() {
             <Package className="h-14 w-14 text-muted-foreground" />
             <div className="text-lg font-bold uppercase">QR Code invalide</div>
             <div className="text-sm text-muted-foreground">Aucun produit spécifié dans l'URL.</div>
+          </div>
+        )}
+
+        {/* LOCAL SUCCESS */}
+        {screen === "local-success" && product && (
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center">
+            <div className="h-20 w-20 rounded-full bg-amber-500/20 flex items-center justify-center">
+              <CheckCircle2 className="h-12 w-12 text-amber-500" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold uppercase">Enregistré localement</div>
+              <div className="text-sm text-amber-600 font-bold uppercase mt-2">
+                Sera synchronisé au retour du réseau
+              </div>
+              <div className={`text-4xl font-bold font-mono mt-4 ${confirmedType === "IN" ? "text-green-500" : "text-orange-500"}`}>
+                {confirmedType === "IN" ? "+" : "-"}{confirmedQty} {product.unit}
+              </div>
+              <div className="text-muted-foreground uppercase text-sm mt-1">{product.name}</div>
+              {confirmedLocalId && (
+                <div className="mt-3 text-[10px] text-muted-foreground font-mono break-all">
+                  ID local : {confirmedLocalId}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 w-full">
+              <Button
+                className="w-full uppercase font-bold h-14 text-base"
+                onClick={() => setLocation("/pending-movements")}
+              >
+                Voir mouvements en attente
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full uppercase font-bold border-border"
+                onClick={() => {
+                  setScreen("form");
+                  setQuantity("1");
+                  setReason("");
+                  setProjectId(NONE_PROJECT);
+                  setConfirmedLocalId("");
+                }}
+              >
+                Nouveau mouvement
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full uppercase font-bold"
+                onClick={() => setLocation("/")}
+              >
+                Retour au dashboard
+              </Button>
+            </div>
           </div>
         )}
 
@@ -234,7 +349,7 @@ export default function ScanPage() {
         )}
 
         {/* FORM */}
-        {screen === "form" && !loadingProduct && product && (
+        {screen === "form" && product && (
           <>
             {/* Product card */}
             <div className="bg-card border border-border rounded-lg p-4">

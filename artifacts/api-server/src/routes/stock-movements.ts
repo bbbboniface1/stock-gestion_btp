@@ -1,6 +1,7 @@
 import { Router, IRouter } from "express";
 import { db, stockMovementsTable, productsTable, usersTable, projectsTable } from "@workspace/db";
 import { eq, and, gte, lt, lte, sql, type SQL } from "drizzle-orm";
+import { z } from "zod";
 import { requireAuth, requireRole, type AuthenticatedRequest } from "../middlewares/auth";
 import {
   ListStockMovementsQueryParams,
@@ -13,6 +14,10 @@ import { serializeDates } from "../lib/serialize";
 import { isDateOnly, parseDateBoundary } from "../lib/date-ranges";
 
 const router: IRouter = Router();
+
+const CreateStockMovementWithIdempotencyBody = CreateStockMovementBody.extend({
+  idempotencyKey: z.string().optional(),
+});
 
 const MOVEMENTS_SELECT = {
   id: stockMovementsTable.id,
@@ -42,6 +47,28 @@ async function getMovementsWithJoins(
     .orderBy(sql`${stockMovementsTable.createdAt} desc`)
     .limit(opts.limit ?? 50)
     .offset(opts.offset ?? 0);
+}
+
+async function getMovementByIdempotencyKey(idempotencyKey: string) {
+  const [movement] = await getMovementsWithJoins(
+    [eq(stockMovementsTable.idempotencyKey, idempotencyKey)],
+    { limit: 1 },
+  );
+  return movement;
+}
+
+function isIdempotencyUniqueViolation(error: unknown): boolean {
+  const err = error as { code?: unknown; constraint?: unknown; cause?: unknown };
+  if (err.code === "23505" && err.constraint === "stock_movements_idempotency_key_idx") {
+    return true;
+  }
+
+  const cause = err.cause as { code?: unknown; constraint?: unknown } | undefined;
+  if (cause?.code === "23505" && cause.constraint === "stock_movements_idempotency_key_idx") {
+    return true;
+  }
+
+  return error instanceof Error && error.message.includes("stock_movements_idempotency_key_idx");
 }
 
 router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
@@ -80,54 +107,75 @@ router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
 });
 
 router.post("/stock-movements", requireAuth, requireRole("admin", "manager"), async (req: AuthenticatedRequest, res): Promise<void> => {
-  const parsed = CreateStockMovementBody.safeParse(req.body);
+  const parsed = CreateStockMovementWithIdempotencyBody.safeParse(req.body);
   if (!parsed.success) { res.status(400).json({ error: parsed.error.message }); return; }
 
   const { productId, type, quantity, reason, projectId } = parsed.data;
+  const idempotencyKey = parsed.data.idempotencyKey?.trim() || undefined;
 
   if (!Number.isInteger(quantity) || quantity < 1) {
     res.status(400).json({ error: "La quantité doit être un entier positif" });
     return;
   }
 
-  const result = await db.transaction(async (tx) => {
-    const [product] = await tx.select().from(productsTable).where(eq(productsTable.id, productId));
-    if (!product) return { error: "Produit introuvable" as const, status: 404 };
-
-    if (projectId) {
-      const [project] = await tx.select().from(projectsTable).where(eq(projectsTable.id, projectId));
-      if (!project) return { error: "Projet introuvable" as const, status: 404 };
-      if (project.status !== "active") return { error: "Le projet doit etre actif pour enregistrer un mouvement" as const, status: 400 };
+  if (idempotencyKey) {
+    const existingMovement = await getMovementByIdempotencyKey(idempotencyKey);
+    if (existingMovement) {
+      res.status(200).json(GetStockMovementResponse.parse(serializeDates(existingMovement)));
+      return;
     }
-
-    if (type === "OUT") {
-      const [updatedProduct] = await tx.update(productsTable)
-        .set({ quantityInStock: sql`${productsTable.quantityInStock} - ${quantity}` })
-        .where(and(eq(productsTable.id, productId), gte(productsTable.quantityInStock, quantity)))
-        .returning();
-      if (!updatedProduct) {
-        return { error: `Stock insuffisant. Disponible: ${product.quantityInStock}, demande: ${quantity}` as const, status: 400 };
-      }
-    } else {
-      await tx.update(productsTable)
-        .set({ quantityInStock: sql`${productsTable.quantityInStock} + ${quantity}` })
-        .where(eq(productsTable.id, productId));
-    }
-
-    const [movement] = await tx.insert(stockMovementsTable)
-      .values({ productId, type, quantity, reason, projectId: projectId ?? null, createdById: req.user!.id })
-      .returning();
-
-    return { movement };
-  });
-
-  if ("error" in result && result.error) {
-    res.status(result.status ?? 400).json({ error: result.error });
-    return;
   }
 
-  const rows = await getMovementsWithJoins([eq(stockMovementsTable.id, result.movement.id)]);
-  res.status(201).json(GetStockMovementResponse.parse(serializeDates(rows[0])));
+  try {
+    const result = await db.transaction(async (tx) => {
+      const [product] = await tx.select().from(productsTable).where(eq(productsTable.id, productId));
+      if (!product) return { error: "Produit introuvable" as const, status: 404 };
+
+      if (projectId) {
+        const [project] = await tx.select().from(projectsTable).where(eq(projectsTable.id, projectId));
+        if (!project) return { error: "Projet introuvable" as const, status: 404 };
+        if (project.status !== "active") return { error: "Le projet doit etre actif pour enregistrer un mouvement" as const, status: 400 };
+      }
+
+      if (type === "OUT") {
+        const [updatedProduct] = await tx.update(productsTable)
+          .set({ quantityInStock: sql`${productsTable.quantityInStock} - ${quantity}` })
+          .where(and(eq(productsTable.id, productId), gte(productsTable.quantityInStock, quantity)))
+          .returning();
+        if (!updatedProduct) {
+          return { error: `Stock insuffisant. Disponible: ${product.quantityInStock}, demande: ${quantity}` as const, status: 400 };
+        }
+      } else {
+        await tx.update(productsTable)
+          .set({ quantityInStock: sql`${productsTable.quantityInStock} + ${quantity}` })
+          .where(eq(productsTable.id, productId));
+      }
+
+      const [movement] = await tx.insert(stockMovementsTable)
+        .values({ productId, type, quantity, reason, projectId: projectId ?? null, idempotencyKey: idempotencyKey ?? null, createdById: req.user!.id })
+        .returning();
+
+      return { movement };
+    });
+
+    if ("error" in result && result.error) {
+      res.status(result.status ?? 400).json({ error: result.error });
+      return;
+    }
+
+    const rows = await getMovementsWithJoins([eq(stockMovementsTable.id, result.movement.id)]);
+    res.status(201).json(GetStockMovementResponse.parse(serializeDates(rows[0])));
+  } catch (error) {
+    if (idempotencyKey && isIdempotencyUniqueViolation(error)) {
+      const existingMovement = await getMovementByIdempotencyKey(idempotencyKey);
+      if (existingMovement) {
+        res.status(200).json(GetStockMovementResponse.parse(serializeDates(existingMovement)));
+        return;
+      }
+    }
+
+    throw error;
+  }
 });
 
 router.get("/stock-movements/:id", requireAuth, async (req, res): Promise<void> => {
