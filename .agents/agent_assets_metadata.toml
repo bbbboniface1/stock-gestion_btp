@@ -1,0 +1,30 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "6FjYS7E_vKNL76s6PWPjz"
+uri = "file://attached_assets/image_search/btp_1.jpg"
+type = "image"
+title = "① Coffrage béton — Paris"
+description = "Vue en plongée sur un coffrage béton, ambiance industrielle."
+
+[[outputs]]
+id = "HxgWvpxvAYEHDUj0Lz6Bp"
+uri = "file://attached_assets/image_search/btp_2.jpg"
+type = "image"
+title = "② Compagnon sur chantier béton"
+description = "Ouvrier au travail sur dalle béton, cadrage humain."
+
+[[outputs]]
+id = "ju0a1I5rBNIl63Nou07Rr"
+uri = "file://attached_assets/image_search/btp_3.jpg"
+type = "image"
+title = "③ Coulage béton — Le Mans"
+description = "Coulage en action, lumière dynamique."
+
+[[outputs]]
+id = "Ww_cK4wySvYVwPAIJzzDL"
+uri = "file://attached_assets/image_search/btp_4.jpg"
+type = "image"
+title = "④ Gratte-ciel en construction"
+description = "Structure béton en hauteur, perspective forte."
