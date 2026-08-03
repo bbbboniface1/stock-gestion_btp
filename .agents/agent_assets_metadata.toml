@@ -1,0 +1,65 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "6FjYS7E_vKNL76s6PWPjz"
+uri = "file://attached_assets/image_search/btp_1.jpg"
+type = "image"
+title = "① Coffrage béton — Paris"
+description = "Vue en plongée sur un coffrage béton, ambiance industrielle."
+
+[[outputs]]
+id = "HxgWvpxvAYEHDUj0Lz6Bp"
+uri = "file://attached_assets/image_search/btp_2.jpg"
+type = "image"
+title = "② Compagnon sur chantier béton"
+description = "Ouvrier au travail sur dalle béton, cadrage humain."
+
+[[outputs]]
+id = "ju0a1I5rBNIl63Nou07Rr"
+uri = "file://attached_assets/image_search/btp_3.jpg"
+type = "image"
+title = "③ Coulage béton — Le Mans"
+description = "Coulage en action, lumière dynamique."
+
+[[outputs]]
+id = "Ww_cK4wySvYVwPAIJzzDL"
+uri = "file://attached_assets/image_search/btp_4.jpg"
+type = "image"
+title = "④ Gratte-ciel en construction"
+description = "Structure béton en hauteur, perspective forte."
+
+[[outputs]]
+id = "NQt7soxLTTKFpyO7yxTgE"
+uri = "file://attached_assets/design_refs/design_1.jpg"
+type = "image"
+title = "① Inventory App — UI épuré (Dribbble/Pinterest)"
+description = "Layout carte avec sidebar, liste de produits et indicateurs KPI clairs."
+
+[[outputs]]
+id = "u-K_y7pVkE1Se-ZR9nN2-"
+uri = "file://attached_assets/design_refs/design_2.jpg"
+type = "image"
+title = "② SalesPro — POS & Inventory UI Kit"
+description = "Kit complet : tableau de bord, caisse, stock, commandes — tons neutres professionnels."
+
+[[outputs]]
+id = "4fYmxD6lxT1uy4WMLZ5cD"
+uri = "file://attached_assets/design_refs/design_3.jpg"
+type = "image"
+title = "③ Dashboard Stock & CRM — Pro"
+description = "Dashboard dense avec graphes, cartes métriques, tableau produits et segmentation."
+
+[[outputs]]
+id = "yUD66utf6zb2NCBBM_Da4"
+uri = "file://attached_assets/design_refs/design_4.jpg"
+type = "image"
+title = "④ Inventory Dashboard — Dribbble"
+description = "Design épuré thème clair : donut chart, tableau de stock, barre de navigation latérale."
+
+[[outputs]]
+id = "IyTgA2Q7oKOGZSd5jReYd"
+uri = "file://attached_assets/design_refs/design_5.jpg"
+type = "image"
+title = "⑤ Dashboard KPI & Analytics"
+description = "Vue analytique avancée avec charts, KPI cards, et graphes de performance."
