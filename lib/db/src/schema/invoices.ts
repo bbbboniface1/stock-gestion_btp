@@ -25,6 +25,7 @@ export const invoicesTable = pgTable("invoices", {
   index("invoices_status_idx").on(table.status),
   index("invoices_created_at_idx").on(table.createdAt),
   index("invoices_number_idx").on(table.invoiceNumber),
+  index("invoices_created_by_id_idx").on(table.createdById),
 ]);
 
 export const invoiceItemsTable = pgTable("invoice_items", {
@@ -38,6 +39,7 @@ export const invoiceItemsTable = pgTable("invoice_items", {
   position: integer("position").notNull().default(0),
 }, (table) => [
   index("invoice_items_invoice_id_idx").on(table.invoiceId),
+  index("invoice_items_product_id_idx").on(table.productId),
 ]);
 
 export type Invoice = typeof invoicesTable.$inferSelect;

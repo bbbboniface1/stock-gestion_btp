@@ -78,9 +78,11 @@ export default function InvoiceEdit() {
     );
   }, [products, productSearch]);
 
-  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const taxAmount = Math.round(subtotal * taxRate) / 100;
-  const total = subtotal + taxAmount;
+  const { subtotal, taxAmount, total } = useMemo(() => {
+    const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+    const taxAmount = Math.round(subtotal * taxRate) / 100;
+    return { subtotal, taxAmount, total: subtotal + taxAmount };
+  }, [items, taxRate]);
 
   const addProductToInvoice = (product: { id: number; name: string; quantityInStock: number; unit: string }) => {
     const existing = items.find(i => i.productId === product.id);

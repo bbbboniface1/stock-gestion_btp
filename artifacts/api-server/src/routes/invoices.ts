@@ -90,9 +90,14 @@ router.get("/invoices", requireAuth, requireRole("admin", "manager"), async (req
     return;
   }
 
+  const limitParsed = z.coerce.number().int().min(1).max(500).default(200).safeParse(req.query.limit);
+  const offsetParsed = z.coerce.number().int().min(0).default(0).safeParse(req.query.offset);
+  const limit = limitParsed.success ? limitParsed.data : 200;
+  const offset = offsetParsed.success ? offsetParsed.data : 0;
+
   const rows = statusFilter.data
-    ? await db.select().from(invoicesTable).where(eq(invoicesTable.status, statusFilter.data)).orderBy(desc(invoicesTable.createdAt))
-    : await db.select().from(invoicesTable).orderBy(desc(invoicesTable.createdAt));
+    ? await db.select().from(invoicesTable).where(eq(invoicesTable.status, statusFilter.data)).orderBy(desc(invoicesTable.createdAt)).limit(limit).offset(offset)
+    : await db.select().from(invoicesTable).orderBy(desc(invoicesTable.createdAt)).limit(limit).offset(offset);
 
   res.json(serializeDates(rows));
 });
