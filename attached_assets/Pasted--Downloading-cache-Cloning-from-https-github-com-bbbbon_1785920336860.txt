@@ -1,0 +1,42 @@
+==> Downloading cache...
+==> Cloning from https://github.com/bbbboniface1/stock-gestion_btp
+==> Checking out commit ddd2ff57fc897f9d599993799e92745404837602 in branch main
+==> Downloaded 608MB in 2s. Extraction took 10s.
+==> Using Node.js version 24.14.1 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'pnpm install --no-frozen-lockfile && pnpm run build:api'...
+> workspace@0.0.0 build:api /opt/render/project/src
+> pnpm run typecheck:libs && pnpm --filter @workspace/api-server run build
+> workspace@0.0.0 typecheck:libs /opt/render/project/src
+> tsc --build
+> @workspace/api-server@0.0.0 build /opt/render/project/src/artifacts/api-server
+> node ./build.mjs
+  dist/index.mjs                       2.4mb ⚠️
+  dist/pino-worker.mjs               150.5kb
+  dist/pino-file.mjs                 139.5kb
+  dist/pino-pretty.mjs               111.1kb
+  dist/thread-stream-worker.mjs        7.0kb
+  dist/index.mjs.map                   4.2mb
+  dist/pino-worker.mjs.map           255.6kb
+  dist/pino-file.mjs.map             227.9kb
+  dist/pino-pretty.mjs.map           202.4kb
+  dist/thread-stream-worker.mjs.map   11.9kb
+⚡ Done in 419ms
+==> Uploading build...
+==> Uploaded in 4.4s. Compression took 1.8s
+==> Build successful 🎉
+==> Deploying...
+==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+==> Running 'node artifacts/api-server/dist/index.mjs'
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+{"level":30,"time":1785919190037,"pid":70,"hostname":"srv-d915reo0697c73b7hsmg-hibernate-7dd98c84c9-v6sqh","port":8080,"msg":"Server listening"}
+{"level":30,"time":1785919190905,"pid":70,"hostname":"srv-d915reo0697c73b7hsmg-hibernate-7dd98c84c9-v6sqh","req":{"id":1,"method":"HEAD","url":"/"},"res":{"statusCode":404},"responseTime":8,"msg":"request completed"}
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://stockbtp-api.onrender.com
+==> 
+==> ///////////////////////////////////////////////////////////
+{"level":30,"time":1785919198274,"pid":70,"hostname":"srv-d915reo0697c73b7hsmg-hibernate-7dd98c84c9-v6sqh","req":{"id":2,"method":"GET","url":"/"},"res":{"statusCode":404},"responseTime":4,"msg":"request completed"}
