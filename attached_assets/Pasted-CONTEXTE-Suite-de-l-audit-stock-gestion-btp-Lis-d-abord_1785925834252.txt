@@ -1,0 +1,62 @@
+CONTEXTE
+Suite de l'audit stock-gestion_btp. Lis d'abord AUDIT.md existant
+(sections Phase 0 et Phase 1) pour le contexte. RÈGLE ABSOLUE : audit
+uniquement, ne modifie aucun fichier de code. Même structure de
+documentation que précédemment (Constat/Preuve/Sévérité/Recommandation),
+ajoute les nouvelles sections à la suite dans AUDIT.md.
+
+===========================================================
+PHASE 2 — ROBUSTESSE / GESTION D'ERREURS (tous modules)
+===========================================================
+Pour chaque route backend ET chaque mutation frontend :
+- Toute entrée utilisateur validée par un schéma zod avant d'atteindre
+  la base (pas seulement côté frontend) ?
+- ID inexistant dans l'URL (ex: 999999) sur chaque route GET/PATCH/
+  DELETE avec :id → 404 propre, pas de crash 500 ? Teste explicitement.
+- Body JSON malformé ou vide → comportement exact ?
+- Transactions : chaque opération multi-table (facturation + mouvement
+  de stock, consommation projet + mouvement) est-elle dans une
+  transaction Drizzle atomique (tx) ? Liste toute opération multi-table
+  qui ne l'est PAS.
+- Erreurs réseau côté frontend : chaque page a un état isError géré
+  (pas un écran blanc) ?
+- Cas limites numériques : quantité négative, prix négatif, division
+  par zéro potentielle.
+
+===========================================================
+PHASE 3 — ARCHITECTURE & DETTE TECHNIQUE
+===========================================================
+- Duplication de logique : fonctions dupliquées à l'identique ou
+  quasi-identique entre plusieurs fichiers (calculs de totaux,
+  formatage de dates, etc.).
+- Couplage : composants frontend font-ils des appels API directs ou
+  passent-ils tous par les hooks générés (@workspace/api-client-react) ?
+  Note toute exception.
+- Fichiers > 400 lignes : liste-les, indique si un découpage serait
+  raisonnable (ne le fais pas, juste note-le).
+- Cohérence des conventions de nommage entre schéma DB (snake_case),
+  types zod (camelCase), et code frontend.
+- État du champ pnpm "overrides"/lockfile : explique clairement d'où
+  vient la dérive et le risque si elle n'est pas comprise avant
+  correction.
+
+===========================================================
+PHASE 4 — PERFORMANCE
+===========================================================
+- Requêtes N+1 potentielles : boucles qui font un appel DB par
+  itération au lieu d'un seul appel groupé (reports.ts, dashboard.ts,
+  toute route qui enrichit une liste avec des données liées).
+- Index manquants : pour chaque colonne utilisée dans WHERE/JOIN
+  fréquent (productId, invoiceId, projectId), vérifie qu'un index
+  existe dans le schéma Drizzle.
+- Pagination : les endpoints de liste (GET /products, /invoices,
+  /stock-movements) ont-ils une pagination, ou renvoient-ils tout
+  d'un coup ? À quel volume ça deviendrait un problème réel ?
+- Frontend : re-renders inutiles (absence de useMemo/useCallback sur
+  des calculs coûteux répétés, ex: calcul de totaux de facture à
+  chaque keystroke).
+- Taille du bundle : imports non tree-shakables ou librairies lourdes
+  importées entièrement (ex: import * as XLSX) ?
+
+LIVRABLE
+Sections "Phase 2", "Phase 3", "Phase 4" ajoutées à AUDIT.md.

@@ -424,11 +424,321 @@ const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
 ---
 
+---
+
+## PHASE 2 — ROBUSTESSE / GESTION D'ERREURS
+
+---
+
+### P2.1 — Validation Zod des entrées backend
+
+**Constat : RAS, vérifié sur toutes les routes**
+
+Chaque route valide le body/query via `safeParse` avant tout accès DB. Retour `400` immédiat si invalide.
+
+| Route | Schéma utilisé | Ligne |
+|-------|---------------|-------|
+| `auth.ts` POST /login | `LoginBody.safeParse(req.body)` | 36 |
+| `company.ts` PATCH /company | `UpdateCompanyBody.safeParse(req.body)` | 38 |
+| `dashboard.ts` GET /recent | `GetRecentMovementsQueryParams.safeParse(req.query)` | 51 |
+| `invoices.ts` POST | `CreateInvoiceBody.safeParse(req.body)` | 101 |
+| `invoices.ts` PATCH | `UpdateInvoiceBody.safeParse` | 175 |
+| `invoices.ts` PATCH /status | `UpdateInvoiceStatusBody.safeParse` | 257 |
+| `products.ts` GET list | `ListProductsQueryParams.safeParse` | 36 |
+| `products.ts` POST | `CreateProductBody.safeParse` | 59 |
+| `projects.ts` POST | `CreateProjectBody.safeParse` | 35 |
+| `stock-movements.ts` POST | `CreateStockMovementWithIdempotencyBody.safeParse` | 110 |
+| `users.ts` POST | `CreateUserBody.safeParse` | 44 |
+| `users.ts` PATCH | `UpdateUserBody.safeParse` | 81 |
+
+**Sévérité : RAS**
+
+---
+
+### P2.2 — ID inexistant (GET/PATCH/DELETE :id) → 404
+
+**Constat : RAS, vérifié sur toutes les routes avec paramètre :id**
+
+| Route | Ligne(s) 404 |
+|-------|-------------|
+| `invoices.ts` GET/:id, PATCH/:id, DELETE/:id | 167, 186, 232 |
+| `products.ts` GET/:id, PATCH/:id, DELETE/:id | 91, 107, 123 |
+| `projects.ts` GET/:id, PATCH/:id, DELETE/:id | 46, 56, 88 |
+| `stock-movements.ts` GET/:id | 132, 185 |
+| `users.ts` PATCH/:id, DELETE/:id | 74, 84, 131 |
+
+Aucune route ne crash en 500 sur un ID inconnu.
+
+**Sévérité : RAS**
+
+---
+
+### P2.3 — Body JSON malformé ou vide
+
+**Constat : RAS, comportement défensif**
+
+Le middleware `express.json()` dans `app.ts` retourne automatiquement une `SyntaxError` → Express la capture en 400. Les schémas Zod traitent ensuite les champs manquants avec `safeParse` : retour 400 + description détaillée des champs invalides via `error.format()`. Aucun crash 500.
+
+**Sévérité : RAS**
+
+---
+
+### P2.4 — Transactions Drizzle pour opérations multi-tables
+
+**Constat : RAS, toutes les opérations multi-tables sont atomiques**
+
+| Fichier | Opération | Transaction |
+|---------|-----------|-------------|
+| `invoices.ts` | Création facture + items | `db.transaction` ligne 110 |
+| `invoices.ts` | Mise à jour facture + items | `db.transaction` ligne 184 |
+| `invoices.ts` | Changement statut | `db.transaction` ligne 261 |
+| `products.ts` | Création produit + mouvement stock initial | `db.transaction` ligne 67 |
+| `projects.ts` | Consommation matériau + mouvement stock | `db.transaction` ligne 86 |
+| `stock-movements.ts` | Enregistrement mouvement + mise à jour stock | `db.transaction` ligne 130 |
+
+Aucune opération multi-table identifiée sans transaction.
+
+**Sévérité : RAS**
+
+---
+
+### P2.5 — Gestion `isError` côté frontend
+
+**Constat : RAS sur les pages principales**
+
+| Page | Message d'erreur affiché |
+|------|--------------------------|
+| `dashboard.tsx` | "Tableau de bord indisponible" (ligne 107) |
+| `products.tsx` | "Impossible de charger les produits" (ligne 269) |
+| `movements.tsx` | "Impossible de charger les mouvements" (ligne 108) |
+| `invoices.tsx` | "Impossible de charger les factures" (ligne 109) |
+| `product-detail.tsx` | "Impossible de charger le produit" (ligne 36) |
+| `project-detail.tsx` | "Impossible de charger ce projet" (ligne 97) |
+| `users.tsx` | "Impossible de charger les utilisateurs" (ligne 131) |
+
+Aucune page vierge blanche en cas d'erreur réseau sur les requêtes principales.
+
+**Sévérité : RAS**
+
+---
+
+### P2.6 — Cas limites numériques (quantité négative, prix négatif)
+
+**Constat : RAS, double protection frontend + backend**
+
+**Backend :**
+- `invoices.ts` lignes 34, 37 : `quantity < 1` et `unitPrice < 0` → 400
+- `products.ts` lignes 62, 101 : prix négatif → 400
+- `stock-movements.ts` ligne 116 : `quantity >= 1` enforced
+
+**Frontend (Zod) :**
+- `MovementDialog.tsx` ligne 24 : `quantity` `.min(1)`
+- `invoice-new.tsx` ligne 104 : validation entier > 0 au submit
+- `project-detail.tsx` ligne 28 : `quantityUsed` `.min(1)`
+
+Aucune division par zéro identifiée dans les calculs (les totaux ne divisent pas — ils multiplient et additionnent uniquement).
+
+**Sévérité : RAS**
+
+---
+
+## PHASE 3 — ARCHITECTURE & DETTE TECHNIQUE
+
+---
+
+### P3.1 — Duplication de logique de calcul (totaux facture)
+
+**Constat : Duplication partielle**
+
+Le calcul des totaux de facture (`subtotal`, `taxAmount`, `total`) est dupliqué :
+
+| Endroit | Code | Lignes |
+|---------|------|--------|
+| **Backend** | Utilise `calculateInvoiceTotals` (lib partagée) | `invoices.ts` 108, 182 |
+| **Frontend `invoice-new.tsx`** | `items.reduce((s, i) => s + i.quantity * i.unitPrice, 0)` inline | 57–59 |
+| **Frontend `invoice-edit.tsx`** | Même reduce inline | ~81–83 |
+
+Le frontend recalcule manuellement sans importer la fonction partagée, créant un risque de divergence si la logique de calcul évolue (ex : arrondi TVA différent).
+
+**Sévérité : Mineur** — pour l'instant les formules sont identiques, mais toute modification de la logique côté lib devra être répercutée manuellement dans les deux pages.
+
+**Recommandation :** Exporter `calculateInvoiceTotals` depuis `@workspace/api-zod` ou une lib partagée et l'importer dans les pages frontend.
+
+---
+
+### P3.2 — Couplage : appels API directs (hors hooks générés)
+
+**Constat : 3 exceptions identifiées, toutes légitimes**
+
+| Fichier | Appel direct | Justification |
+|---------|-------------|---------------|
+| `artifacts/stock-pwa/src/pages/reports.tsx:64` | `fetch("/api/reports/pdf?...")` | Téléchargement binaire PDF — les hooks TanStack Query ne gèrent pas le streaming de fichiers |
+| `artifacts/stock-pwa/src/lib/auth.ts:18` | `fetch("/api/auth/logout")` | Appel de déconnexion en dehors du cycle React Query |
+| `artifacts/stock-pwa/src/lib/downloadInvoicePdf.ts:5` | `fetch("/api/invoices/:id/pdf")` | Téléchargement binaire PDF — même raison |
+
+Tous les autres appels de données passent par les hooks `@workspace/api-client-react` (`useListProducts`, `useCreateInvoice`, etc.).
+
+**Sévérité : RAS** — les exceptions sont justifiées techniquement (téléchargement binaire impossible via hooks standard).
+
+---
+
+### P3.3 — Fichiers > 400 lignes
+
+**Constat : 4 fichiers dépassent le seuil**
+
+| Fichier | Lignes | Découpage recommandé |
+|---------|--------|----------------------|
+| `artifacts/api-server/src/routes/invoices.ts` | 546 | Oui — séparer la génération PDF (`generateInvoicePdf`) dans un fichier dédié `lib/pdf/invoice-pdf.ts` |
+| `artifacts/stock-pwa/src/pages/products.tsx` | 492 | Oui — extraire `ProductForm` et `ProductCard` en composants séparés |
+| `artifacts/stock-pwa/src/pages/dashboard.tsx` | 463 | Modéré — extraire les composants de graphiques en `components/charts/` |
+| `artifacts/api-server/src/routes/reports.ts` | 437 | Modéré — extraire la génération PDF rapport dans une lib dédiée |
+
+**Sévérité : Mineur** — aucun impact fonctionnel, mais la maintenabilité est réduite sur ces fichiers.
+
+---
+
+### P3.4 — Cohérence des conventions de nommage
+
+**Constat : Cohérent DB↔API, une incohérence sur les query params**
+
+**Flux nominal (cohérent) :**
+- DB Postgres : `snake_case` (`invoice_number`, `tax_rate`, `created_by_id`)
+- Drizzle schema : camelCase côté JS, mappé vers snake_case via `("column_name")` — ex: `invoiceNumber: text("invoice_number")`
+- API Zod / OpenAPI : `camelCase` (`invoiceNumber`, `taxRate`, `createdById`)
+- Frontend : `camelCase` — cohérent avec l'API
+
+**Incohérence identifiée :**
+Les **query parameters** de `GET /stock-movements` utilisent `snake_case` (`product_id`, `project_id`, `from_date`, `to_date`) alors que les objets de réponse utilisent `camelCase` (`productId`, `projectName`). Cette asymétrie est dans `lib/api-zod/src/` (`ListStockMovementsQueryParams`).
+
+**Sévérité : Mineur** — l'API fonctionne, mais la convention est incohérente et peut surprendre lors de l'ajout de nouveaux endpoints.
+
+---
+
+### P3.5 — État des overrides pnpm / lockfile
+
+**Constat : Résolu — explication de l'origine**
+
+**Situation actuelle (vérifiée) :**
+- `pnpm install --frozen-lockfile` → ✅ passe sans erreur
+- Le lockfile est synchronisé avec les overrides actuels
+
+**Origine de la dérive :**
+`pnpm-workspace.yaml` contient deux catégories d'overrides :
+1. **Exclusions de binaires natifs** (`"esbuild>@esbuild/darwin-arm64": "-"` etc.) — environ 80 entrées pour exclure les binaires non-Linux inutiles sur Render/Vercel. Ces overrides de type `package>sub-package` sont résolus par pnpm dans le graphe de dépendances et **ne s'affichent pas** dans la section `overrides:` du lockfile (section distincte du graphe résolu).
+2. **Pin de version** (`esbuild: "0.27.3"`) — override de version classique, visible dans le lockfile.
+
+La section `overrides: { drizzle-orm: 0.45.2 }` du lockfile est normale : c'est la seule override de version racine. Les exclusions de binaires sont stockées dans le graphe de résolution du lockfile, pas dans cette section.
+
+L'erreur `ERR_PNPM_LOCKFILE_CONFIG_MISMATCH` venait d'un lockfile généré avec une configuration d'overrides différente (probablement avant l'ajout des exclusions esbuild) et non régénéré. Corrigé par `pnpm install --no-frozen-lockfile`.
+
+**Sévérité : RAS** (corrigé)
+
+---
+
+## PHASE 4 — PERFORMANCE
+
+---
+
+### P4.1 — Requêtes N+1
+
+**Constat : RAS, aucune boucle avec appel DB par itération**
+
+`reports.ts` utilise `Promise.all` avec des requêtes groupées — pas de boucle sur des appels individuels. `dashboard.ts` agrège via SQL (`SUM`, `GROUP BY`) en une seule requête. Aucune route n'enrichit une liste avec un appel DB par élément.
+
+**Sévérité : RAS**
+
+---
+
+### P4.2 — Index manquants
+
+**Constat : 2 index manquants identifiés**
+
+| Table | Colonne | Utilisée dans | Index présent |
+|-------|---------|---------------|---------------|
+| `invoicesTable` | `createdById` (userId FK) | JOINs sur l'auteur | ❌ **Manquant** |
+| `invoiceItemsTable` | `productId` | JOINs produit ↔ item | ❌ **Manquant** |
+| `stockMovementsTable` | `productId`, `projectId`, `invoiceId`, `createdById` | WHERE fréquents | ✅ Présents (lignes 26–29) |
+| `productsTable` | `name`, `category`, `location` | WHERE fréquents | ✅ Présents (lignes 20–22) |
+| `invoicesTable` | `status`, `createdAt`, `invoiceNumber` | WHERE/ORDER BY | ✅ Présents (lignes 25–27) |
+| `projectMaterialsTable` | `projectId`, `productId` | JOINs | ✅ Index composite unique (lignes 13–15) |
+| `auditLogsTable` | `entityType+entityId`, `userId`, `createdAt` | WHERE | ✅ Présents (lignes 19–21) |
+
+**Sévérité : Mineur** — à faible volume, l'absence d'index sur `invoicesTable.createdById` et `invoiceItemsTable.productId` est imperceptible. À volume élevé (>10 000 factures), les JOINs sur ces colonnes dégraderont les performances.
+
+**Recommandation :** Ajouter dans `lib/db/src/schema/invoices.ts` :
+```ts
+// invoicesTable
+.index("invoices_created_by_id_idx", [t.createdById])
+// invoiceItemsTable
+.index("invoice_items_product_id_idx", [t.productId])
+```
+
+---
+
+### P4.3 — Pagination des endpoints de liste
+
+**Constat : Pagination absente sur 3 endpoints**
+
+| Endpoint | Pagination | Limite max | Risque volume |
+|----------|-----------|------------|---------------|
+| `GET /products` | ✅ limit/offset | 50 | RAS |
+| `GET /stock-movements` | ✅ limit/offset | 50 | RAS |
+| `GET /invoices` | ❌ **Aucune** | Illimitée | ⚠️ Majeur à >500 factures |
+| `GET /users` | ❌ **Aucune** | Illimitée | Mineur (peu d'utilisateurs) |
+| `GET /projects` | ❌ **Aucune** | Illimitée | ⚠️ Mineur à >200 projets |
+
+`GET /invoices` est le cas le plus exposé : une entreprise active peut accumuler plusieurs centaines de factures rapidement. Sans pagination, la réponse et le rendu frontend grossissent indéfiniment.
+
+**Sévérité : Majeur** pour `/invoices` · **Mineur** pour `/users` et `/projects`
+
+**Recommandation :** Ajouter `limit` (défaut 50, max 200) + `offset` sur `GET /invoices`, à l'image de ce qui est fait sur `GET /products`.
+
+---
+
+### P4.4 — Re-renders inutiles (calculs de totaux)
+
+**Constat : Calculs non mémorisés dans invoice-new.tsx et invoice-edit.tsx**
+
+```ts
+// invoice-new.tsx lignes 57–59 — recalculé à chaque re-render
+const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+const taxAmount = Math.round(subtotal * taxRate) / 100;
+const total = subtotal + taxAmount;
+```
+
+Ces trois valeurs sont recalculées à **chaque frappe clavier** sur n'importe quel champ du formulaire (clientName, notes, date…), même si les lignes de facture et le taux TVA n'ont pas changé.
+
+**Sévérité : Mineur** — imperceptible avec peu de lignes. À >50 lignes par facture avec des descriptions longues, le recalcul à chaque frappe peut introduire une latence perceptible.
+
+**Recommandation :**
+```ts
+const { subtotal, taxAmount, total } = useMemo(() => {
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  const taxAmount = Math.round(subtotal * taxRate) / 100;
+  return { subtotal, taxAmount, total: subtotal + taxAmount };
+}, [items, taxRate]);
+```
+
+---
+
+### P4.5 — Taille du bundle
+
+**Constat : RAS, pas d'import problématique**
+
+- `lucide-react` : imports nommés individuels (`import { ArrowLeft, ... }`) — tree-shakable ✅
+- `@radix-ui/*` : pattern `import * as XPrimitive` standard pour Radix — tree-shaking géré par Vite ✅
+- Aucun `import * as XLSX`, `import lodash`, ou import de librairie entière non tree-shakable détecté
+- `vite.config.ts` : pas de `manualChunks` — Vite gère le splitting automatiquement (acceptable)
+
+**Sévérité : RAS**
+
+---
+
 ## RÉSUMÉ PAR SÉVÉRITÉ
 
 | Sévérité | Points |
 |----------|--------|
 | 🔴 Bloquant | Point 17 (idempotencyKey non confirmé en prod — vérification manuelle requise) |
-| 🟠 Majeur | Point 16 (defaultTaxRate absent du schéma) · Point 23 (données test en prod non vérifiables depuis le code) · Hash legacy SHA-256 (Phase 1) |
-| 🟡 Mineur | Point 6 (scan qty min=1) · Point 12 (status colors partiels) · Point 13 (formatCurrency non utilisé partout) · Point 21 (esbuild version mismatch lockfile) · Rate-limit Map non purgée (Phase 1) |
-| ✅ RAS | Points 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 14, 15, 18, 19, 20, 22 · Injections SQL · CORS prod · Logs sensibles · Token management |
+| 🟠 Majeur | Point 16 (defaultTaxRate absent du schéma) · Point 23 (données test en prod non vérifiables) · Hash legacy SHA-256 (P1) · P4.3 pagination `/invoices` absente |
+| 🟡 Mineur | Point 6 (scan qty min=1) · Point 12 (status colors partiels) · Point 13 (formatCurrency non utilisé partout) · P1 Rate-limit Map non purgée · P3.1 duplication calcul totaux · P3.3 fichiers >400 lignes · P3.4 query params snake_case · P4.2 index manquants invoices · P4.3 pagination `/users` et `/projects` · P4.4 re-renders totaux non mémorisés |
+| ✅ RAS | Points 1–5, 7–11, 14–15, 18–22 · P1 Injections SQL · P1 CORS prod · P1 Logs sensibles · P1 Token management · P2.1 Validation Zod · P2.2 404 sur ID inconnu · P2.3 JSON malformé · P2.4 Transactions · P2.5 isError frontend · P2.6 valeurs négatives · P3.2 couplage API · P3.5 lockfile overrides · P4.1 N+1 · P4.5 bundle |
