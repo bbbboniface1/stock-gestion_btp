@@ -1,0 +1,80 @@
+CONTEXTE
+Projet stock-gestion_btp (PWA React + API Express + Postgres/Supabase,
+monorepo pnpm). RÈGLE ABSOLUE : ceci est un AUDIT, pas une session de
+correction. Ne modifie AUCUN fichier de code. Documente uniquement.
+
+Produis un fichier AUDIT.md à la racine du projet (crée-le s'il
+n'existe pas, sinon ajoute une nouvelle section datée à la suite).
+Structure pour chaque point : Constat / Preuve (fichier+ligne ou
+commande exécutée) / Sévérité (Bloquant / Majeur / Mineur) /
+Recommandation. Si un point n'a rien à signaler, écris explicitement
+"RAS, vérifié" — ne saute jamais un point sans le mentionner.
+
+===========================================================
+PHASE 0 — ÉTAT RÉEL DES CHANTIERS EN COURS
+===========================================================
+Pour chacun des points suivants, vérifie dans le code s'il a été
+RÉELLEMENT implémenté, statut exact : FAIT / PARTIEL / PAS FAIT /
+FAIT MAIS PAS TESTÉ.
+
+1. Quantité de facture éditable dès 0 (invoice-new.tsx ET
+   invoice-edit.tsx séparément).
+2. PDF facture : hauteur de ligne dynamique pour description longue
+   (artifacts/api-server/src/routes/invoices.ts).
+3. Fix débordement horizontal invoice-detail.tsx (min-w-0 +
+   overflow-wrap: anywhere sur la grille des articles).
+4. Statut "Proforma" partout (grep "Brouillon"/"brouillon" dans tout
+   artifacts/, doit retourner zéro résultat).
+5. requireRole("admin","manager") sur POST /stock-movements.
+6. Quantité éditable dès 0 dans scan.tsx.
+7. Safe-area-pt appliqué sur MobileHeader (App.tsx) et le header de
+   scan.tsx.
+8. Labels explicites sur les champs date de movements.tsx et audit.tsx.
+9. Toggle thème clair/sombre : hook useTheme, bouton dans settings.tsx.
+10. font-mono retiré du conteneur racine App.tsx (ligne ~287).
+11. Couleurs de statut migrées vers variables de thème
+    (--status-success etc.) au lieu de text-green-500 codés en dur.
+12. formatCurrency centralisé (src/lib/formatCurrency.ts) utilisé dans
+    invoice-detail.tsx, invoices.tsx, invoice-new.tsx.
+13. Taille des boutons "sm" (button.tsx) : min-h-8 ou min-h-10 ?
+14. Refonte identité visuelle (palette latérite/kraft, polices Big
+    Shoulders Display / IBM Plex Mono, composant StampBadge).
+15. Taux de TVA par défaut (company-settings.ts defaultTaxRate,
+    pré-remplissage invoice-new.tsx).
+16. idempotencyKey sur POST /stock-movements : confirmé en PRODUCTION
+    Supabase avec : SELECT column_name FROM information_schema.columns
+    WHERE table_name='stock_movements' AND column_name='idempotency_key';
+17. Mode hors-ligne phase 1 (persistance React Query, badge en
+    ligne/hors ligne).
+18. Mode hors-ligne phase 2 (file d'attente IndexedDB scan.tsx,
+    useSyncQueue.ts, page "Mouvements en attente").
+19. Redesign login.tsx (écran scindé photo/formulaire).
+20. pnpm-lock.yaml / package.json overrides : mismatch résolu ?
+21. Migration revoked_tokens ("multiple primary keys") : résolue ?
+22. Données de test en base de prod (idempotency_key='test-123',
+    produit id=1) : nettoyées ?
+
+===========================================================
+PHASE 1 — SÉCURITÉ (tous modules)
+===========================================================
+Pour CHAQUE route de artifacts/api-server/src/routes/*.ts :
+- Tableau récapitulatif : route | méthode | middleware exact appliqué
+  (requireAuth seul ? +requireRole, quel(s) rôle(s) ?) | cohérent avec
+  les autres routes du même niveau de sensibilité ou pas.
+- Vérifie qu'aucune route ne fait confiance à un ID (userId, productId,
+  etc.) envoyé par le CLIENT sans le recouper avec le token de
+  l'utilisateur authentifié.
+- Injections SQL : cherche tout usage de requêtes SQL brutes
+  (pool.query, sql`...`) et confirme qu'aucune n'interpole une
+  variable directement dans la chaîne.
+- Stockage des mots de passe : hash, sel, algorithme utilisé.
+- Gestion des tokens JWT : durée d'expiration, révocation
+  (revoked_tokens), le logout invalide-t-il bien le token immédiatement ?
+- CORS : config actuelle, origin trop permissif en prod ?
+- Aucune info sensible (mot de passe, secret, clé API) dans les logs
+  serveur (grep console.log/console.error autour de auth/users).
+- Rate-limiting de connexion (auth.ts) : Map mémoire non purgée ?
+  Impact multi-instance ?
+
+LIVRABLE
+Section "Phase 0" et "Phase 1" du fichier AUDIT.md, horodatées.
