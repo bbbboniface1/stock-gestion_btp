@@ -7,6 +7,8 @@ import router from "./routes";
 import { logger } from "./lib/logger";
 
 const app: Express = express();
+// Trust the first proxy (Render, Vercel) so express-rate-limit reads the real client IP
+app.set("trust proxy", 1);
 
 app.use(helmet({
   contentSecurityPolicy: false,

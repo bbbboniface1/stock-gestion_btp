@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 
 export const companySettingsTable = pgTable("company_settings", {
   id: serial("id").primaryKey(),
@@ -9,6 +9,7 @@ export const companySettingsTable = pgTable("company_settings", {
   email: text("email"),
   taxNumber: text("tax_number"),
   currency: text("currency").notNull().default("EUR"),
+  defaultTaxRate: integer("default_tax_rate"),
   signatureText: text("signature_text"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

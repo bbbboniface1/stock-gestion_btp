@@ -20,6 +20,7 @@ const UpdateCompanyBody = z.object({
   email: z.string().email().nullish(),
   taxNumber: z.string().nullish(),
   currency: z.string().min(1).max(10).optional(),
+  defaultTaxRate: z.number().int().min(0).max(100).nullish(),
   signatureText: z.string().nullish(),
 });
 

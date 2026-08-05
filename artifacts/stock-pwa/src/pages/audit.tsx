@@ -194,12 +194,12 @@ export default function Audit() {
                 </div>
                 <div className="flex gap-3 mt-3">
                   <div className="flex items-center gap-1.5 text-xs font-mono">
-                    <TrendingUp className="h-3.5 w-3.5 text-green-500" />
-                    <span className="text-green-500 font-bold">+{u.totalIn}</span>
+                    <TrendingUp className="h-3.5 w-3.5 text-status-success" />
+                    <span className="text-status-success font-bold">+{u.totalIn}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs font-mono">
-                    <TrendingDown className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="text-orange-500 font-bold">-{u.totalOut}</span>
+                    <TrendingDown className="h-3.5 w-3.5 text-status-warning" />
+                    <span className="text-status-warning font-bold">-{u.totalOut}</span>
                   </div>
                 </div>
               </CardContent>

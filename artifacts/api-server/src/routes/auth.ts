@@ -1,7 +1,7 @@
 import { Router, IRouter, type RequestHandler } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { verifyPassword, generateToken, revokeToken } from "../lib/auth";
+import { verifyPassword, hashPassword, generateToken, revokeToken } from "../lib/auth";
 import { requireAuth, AuthenticatedRequest } from "../middlewares/auth";
 import { LoginBody } from "@workspace/api-zod";
 import { serializeDates } from "../lib/serialize";
@@ -43,6 +43,11 @@ router.post("/auth/login", loginLimiter, async (req, res): Promise<void> => {
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     res.status(401).json({ error: "Email ou mot de passe incorrect" });
     return;
+  }
+  // Auto-migrate legacy SHA-256 hash to bcrypt on successful login
+  if (!user.passwordHash.startsWith("$2")) {
+    const newHash = await hashPassword(password);
+    await db.update(usersTable).set({ passwordHash: newHash }).where(eq(usersTable.id, user.id));
   }
   const token = generateToken(user.id, user.role);
   res.json(serializeDates({

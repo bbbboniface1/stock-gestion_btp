@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useCreateInvoice, getInvoiceApiError, type CreateInvoiceItemInput } from "@/lib/invoiceApi";
 import { useListProducts } from "@workspace/api-client-react";
@@ -35,6 +35,10 @@ export default function InvoiceNew() {
   const [status, setStatus] = useState<"draft" | "unpaid" | "paid">("draft");
   const [notes, setNotes] = useState("");
   const [taxRate, setTaxRate] = useState(0);
+  // Pre-fill tax rate from company settings when they load
+  useEffect(() => {
+    if (company?.defaultTaxRate != null) setTaxRate(company.defaultTaxRate);
+  }, [company?.defaultTaxRate]);
   const [items, setItems] = useState<LineItem[]>([]);
 
   const [productSearch, setProductSearch] = useState("");
