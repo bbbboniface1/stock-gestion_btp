@@ -47,6 +47,7 @@ import { filterNavByRole } from "@/lib/permissions";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { InstallBanner } from "@/components/InstallBanner";
 import { useSyncQueue } from "@/hooks/useSyncQueue";
+import { useKeepAlive } from "@/hooks/useKeepAlive";
 
 const QUERY_CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 
@@ -346,6 +347,7 @@ function ScanFAB() {
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
+  useKeepAlive();
   if (!token) return <Redirect to="/login" />;
 
   return (

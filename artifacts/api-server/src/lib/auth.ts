@@ -54,8 +54,19 @@ export async function revokeToken(token: string): Promise<void> {
     .onConflictDoNothing();
 }
 
+// Cleanup expired revoked tokens at most once per minute across all requests
+let lastRevokedCleanupAt = 0;
+const REVOKED_CLEANUP_INTERVAL_MS = 60_000;
+
 export async function isTokenRevoked(token: string): Promise<boolean> {
-  await db.delete(revokedTokensTable).where(lt(revokedTokensTable.expiresAt, new Date()));
+  const now = Date.now();
+  if (now - lastRevokedCleanupAt > REVOKED_CLEANUP_INTERVAL_MS) {
+    lastRevokedCleanupAt = now;
+    // Fire-and-forget: cleanup failure must not block the auth check
+    db.delete(revokedTokensTable)
+      .where(lt(revokedTokensTable.expiresAt, new Date()))
+      .catch(() => { /* non-critical, will retry next interval */ });
+  }
 
   const [row] = await db
     .select({ tokenHash: revokedTokensTable.tokenHash })

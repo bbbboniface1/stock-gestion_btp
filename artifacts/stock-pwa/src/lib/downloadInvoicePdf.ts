@@ -3,9 +3,17 @@ import { appPath } from "@/lib/paths";
 
 export async function downloadInvoicePdf(invoiceId: number, invoiceNumber: string): Promise<void> {
   const token = useAuthStore.getState().token;
-  const response = await fetch(appPath(`/api/invoices/${invoiceId}/pdf`), {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 60_000); // PDF generation can take a moment
+  let response: Response;
+  try {
+    response = await fetch(appPath(`/api/invoices/${invoiceId}/pdf`), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
   if (!response.ok) {
     throw new Error("Erreur lors du téléchargement du PDF");
   }

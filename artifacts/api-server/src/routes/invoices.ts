@@ -364,6 +364,9 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="facture-${data.invoiceNumber}.pdf"`);
     doc.pipe(res);
+    // If PDFKit emits an error after piping has started (headers already sent),
+    // force-close the connection so the client is not left waiting indefinitely.
+    doc.on("error", () => { if (!res.writableEnded) res.destroy(); });
 
     const W = 495;
     const ORANGE = "#ea580c";
@@ -533,6 +536,9 @@ router.get("/invoices/:id/pdf", requireAuth, requireRole("admin", "manager"), as
   } catch {
     if (!res.headersSent) {
       res.status(500).json({ error: "Erreur lors de la génération du PDF" });
+    } else if (!res.writableEnded) {
+      // Headers already sent (piping started): force-close so client is not left hanging
+      res.destroy();
     }
   }
 });
