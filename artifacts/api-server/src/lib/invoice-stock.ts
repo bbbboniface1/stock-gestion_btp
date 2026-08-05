@@ -6,6 +6,7 @@ import {
   type StockMovement,
 } from "@workspace/db";
 import { and, eq, gte, sql, isNull } from "drizzle-orm";
+import { calculateInvoiceTotals } from "@workspace/api-zod";
 
 type DbClient = Pick<typeof db, "select" | "insert" | "update" | "delete" | "execute">;
 
@@ -194,14 +195,6 @@ export async function reverseStockForUnpaidInvoice(
   }
 }
 
-export function calculateInvoiceTotals(
-  items: Array<{ quantity: number; unitPrice: number }>,
-  taxRate = 0,
-) {
-  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const taxAmount = Math.round(subtotal * taxRate) / 100;
-  const total = subtotal + taxAmount;
-  return { subtotal, taxAmount, total };
-}
+export { calculateInvoiceTotals };
 
 export type { StockMovement };

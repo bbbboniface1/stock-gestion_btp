@@ -72,7 +72,14 @@ function isIdempotencyUniqueViolation(error: unknown): boolean {
 }
 
 router.get("/stock-movements", requireAuth, async (req, res): Promise<void> => {
-  const params = ListStockMovementsQueryParams.safeParse(req.query);
+  // Accept camelCase aliases alongside the existing snake_case params (Option 1 — non-breaking)
+  const rawQuery = { ...req.query } as Record<string, unknown>;
+  if (rawQuery.productId !== undefined && rawQuery.product_id === undefined) rawQuery.product_id = rawQuery.productId;
+  if (rawQuery.projectId !== undefined && rawQuery.project_id === undefined) rawQuery.project_id = rawQuery.projectId;
+  if (rawQuery.fromDate  !== undefined && rawQuery.from_date  === undefined) rawQuery.from_date  = rawQuery.fromDate;
+  if (rawQuery.toDate    !== undefined && rawQuery.to_date    === undefined) rawQuery.to_date    = rawQuery.toDate;
+
+  const params = ListStockMovementsQueryParams.safeParse(rawQuery);
   if (!params.success) { res.status(400).json({ error: params.error.message }); return; }
 
   const { product_id, project_id, type, from_date, to_date, limit = 50, offset = 0 } = params.data;

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useCreateInvoice, getInvoiceApiError, type CreateInvoiceItemInput } from "@/lib/invoiceApi";
 import { useListProducts } from "@workspace/api-client-react";
+import { calculateInvoiceTotals } from "@workspace/api-zod";
 import { useCompany } from "@/contexts/CompanyContext";
 import { CompanyBranding } from "@/components/CompanyBranding";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
